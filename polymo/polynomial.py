@@ -102,14 +102,14 @@ class Polynomial:
                 return monomial.get_constant()
         return None
 
-    def substitute_var_by_symbol(self, var: str, symbol: str) -> "Polynomial":
+    def substitute_var_by_symbol(self, var: str, symbol: str) -> SymbolicPolynomial:
         assert var in self.var_generators, f"Variable -{var}- is not in var_generators list"
         new_poly = SymbolicPolynomial.zero_polynomial(self.var_generators)
         for monomial in self.monomials:
             new_poly.add_polynomial(monomial.substitute_var_by_symbol(var, symbol))
         return new_poly
 
-    def substitute_vars_by_symbols_simultaneous(self, updates: dict) -> "Polynomial":
+    def substitute_vars_by_symbols_simultaneous(self, updates: dict) -> SymbolicPolynomial:
         for var in updates:
             assert var in self.var_generators, f"Variable -{var}- is not in var_generators list"
         new_poly = SymbolicPolynomial.zero_polynomial(self.var_generators)

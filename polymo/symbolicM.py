@@ -82,7 +82,7 @@ class SymbolicMonomial:
         assert (var in self.var_generators)
         polynomial = polynomial.get_copy()
         index_of_var = self.var_generators.index(var)
-        power_of_var = self.powers[index_of_var]
+        power_of_var = int(self.powers[index_of_var])
         # replacement_poly is defined as polynomial^power_of_var
         replacement_poly = Polynomial.one_polynomial(self.var_generators)
         for _ in range(power_of_var):
@@ -113,7 +113,7 @@ class SymbolicMonomial:
         for var in updates:
             index_of_var = self.var_generators.index(var)
             polynomial = updates[var].get_copy()
-            for _ in range(self.powers[index_of_var]):
+            for _ in range(int(self.powers[index_of_var])):
                 replacement_poly.multiply_by_polynomial(polynomial)
         # create a symbolic polynomial from replacement_poly by multiplying each constant by the symbolic constant of the monomial
         symbolic_poly_monomials = set()
