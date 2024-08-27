@@ -80,7 +80,7 @@ class SymbolicMonomial:
     def substitute_var_by_poly(self, var, polynomial):
         assert (self.var_generators == polynomial.get_var_generators())
         assert (var in self.var_generators)
-        polynomial = polynomial.deep_copy_poly()
+        polynomial = polynomial.get_copy()
         index_of_var = self.var_generators.index(var)
         power_of_var = self.powers[index_of_var]
         # replacement_poly is defined as polynomial^power_of_var
@@ -112,7 +112,7 @@ class SymbolicMonomial:
                 replacement_poly.multiply_by_monomial(mono)
         for var in updates:
             index_of_var = self.var_generators.index(var)
-            polynomial = updates[var].deep_copy_poly()
+            polynomial = updates[var].get_copy()
             for _ in range(self.powers[index_of_var]):
                 replacement_poly.multiply_by_polynomial(polynomial)
         # create a symbolic polynomial from replacement_poly by multiplying each constant by the symbolic constant of the monomial
@@ -135,7 +135,7 @@ class SymbolicMonomial:
         self.constant = self.constant[1:] if self.constant[0] == "-" else "-" + self.constant
         # self.constant = "-1*(" + self.constant + ")"
 
-    def substitute_var_by_symbol(self, var, symbol):
+    def substitute_var_by_symbol(self, var: str, symbol: str) -> SymbolicPolynomial:
         assert var in self.var_generators, f"Variable -{var}- is not in var_generators list"
         monomial = Monomial.one_monomial(self.var_generators)
         for i, var_gen in enumerate(self.var_generators):
@@ -152,19 +152,20 @@ class SymbolicMonomial:
             constant += f" * {symbol}"
         return SymbolicPolynomial(self.var_generators, {SymbolicMonomial(self.var_generators, constant, powers)})
 
-    def substitute_var_by_symbol_simultaneous(self, updates):
+    def substitute_var_by_symbol_simultaneous(self, updates: dict[str, str]) -> SymbolicPolynomial:
         monomial = Monomial.one_monomial(self.var_generators)
         for i in range(len(self.var_generators)):
             if self.var_generators[i] not in updates:
                 monomial.multiply_by_monomial(
-                    Monomial.single_var_of_power(self.var_generators, self.var_generators[i], self.powers[i]))
-        constant = str(self.constant)
-        powers = monomial.get_powers()
+                    Monomial.single_var_of_power(self.var_generators, self.var_generators[i], self.powers[i])
+                )
+        constant = self.constant
+        powers = monomial.get_powers(as_str=True)
         for var in updates:
             index = self.var_generators.index(var)
-            if self.powers[index] >= 2:
+            if int(self.powers[index]) >= 2:
                 constant = constant + "*" + updates[var] + "**" + str(self.powers[index])
-            elif self.powers[index] == 1:
+            elif int(self.powers[index]) == 1:
                 constant = constant + "*" + updates[var]
         return SymbolicPolynomial(self.var_generators, {SymbolicMonomial(self.var_generators, constant, powers)})
 

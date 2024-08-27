@@ -44,7 +44,9 @@ class Monomial:
     def get_constant(self) -> float:
         return self.constant
 
-    def get_powers(self) -> List[int]:
+    def get_powers(self, as_str=False) -> Union[List[int], List[str]]:
+        if as_str:
+            return [str(power) for power in self.powers]
         return self.powers
 
     def get_var_generators(self) -> List[str]:
@@ -93,7 +95,7 @@ class Monomial:
     def substitute_var_by_poly(self, var: str, polynomial: Polynomial) -> Polynomial:
         assert (self.var_generators == polynomial.get_var_generators()), f"Variable generators do not match ({self.var_generators} != {polynomial.get_var_generators()})"
         assert (var in self.var_generators), f"Variable -{var}- is not in variable generators"
-        polynomial = polynomial.deep_copy_poly()
+        polynomial = polynomial.get_copy()
 
         new_poly = Polynomial.one_polynomial(self.var_generators)
         new_poly.multiply_by_const(self.constant)
