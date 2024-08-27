@@ -6,7 +6,7 @@ from src.system.equation import Equation
 
 
 @dataclass
-class SystemActionSpace:
+class SystemActionPolicy:
     action_space: Space
     equations: List[Equation]
 
