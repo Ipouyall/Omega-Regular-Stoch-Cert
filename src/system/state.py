@@ -18,7 +18,6 @@ class SystemState:
     """
     state_values: List[Number]
     dimension: Union[int, None] = None
-    dist_params = Dict[str, float] = {}
 
     def __post_init__(self):
         """
