@@ -39,3 +39,10 @@ class Equation:
 
     def __str__(self) -> str:
         return " + ".join([str(m) for m in self.monomials])
+
+    def __call__(self, *args, **kwargs):
+        _eq = str(self)
+        for k, v in kwargs.items():
+            _eq = _eq.replace(k, str(v))
+        _eq_v = eval(_eq)
+        return _eq_v
