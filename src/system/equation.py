@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from numbers import Number
-from typing import Sequence
-
+from typing import Sequence, List
 
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
 
@@ -14,15 +13,33 @@ class Monomial:
     coefficient: Number = 0
     is_coefficient_known: bool = field(init=False, default=False)
 
-    def coefficient_known(self) -> bool:
+    def known_coefficient(self) -> bool:
         return self.is_coefficient_known
 
     def set_coefficient_value(self, value: float) -> None:
         self.coefficient = value
         self.is_coefficient_known = True
 
+    def __eq__(self, other):
+        if not isinstance(other, Monomial):
+            return False
+        if len(self.variable_generators) != len(other.variable_generators):
+            return False
+        vp = {v: p for v, p in zip(self.variable_generators, self.power)}
+        o_vp = {v: p for v, p in zip(other.variable_generators, other.power)}
+
+        return vp == o_vp
+
+    def __add__(self, other):
+        if not isinstance(other, Monomial):
+            return NotImplemented
+        if self == other:
+            self.coefficient += other.coefficient
+            return self
+        return NotImplemented
+
     def __str__(self) -> str:
-        _coefficients = str(self.coefficient) if self.coefficient_known() else self.symbolic_coefficient
+        _coefficients = str(self.coefficient) if self.known_coefficient() else self.symbolic_coefficient
 
         _variables = [_to_power(v, p) for v, p in zip(self.variable_generators, self.power)]
 
@@ -34,7 +51,15 @@ class Equation:
     """"
     Each equation is a sequence of monomials, summing together to form a polynomial.
     """
-    monomials: Sequence[Monomial]
+    monomials: List[Monomial] = field(default_factory=list)
+
+    def add_monomial(self, monomial: Monomial) -> None: # TODO: not an efficient way!
+        if monomial not in self.monomials:
+            self.monomials.append(monomial)
+            return
+        idx = self.monomials.index(monomial)
+        self.monomials[idx] += monomial
+
 
     def __str__(self) -> str:
         return " + ".join([str(m) for m in self.monomials])
