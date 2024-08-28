@@ -1,10 +1,14 @@
+from abc import ABC
 from dataclasses import dataclass, field
 from typing import Tuple, Generator, Optional
 import numpy as np
 
 
+__valid__distributions__ = ["normal"]
+
+
 @dataclass
-class NormalNoiseGenerator:  # TODO: later we have to add expectations for each distribution
+class NormalNoiseGenerator(Generator, ABC):  # TODO: later we have to add expectations for each distribution
     """
     A class to generate noise based on the normal distribution, with state preservation.
 
@@ -67,9 +71,16 @@ class SystemStochasticNoise:
 
     dimension: int
     distribution_name: str
-    noise_generators: Generator[None, Tuple[float]]
+    distribution_generator_parameters: dict
+    noise_generators: Generator = field(init=False)
 
-    # TODO: later in post-init, initialize the noise generators based on the distribution name
+    def __post_init__(self):
+        if self.distribution_name not in __valid__distributions__:
+            raise ValueError(f"Invalid distribution name: {self.distribution_name}. \
+            Valid distributions are: {__valid__distributions__}")
+
+        if self.distribution_name == "normal":
+            self.noise_generators = NormalNoiseGenerator(**self.distribution_generator_parameters)
 
     def get_expectations(self, max_deg): pass # TODO: Complete this
 
