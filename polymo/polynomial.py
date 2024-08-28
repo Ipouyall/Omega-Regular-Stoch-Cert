@@ -1,6 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import List, Set, Union, Generator
+from typing import List, Set, Union
 
 from polymo.monomial import Monomial
 from polymo.symbolicP import SymbolicPolynomial

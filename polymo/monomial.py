@@ -1,6 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import List, Union, Generator
+from typing import List, Union
 
 from polymo import logger
 from polymo.polynomial import Polynomial

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from logging import getLogger
 
-from src.system.action import SystemActionPolicy
+from src.system.action import SystemControlPolicy
 from src.system.config import SynthesisConfig
 from src.system.dynamics import SystemDynamics
 from src.system.noise import SystemStochasticNoise
@@ -18,7 +18,7 @@ class ToolInput:
 
     Attributes:
         state_space (Space): The state space and its dimensionality.
-        action_policy (SystemActionSpace): The action space and its dimensionality.
+        action_policy (SystemControlPolicy): The action space and its dimensionality.
         disturbance (SystemStochasticNoise): The stochastic disturbance space and its dimensionality.
         dynamics (SystemDynamics): The system dynamics function.
         initial_states (Space): The initial set of states defined by inequalities.
@@ -28,7 +28,7 @@ class ToolInput:
         synthesis_config (SynthesisConfig): Configuration settings for the synthesis, including max polynomial degree and expected values.
     """
     state_space: Space
-    action_policy: SystemActionPolicy
+    action_policy: SystemControlPolicy
     disturbance: SystemStochasticNoise
     dynamics: SystemDynamics
     initial_states: Space

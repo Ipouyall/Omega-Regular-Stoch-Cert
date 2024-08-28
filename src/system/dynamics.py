@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Callable, Sequence
 
+from src.system import SystemControlPolicy, SystemStochasticNoise
+from src.system.state import SystemState
+
 
 @dataclass
 class SystemDynamics:
@@ -12,4 +15,4 @@ class SystemDynamics:
             A function representing the system dynamics. The function takes three tuples
             (state, action, disturbance) and returns a tuple representing the new state.
     """
-    f: Callable[[State, Tuple[float], Tuple[float]], Tuple[float]]
+    f: Callable[[SystemState, SystemControlPolicy, SystemStochasticNoise], SystemState]
