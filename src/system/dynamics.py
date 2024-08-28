@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Callable
 
 from src.system import SystemControlPolicy, SystemStochasticNoise
 from src.system.state import SystemState

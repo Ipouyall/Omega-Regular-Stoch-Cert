@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union, Dict
+from typing import List, Union
 from numbers import Number
 
 from src.system import logger
