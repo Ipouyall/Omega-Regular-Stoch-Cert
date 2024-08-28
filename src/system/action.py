@@ -8,7 +8,7 @@ from src.system.equation import Equation
 @dataclass
 class SystemActionPolicy:
     action_space: Space
-    equations: List[Equation]
+    transitions: List[Equation]
 
     # TODO: add "action validation" and "next action" methods
 
