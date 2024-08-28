@@ -12,7 +12,7 @@ class Monomial:
     variable_generators: Sequence[str]
     power: Sequence[Number]
     coefficient: Number = 0
-    is_coefficient_known: field(init=False) = False
+    is_coefficient_known: bool = field(init=False, default=False)
 
     def coefficient_known(self) -> bool:
         return self.is_coefficient_known

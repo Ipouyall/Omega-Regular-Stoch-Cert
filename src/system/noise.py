@@ -4,7 +4,7 @@ import numpy as np
 
 
 @dataclass
-class NormalNoiseGenerator:
+class NormalNoiseGenerator:  # TODO: later we have to add expectations for each distribution
     """
     A class to generate noise based on the normal distribution, with state preservation.
 
@@ -25,7 +25,13 @@ class NormalNoiseGenerator:
         """
         Initializes the random number generator after the dataclass has been created.
         """
-        self.rng = np.random.default_rng()
+        self._set_rng()
+
+    def _set_rng(self):
+        if self.seed is not None:
+            self.rng = np.random.default_rng(self.seed)
+        else:
+            self.rng = np.random.default_rng()
 
     def generate_noise(self) -> Tuple[float, ...]:
         """
@@ -46,6 +52,7 @@ class NormalNoiseGenerator:
         return self.generate_noise()
 
     def __iter__(self):
+        self._set_rng()
         return self
 
     def __next__(self):
