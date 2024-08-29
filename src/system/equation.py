@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from numbers import Number
 from typing import Sequence, List
 
+from polymo import logger
+
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
 
 
@@ -32,10 +34,23 @@ class Monomial:
 
     def __add__(self, other):
         if not isinstance(other, Monomial):
+            logger.warning(f"Cannot add Monomial with {type(other)}")
             return NotImplemented
         if self == other:
-            self.coefficient += other.coefficient
-            return self
+            _coefficient1 = self.coefficient if self.known_coefficient() else self.symbolic_coefficient
+            _coefficient2 = other.coefficient if other.known_coefficient() else other.symbolic_coefficient
+            if not other.known_coefficient():
+                _coefficient = f"{_coefficient1} + {_coefficient2}"
+            elif other.coefficient > 0:
+                _coefficient = f"{_coefficient1} + {_coefficient2}"
+            elif other.coefficient < 0:
+                _coefficient = f"{_coefficient1} - {abs(_coefficient2)}"
+            else:
+                logger.warning(f"Cannot add Monomial with coefficient {other.coefficient}")
+                return NotImplemented
+            _monomial = Monomial(_coefficient, self.variable_generators, self.power)
+            return _monomial
+        logger.warning(f"Cannot add Monomial with {other}")
         return NotImplemented
 
     def __str__(self) -> str:
@@ -45,6 +60,8 @@ class Monomial:
         if len(_variables) == 0:
             return f"({_coefficients})"
 
+        if not self.known_coefficient() and ("+" in _coefficients or "-" in _coefficients):
+            _coefficients = f"({_coefficients})"
         return f"({_coefficients} * {' * '.join(_variables)})"
 
 
@@ -60,7 +77,7 @@ class Equation:
             self.monomials.append(monomial)
             return
         idx = self.monomials.index(monomial)
-        self.monomials[idx] += monomial
+        self.monomials[idx] = self.monomials[idx] + monomial
 
 
     def __str__(self) -> str:
