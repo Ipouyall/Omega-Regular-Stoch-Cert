@@ -1,10 +1,11 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from numbers import Number
-from typing import Sequence
+from typing import Sequence, Union
+from itertools import product
 
-from src.system import Space
-from src.system.equation import Equation
+from src.system.space import Space
+from src.system.equation import Equation, Monomial
 from src.system.state import SystemState
 
 
@@ -17,17 +18,35 @@ class SystemAction:
 class SystemControlPolicy:
     action_space: Space
     dimension: int
-    transitions: Sequence[Equation]
+    state_dimension: int
+    maximal_degree: int
+    transitions: Union[None, Sequence[Equation]] = None
 
     # TODO: add "action validation" and "next action" methods
+
+    def __post_init__(self):
+        if self.transitions is None:
+            self._initialize_control_policy()
 
     def update_control_policy(self, new_policy: Sequence[Equation]) -> None:
         self.transitions = deepcopy(new_policy)
 
     def _initialize_control_policy(self) -> None:
         _transitions = []
-        for dim_num, _ in enumerate(range(self.dimension)): pass # TODO: add equation for each dimension
+        variable_generators = [f"S{i}" for i in range(1, self.state_dimension + 1)]
+        power_combinations = list(product(range(self.maximal_degree + 1), repeat=self.state_dimension))
 
+        for i in range(1, self.dimension+1):
+            _monomials = [
+                Monomial(
+                    symbolic_coefficient=f"P{i}_{i2}",
+                    variable_generators=variable_generators,
+                    power=powers
+                ) for i2, powers in enumerate(power_combinations, start=1)
+            ]
+            _equation = Equation(monomials=_monomials)
+            _transitions.append(_equation)
+        self.transitions = _transitions
 
     def __call__(self, state: SystemState) -> SystemAction: pass # TODO: implement this method after designing communication API
 

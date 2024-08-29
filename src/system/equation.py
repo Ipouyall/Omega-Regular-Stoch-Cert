@@ -41,7 +41,9 @@ class Monomial:
     def __str__(self) -> str:
         _coefficients = str(self.coefficient) if self.known_coefficient() else self.symbolic_coefficient
 
-        _variables = [_to_power(v, p) for v, p in zip(self.variable_generators, self.power)]
+        _variables = [_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0]
+        if len(_variables) == 0:
+            return f"({_coefficients})"
 
         return f"({_coefficients} * {' * '.join(_variables)})"
 
