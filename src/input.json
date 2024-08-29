@@ -1,0 +1,25 @@
+{
+  "state_space": "0 <= S1 <= 2 and -2 <= S2 <= 0",
+  "state_space_dimension": 2,
+  "initial_state": "1 <= SI1 <= 2 and -1 <= SI2 <= 0",
+  "target_states": "0 <= ST1 <= 1 and -1 <= ST2 <= 0",
+  "unsafe_states": "1 <= SU1 <= 2 and -2 <= SU2 <= -1",
+
+  "action_space": "0 <= A1 <= 1 and -1 <= A2 <= 1",
+  "action_space_dimension": 2,
+  "action_policy": "",
+
+  "disturbance_dimension": 2,
+  "disturbance_distribution_name": "normal",
+  "disturbance_parameters": {
+    "mean": [0, 0],
+    "covariance": [1, 5],
+    "seed": 42
+  },
+
+  "system_dynamic": "",
+
+  "probability_threshold": 0.1,
+  "synthesis_config": {}
+}
+

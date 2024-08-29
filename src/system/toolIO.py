@@ -26,9 +26,12 @@ class ToolInput:
     state_space: Space
     action_policy: SystemControlPolicy
     disturbance: SystemStochasticNoise
-    dynamics: SystemDynamics
+    dynamics: SystemDynamics  # todo: need to specify input format for this
     initial_states: Space
     target_states: Space
     unsafe_states: Space
     probability_threshold: float
     synthesis_config: SynthesisConfig
+
+
+# in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
