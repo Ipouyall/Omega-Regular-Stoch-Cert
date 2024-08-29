@@ -30,3 +30,32 @@ _State space dimensionality_, _Action space dimensionality_, and _maximal polyno
 
 ---
 
+# Environment Dynamics
+
+The environment dynamics are defined as a function that takes 
+the _current state vector of values_,
+_action_, and _stochastic noise values_ (disturbance)
+as input and returns the next state. Expected notations for formulation are as below:
+
+$$
+\begin{align*}
+\mathbf{S} &= \begin{bmatrix} S1 & S2 & \ldots & Sn \end{bmatrix}
+\end{align*}
+$$
+
+$$
+\begin{align*}
+\mathbf{A} &= \begin{bmatrix} A1 & A2 & \ldots & Am \end{bmatrix}
+\end{align*}
+$$
+
+$$
+\begin{align*}
+\mathbf{D} &= \begin{bmatrix} D1 & D2 & \ldots & Dk \end{bmatrix}
+\end{align*}
+$$
+
+There would exist **n** equations for defining each state output dimension.
+
+---
+

@@ -50,5 +50,5 @@ class SystemState:
         Returns:
             str: A string representing the state values.
         """
-        return f"State: {self.state_values}"
+        return f"State x{self.dimension}: {self.state_values}"
 
