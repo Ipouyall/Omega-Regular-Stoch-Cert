@@ -34,7 +34,8 @@ class SystemControlPolicy:
     def _initialize_control_policy(self) -> None:
         _transitions = []
         variable_generators = [f"S{i}" for i in range(1, self.state_dimension + 1)]
-        power_combinations = list(product(range(self.maximal_degree + 1), repeat=self.state_dimension))
+        power_combinations = product(range(self.maximal_degree + 1), repeat=self.state_dimension)
+        power_combinations = [powers for powers in power_combinations if sum(powers) <= self.maximal_degree]
 
         for i in range(1, self.dimension+1):
             _monomials = [
