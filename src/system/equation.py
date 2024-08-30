@@ -32,10 +32,8 @@ class Monomial:
 
         return vp == o_vp
 
-    def __add__(self, other):
-        if not isinstance(other, Monomial):
-            logger.warning(f"Cannot add Monomial with {type(other)}")
-            return NotImplemented
+    @classmethod
+    def _add_coefficients(cls, self, other):
         if self == other:
             _coefficient1 = self.coefficient if self.known_coefficient() else self.symbolic_coefficient
             _coefficient2 = other.coefficient if other.known_coefficient() else other.symbolic_coefficient
@@ -52,6 +50,18 @@ class Monomial:
             return _monomial
         logger.warning(f"Cannot add Monomial with {other}")
         return NotImplemented
+
+    def __add__(self, other):
+        if not isinstance(other, Monomial):
+            logger.warning(f"Cannot add Monomial with {type(other)}")
+            return NotImplemented
+        return self._add_coefficients(self, other)
+
+    def __iadd__(self, other):
+        if not isinstance(other, Monomial):
+            logger.warning(f"Cannot add Monomial with {type(other)}")
+            return NotImplemented
+        return self._add_coefficients(self, other)
 
     def __str__(self) -> str:
         _coefficients = str(self.coefficient) if self.known_coefficient() else self.symbolic_coefficient
