@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Union
 from numbers import Number
 
-from src.system import logger
+from . import logger
 
 
 @dataclass

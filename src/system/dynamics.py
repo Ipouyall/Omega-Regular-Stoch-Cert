@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import List
 
-from src.system import SystemControlPolicy, SystemStochasticNoise
-from src.system.state import SystemState
+from .equation import Equation
 
 
 @dataclass
@@ -15,4 +14,14 @@ class SystemDynamics:
             A function representing the system dynamics. The function takes three tuples
             (state, action, disturbance) and returns a tuple representing the new state.
     """
-    f: Callable[[SystemState, SystemControlPolicy, SystemStochasticNoise], SystemState]
+    state_dimension: int
+    action_dimension: int
+    disturbance_dimension: int
+    system_transformers: List[Equation]
+
+    def __post_init__(self):
+        if len(self.system_transformers) == 0:
+            raise ValueError("At least one system transformer must be provided.")
+
+        if len(self.system_transformers) != self.state_dimension:
+            raise ValueError(f"The number of system transformers must match the state dimension. ({len(self.system_transformers)} != {self.state_dimension})")

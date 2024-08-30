@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from numbers import Number
-from typing import Sequence, List
+from typing import Sequence, List, Optional
 
-from polymo import logger
+from . import logger
 
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
 
@@ -12,8 +12,20 @@ class Monomial:
     symbolic_coefficient: str
     variable_generators: Sequence[str]
     power: Sequence[Number]
-    coefficient: Number = 0
+    coefficient: Optional[float] = field(init=False, default=None)
     is_coefficient_known: bool = field(init=False, default=False)
+
+    def __post_init__(self):
+        if len(self.variable_generators) != len(self.power):
+            logger.error(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
+            raise ValueError(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
+        if len(self.symbolic_coefficient) == 0:
+            logger.warning("Empty coefficient provided, setting it to 1")
+            self.symbolic_coefficient = "1"
+        if self.symbolic_coefficient.isnumeric():
+            self.coefficient = float(self.symbolic_coefficient)
+        if self.coefficient is not None:
+            self.is_coefficient_known = True
 
     def known_coefficient(self) -> bool:
         return self.is_coefficient_known
@@ -38,16 +50,15 @@ class Monomial:
             _coefficient1 = self.coefficient if self.known_coefficient() else self.symbolic_coefficient
             _coefficient2 = other.coefficient if other.known_coefficient() else other.symbolic_coefficient
             if not other.known_coefficient():
-                _coefficient = f"{_coefficient1} + {_coefficient2}"
+                _coefficient = f"{_coefficient1} + {_coefficient2}" if _coefficient2[0] != "-" else f"{_coefficient1} + ({_coefficient2})"
             elif other.coefficient > 0:
                 _coefficient = f"{_coefficient1} + {_coefficient2}"
             elif other.coefficient < 0:
-                _coefficient = f"{_coefficient1} - {abs(_coefficient2)}"
+                _coefficient = f"{_coefficient1} + (-{abs(_coefficient2)})"
             else:
                 logger.warning(f"Cannot add Monomial with coefficient {other.coefficient}")
                 return NotImplemented
-            _monomial = Monomial(_coefficient, self.variable_generators, self.power)
-            return _monomial
+            return Monomial(_coefficient, self.variable_generators, self.power)
         logger.warning(f"Cannot add Monomial with {other}")
         return NotImplemented
 
@@ -74,6 +85,36 @@ class Monomial:
             _coefficients = f"({_coefficients})"
         return f"({_coefficients} * {' * '.join(_variables)})"
 
+    @classmethod
+    def extract_monomial_from_string(cls, monomial: str) -> "Monomial":
+        """
+        The input expected to be as examples below:
+        Simple: {one non-negative or symbolic constant} * {variable1} ** {power1} * {variable2} ** {power2} * ... >> 2 * x ** 2 * y ** 3
+        For negative constants:
+
+        """
+        if len(monomial) == 0:
+            return Monomial("1", [], [])
+        if monomial[0] == "(" and monomial[-1] == ")":
+            monomial = monomial[1:-1]
+        monomial = monomial.replace(" ", "")
+        if "*" not in monomial:
+            return Monomial(monomial, [], [])
+        monomial = monomial.replace("**", "^")
+        monomial_parts = monomial.split("*")
+        _constant, var_pow = monomial_parts[0], monomial_parts[1:]
+        _variables = []
+        _powers = []
+        for vp in var_pow:
+            if "^" in vp:
+                v, p = vp.split("^")
+                _variables.append(v)
+                _powers.append(int(p))
+            else:
+                _variables.append(vp)
+                _powers.append(1)
+            return Monomial(_constant, _variables, _powers)
+
 
 @dataclass
 class Equation:
@@ -99,3 +140,8 @@ class Equation:
             _eq = _eq.replace(k, str(v))
         _eq_v = eval(_eq)
         return _eq_v
+
+    # @classmethod
+    # def extract_equation_from_string(cls, equation: str) -> "Equation":
+    #     monomials = equation.split("+")
+    #     _equation = Equation()

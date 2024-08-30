@@ -4,9 +4,9 @@ from numbers import Number
 from typing import Sequence, Union
 from itertools import product
 
-from src.system.space import Space
-from src.system.equation import Equation, Monomial
-from src.system.state import SystemState
+from .space import Space
+from .equation import Equation, Monomial
+from .state import SystemState
 
 
 @dataclass
@@ -17,7 +17,6 @@ class SystemAction:
 @dataclass
 class SystemControlPolicy:
     action_space: Space
-    dimension: int
     state_dimension: int
     maximal_degree: int
     transitions: Union[None, Sequence[Equation]] = None
@@ -25,7 +24,7 @@ class SystemControlPolicy:
     # TODO: add "action validation" and "next action" methods
 
     def __post_init__(self):
-        if self.transitions is None:
+        if self.transitions is None or not self.transitions:
             self._initialize_control_policy()
 
     def update_control_policy(self, new_policy: Sequence[Equation]) -> None:
@@ -37,7 +36,7 @@ class SystemControlPolicy:
         power_combinations = product(range(self.maximal_degree + 1), repeat=self.state_dimension)
         power_combinations = [powers for powers in power_combinations if sum(powers) <= self.maximal_degree]
 
-        for i in range(1, self.dimension+1):
+        for i in range(1, self.action_space.dimension+1):
             _monomials = [
                 Monomial(
                     symbolic_coefficient=f"P{i}_{i2}",

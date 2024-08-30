@@ -8,7 +8,7 @@ __valid__distributions__ = ["normal"]
 
 
 @dataclass
-class NormalNoiseGenerator(Generator, ABC):  # TODO: later we have to add expectations for each distribution
+class NormalNoiseGenerator():  # TODO: later we have to add expectations for each distribution
     """
     A class to generate noise based on the normal distribution, with state preservation.
 
@@ -19,9 +19,9 @@ class NormalNoiseGenerator(Generator, ABC):  # TODO: later we have to add expect
         seed (Optional[int]): Optional seed for reproducibility.
         rng (np.random.Generator): A random number generator instance.
     """
-    mean: float = 0.0
-    std_dev: float = 1.0
-    dimension: int = 1
+    mean: float
+    std_dev: float
+    dimension: int
     seed: Optional[int] = None
     rng: np.random.Generator = field(init=False)
 
@@ -80,7 +80,7 @@ class SystemStochasticNoise:
             Valid distributions are: {__valid__distributions__}")
 
         if self.distribution_name == "normal":
-            self.noise_generators = NormalNoiseGenerator(**self.distribution_generator_parameters)
+            self.noise_generators = NormalNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
 
     def get_expectations(self, max_deg): pass # TODO: Complete this
 

@@ -1,25 +1,48 @@
 {
-  "state_space": "0 <= S1 <= 2 and -2 <= S2 <= 0",
-  "state_space_dimension": 2,
-  "initial_state": "1 <= SI1 <= 2 and -1 <= SI2 <= 0",
-  "target_states": "0 <= ST1 <= 1 and -1 <= ST2 <= 0",
-  "unsafe_states": "1 <= SU1 <= 2 and -2 <= SU2 <= -1",
-
-  "action_space": "0 <= A1 <= 1 and -1 <= A2 <= 1",
-  "action_space_dimension": 2,
-  "action_policy": "",
-
-  "disturbance_dimension": 2,
-  "disturbance_distribution_name": "normal",
-  "disturbance_parameters": {
-    "mean": [0, 0],
-    "covariance": [1, 5],
-    "seed": 42
+  "states": {
+    "space_dimension": 2,
+    "system_space": "0 <= S1 <= 2 and -2 <= S2 <= 0",
+    "initial_space": "1 <= SI1 <= 2 and -1 <= SI2 <= 0",
+    "target_space": "0 <= ST1 <= 1 and -1 <= ST2 <= 0",
+    "unsafe_space": "1 <= SU1 <= 2 and -2 <= SU2 <= -1"
   },
 
-  "system_dynamic": "",
+  "actions": {
+    "space": "0 <= A1 <= 1 and -1 <= A2 <= 1",
+    "space_dimension": 2,
+    "control_policy": ""
+  },
 
-  "probability_threshold": 0.1,
-  "synthesis_config": {}
+  "disturbance": {
+    "dimension": 2,
+    "distribution_name": "normal",
+    "disturbance_parameters": {
+      "mean": [
+        0,
+        0
+      ],
+      "std_dev": [
+        1,
+        5
+      ],
+      "seed": 42
+    }
+  },
+
+  "system_dynamic": {
+    "transformations": [
+      "21",
+      "S1 + S2 * A1"
+    ]
+  },
+
+  "RASM_config": {
+    "probability_threshold": 0.1
+  },
+
+  "synthesis_config": {
+    "maximal_polynomial_degree": 2,
+    "theorem_name": "handelman",
+    "solver_name": "z3"
+  }
 }
-
