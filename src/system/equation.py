@@ -27,6 +27,9 @@ class Monomial:
         if self.coefficient is not None:
             self.is_coefficient_known = True
 
+        _coefficient_refined = self.symbolic_coefficient.replace("(", "").replace(")", "").replace(" ", "")
+        self.symbolic_coefficient = _coefficient_refined.replace("+-", "-")
+
     def known_coefficient(self) -> bool:
         return self.is_coefficient_known
 
@@ -93,13 +96,16 @@ class Monomial:
         For negative constants:
 
         """
+        monomial = monomial.strip().replace(" ", "")
         if len(monomial) == 0:
             return Monomial("1", [], [])
-        if monomial[0] == "(" and monomial[-1] == ")":
-            monomial = monomial[1:-1]
-        monomial = monomial.replace(" ", "")
+        while True:
+            if monomial[0] == "(" and monomial[-1] == ")":
+                monomial = monomial[1:-1]
+            else:
+                break
         if "*" not in monomial:
-            return Monomial(monomial, [], [])
+            return cls(monomial, [], [])
         monomial = monomial.replace("**", "^")
         monomial_parts = monomial.split("*")
         _constant, var_pow = monomial_parts[0], monomial_parts[1:]
@@ -113,7 +119,7 @@ class Monomial:
             else:
                 _variables.append(vp)
                 _powers.append(1)
-            return Monomial(_constant, _variables, _powers)
+        return cls(_constant, _variables, _powers)
 
 
 @dataclass
@@ -141,7 +147,16 @@ class Equation:
         _eq_v = eval(_eq)
         return _eq_v
 
-    # @classmethod
-    # def extract_equation_from_string(cls, equation: str) -> "Equation":
-    #     monomials = equation.split("+")
-    #     _equation = Equation()
+    @classmethod
+    def extract_equation_from_string(cls, equation: str) -> "Equation":  # TODO: may fix this later to accept subtractions
+        """
+        The input expected to be as examples below:
+        Simple: {monomial1} + {monomial2} + ...
+        Please note that there should be no space inside each monomial and monomials are seperated as " + ", note that negate the constant for subtraction
+        """
+        equation = equation.strip()
+        if len(equation) == 0:
+            return Equation([])
+        equation_parts = equation.split(" + ")
+        _monomials = [Monomial.extract_monomial_from_string(m) for m in equation_parts]
+        return cls(_monomials)

@@ -52,6 +52,8 @@ class Parser:
     }
 
     def __init__(self, *input_files: str):
+        if not input_files:
+            raise ValueError("At least one input file must be provided.")
         self.input_files = input_files
 
     @classmethod
@@ -115,7 +117,7 @@ class Parser:
                 inequalities=data["actions"]["space"]
             ),
             state_dimension=data["states"]["space_dimension"],
-            maximal_degree=data["synthesis_config"]["maximal_degree"],
+            maximal_degree=data["synthesis_config"]["maximal_polynomial_degree"],
             transitions=data["actions"]["control_policy"].get("control_policy", None)
         )
 
@@ -135,7 +137,7 @@ class Parser:
         )
 
         synthesis_config = SynthesisConfig(
-            maximal_polynomial_degree=data["synthesis_config"]["maximal_degree"],
+            maximal_polynomial_degree=data["synthesis_config"]["maximal_polynomial_degree"],
             expected_values=data["synthesis_config"]["expected_values"],
             theorem_name=data["synthesis_config"]["theorem_name"],
             solver_name=data["synthesis_config"]["solver_name"]

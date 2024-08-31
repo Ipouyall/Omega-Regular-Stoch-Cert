@@ -10,7 +10,7 @@
   "actions": {
     "space": "0 <= A1 <= 1 and -1 <= A2 <= 1",
     "space_dimension": 2,
-    "control_policy": ""
+    "control_policy": {}
   },
 
   "disturbance": {
@@ -43,6 +43,7 @@
   "synthesis_config": {
     "maximal_polynomial_degree": 2,
     "theorem_name": "handelman",
-    "solver_name": "z3"
+    "solver_name": "z3",
+    "expected_values": [0, 1]
   }
 }
