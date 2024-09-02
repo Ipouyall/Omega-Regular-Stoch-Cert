@@ -58,6 +58,7 @@ class Parser:
 
     @classmethod
     def _parse_json(cls, *file_path: str) -> dict:
+        logger.info(f"Parsing JSON files: {file_path}")
         _structure = {}
         for file in file_path:
             with open(file, "r") as f:
@@ -72,10 +73,12 @@ class Parser:
                         _structure[key].extend(value)
                     else:
                         _structure[key] = value
+        logger.info(f"JSON files parsed successfully.")
         return _structure
 
     @classmethod
     def _parse_yaml(cls, *file_path: str) -> dict:
+        logger.info(f"Parsing YAML files: {file_path}")
         _structure = {}
         for file in file_path:
             with open(file, "r") as f:
@@ -90,6 +93,7 @@ class Parser:
                         _structure[key].extend(value)
                     else:
                         _structure[key] = value
+        logger.info(f"YAML files parsed successfully.")
         return _structure
 
     @classmethod
