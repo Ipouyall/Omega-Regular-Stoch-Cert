@@ -140,12 +140,13 @@ class Equation:
     def __str__(self) -> str:
         return " + ".join([str(m) for m in self.monomials])
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, **kwargs):
         _eq = str(self)
         for k, v in kwargs.items():
-            _eq = _eq.replace(k, str(v))
-        _eq_v = eval(_eq)
-        return _eq_v
+            _eq = _eq.replace(k, f"({v})")
+        if kwargs.get("evaluate", False):
+            _eq = eval(_eq)
+        return _eq
 
     @classmethod
     def extract_equation_from_string(cls, equation: str) -> "Equation":  # TODO: may fix this later to accept subtractions
