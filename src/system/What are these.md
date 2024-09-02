@@ -23,7 +23,7 @@ $$
 $$
 
 Where $A1, A2, \ldots, Am$ are the values of the action, defined as a polynomial operation based on the current `state values`.
-Each constant is being named as $A{dim}\_{index}$ for example $A1\_0$ is the first constant of the first action dimension.
+Each constant is being named as $P{dim}\_{index}$ for example $P1\_0$ is the first constant of the first action dimension.
 
 For policy calculation, where the policy is unknown, these equations are generated based on the 
 _State space dimensionality_, _Action space dimensionality_, and _maximal polynomial degree_.
