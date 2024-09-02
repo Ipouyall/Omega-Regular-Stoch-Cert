@@ -143,7 +143,10 @@ class Equation:
     def __call__(self, **kwargs):
         _eq = str(self)
         for k, v in kwargs.items():
-            _eq = _eq.replace(k, f"({v})")
+            if str(v)[0] == "-":
+                _eq = _eq.replace(k, f"({v})")
+            else:
+                _eq = _eq.replace(k, f"{v}")
         if kwargs.get("evaluate", False):
             _eq = eval(_eq)
         return _eq
