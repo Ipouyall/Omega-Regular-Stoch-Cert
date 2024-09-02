@@ -5,6 +5,9 @@ from typing import Sequence, List, Optional
 from . import logger
 
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
+_fix_str_format = lambda s: s.replace(" ", "")\
+    .replace("+-", " - ").replace("+", " + ").replace("-", " - ")\
+    .replace("*", " * ").replace("*  *", "**")
 
 
 @dataclass
@@ -82,11 +85,13 @@ class Monomial:
 
         _variables = [_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0]
         if len(_variables) == 0:
-            return f"({_coefficients})"
+            # return f"({_coefficients})"
+            return f"{_coefficients}"
 
         if not self.known_coefficient() and ("+" in _coefficients or "-" in _coefficients):
             _coefficients = f"({_coefficients})"
-        return f"({_coefficients} * {' * '.join(_variables)})"
+        # return f"({_coefficients} * {' * '.join(_variables)})"
+        return f"{_coefficients} * {' * '.join(_variables)}"
 
     @classmethod
     def extract_monomial_from_string(cls, monomial: str) -> "Monomial":
@@ -138,17 +143,21 @@ class Equation:
 
 
     def __str__(self) -> str:
-        return " + ".join([str(m) for m in self.monomials])
+        return " + ".join([_fix_str_format(str(m)) for m in self.monomials])
 
     def __call__(self, **kwargs):
         _eq = str(self)
         for k, v in kwargs.items():
-            if str(v)[0] == "-":
-                _eq = _eq.replace(k, f"({v})")
-            else:
-                _eq = _eq.replace(k, f"{v}")
+            _eq = _eq.replace(k, f"({v})")
+            # if str(v)[0] == "-":
+            #     _eq = _eq.replace(k, f"({v})")
+            # else:
+            #     _eq = _eq.replace(k, f"{v}")
         if kwargs.get("evaluate", False):
             _eq = eval(_eq)
+        else:
+            _eq = _fix_str_format(_eq)
+
         return _eq
 
     @classmethod
