@@ -7,7 +7,7 @@ __valid__distributions__ = ["normal"]
 
 
 @dataclass
-class NormalNoiseGenerator():  # TODO: later we have to add expectations for each distribution
+class NormalNoiseGenerator:  # TODO: later we have to add expectations for each distribution
     """
     A class to generate noise based on the normal distribution, with state preservation.
 
