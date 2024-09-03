@@ -117,7 +117,11 @@ class Monomial:
         )
 
     def __str__(self) -> str:
-        return f"{self.coefficient} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}".replace(" * 1", "").replace("1 * ", "")
+        if self.coefficient == 1:
+            return f"{' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}"
+        return f"{self.coefficient} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}" # .replace(" * 1", "")
+
+
 
 
 class PolynomialParser:

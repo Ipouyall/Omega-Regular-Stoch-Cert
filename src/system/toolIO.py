@@ -142,7 +142,7 @@ class Parser:
             state_dimension=data["states"]["space_dimension"],
             action_dimension=data["actions"]["space_dimension"],
             disturbance_dimension=data["disturbance"]["dimension"],
-            system_transformers=data["system_dynamic"]["transformations"]
+            system_transformers=_system_dynamic_equations
         )
 
         synthesis_config = SynthesisConfig(

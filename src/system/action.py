@@ -55,7 +55,7 @@ class SystemControlPolicy:
                 Monomial(
                     coefficient=1,
                     variable_generators=variable_generators + [f"P{i}_{i2}"],
-                    power=powers + (0,)
+                    power=powers + (1,)
                 ) for i2, powers in enumerate(power_combinations, start=1)
             ]
             _equation = Equation(monomials=_monomials)
