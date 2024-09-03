@@ -38,6 +38,11 @@ class ToolInput:
     synthesis_config: SynthesisConfig
 # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
+    def __post_init__(self):
+        """Just to check the type of the attributes"""
+        for attr in self.__annotations__.keys():
+            logger.info(f"Attribute {attr} is of type {type(getattr(self, attr))}.")
+
 
 class Parser:
     __organization = {
@@ -137,7 +142,7 @@ class Parser:
             state_dimension=data["states"]["space_dimension"],
             action_dimension=data["actions"]["space_dimension"],
             disturbance_dimension=data["disturbance"]["dimension"],
-            system_transformers=data["system_dynamic"]["transformations"]
+            system_transformers=_system_dynamic_equations
         )
 
         synthesis_config = SynthesisConfig(

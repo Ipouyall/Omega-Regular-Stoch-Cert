@@ -1,13 +1,37 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Tuple, Generator, Optional
+from typing import Tuple, Optional
 import numpy as np
 
 
 __valid__distributions__ = ["normal"]
 
 
+class NoiseGenerator(ABC):
+
+    @abstractmethod
+    def generate_noise(self) -> Tuple[float, ...]:
+        pass
+
+    @abstractmethod
+    def get_state(self):
+        pass
+
+    @abstractmethod
+    def __call__(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def __iter__(self):
+        pass
+
+    @abstractmethod
+    def __next__(self):
+        pass
+
+
 @dataclass
-class NormalNoiseGenerator():  # TODO: later we have to add expectations for each distribution
+class NormalNoiseGenerator(NoiseGenerator):  # TODO: later we have to add expectations for each distribution
     """
     A class to generate noise based on the normal distribution, with state preservation.
 
@@ -71,7 +95,7 @@ class SystemStochasticNoise:
     dimension: int
     distribution_name: str
     distribution_generator_parameters: dict
-    noise_generators: Generator = field(init=False)
+    noise_generators: NoiseGenerator = field(init=False)
 
     def __post_init__(self):
         if self.distribution_name not in __valid__distributions__:
