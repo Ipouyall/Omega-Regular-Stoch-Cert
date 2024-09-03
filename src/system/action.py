@@ -26,6 +26,8 @@ class SystemControlPolicy:
     # TODO: add "action validation" and "next action" methods
 
     def __post_init__(self):
+        if not isinstance(self.action_space, Space):
+            raise TypeError(f"Expected action_space to be of type Space, got {type(self.action_space)}")
         if self.transitions is not None and len(self.transitions) != self.action_space.dimension:
             logger.error(f"No valid control policy provided. Ignoring the provided policy.")
             logger.info(f"Number of control policy equations must match the action space dimension. Expected {self.action_space.dimension} equations, got {len(self.transitions)}.")
@@ -51,9 +53,9 @@ class SystemControlPolicy:
         for i in range(1, self.action_space.dimension+1):
             _monomials = [
                 Monomial(
-                    symbolic_coefficient=f"P{i}_{i2}",
-                    variable_generators=variable_generators,
-                    power=powers
+                    coefficient=1,
+                    variable_generators=variable_generators + [f"P{i}_{i2}"],
+                    power=powers + (0,)
                 ) for i2, powers in enumerate(power_combinations, start=1)
             ]
             _equation = Equation(monomials=_monomials)

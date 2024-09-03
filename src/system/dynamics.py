@@ -24,6 +24,10 @@ class SystemDynamics:
         if len(self.system_transformers) == 0:
             raise ValueError("At least one system transformer must be provided.")
 
+        for transformer in self.system_transformers:
+            if not isinstance(transformer, Equation):
+                raise TypeError(f"Expected system transformer to be of type Equation, got {type(transformer)}.")
+
         if len(self.system_transformers) != self.state_dimension:
             raise ValueError(f"The number of system transformers must match the state dimension. ({len(self.system_transformers)} != {self.state_dimension})")
 
