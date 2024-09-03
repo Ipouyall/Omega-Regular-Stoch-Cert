@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List
 
@@ -22,6 +23,22 @@ class Equation:
     def negate(self) -> None:
         for i in range(len(self.monomials)):
             self.monomials[i] = self.monomials[i].negate()
+
+    def add(self, other: "Equation") -> "Equation":
+        if not isinstance(other, Equation):
+            raise TypeError(f"Expected Equation, got {type(other)}")
+        new_equation = deepcopy(self)
+        for monomial in other.monomials:
+            new_equation.add_monomial(monomial)
+        return new_equation
+
+    def sub(self, other: "Equation") -> "Equation":
+        if not isinstance(other, Equation):
+            raise TypeError(f"Expected Equation, got {type(other)}")
+        new_equation = deepcopy(self)
+        for monomial in other.monomials:
+            new_equation.add_monomial(monomial.negate())
+        return new_equation
 
     def __str__(self) -> str:
         return " + ".join([f"({m})" for m in self.monomials])

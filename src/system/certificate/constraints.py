@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from ..equation import Equation
+from ..inequality import Inequality
 from ..space import Space
 
 
 class Constraint(ABC):
 
     @abstractmethod
-    def extract(self):
+    def extract(self) -> Inequality:
         pass
 
 
@@ -20,7 +21,7 @@ class NonNegativityConstraint(Constraint):
     RASM_function: Equation
     state_space: Space
 
-    def extract(self):
+    def extract(self) -> Inequality:
         pass
 
 
@@ -32,8 +33,10 @@ class InitialLessThanOneConstraint(Constraint):
     RASM_function: Equation
     initial_state_space: Space
 
-    def extract(self):
-        pass
+    def extract(self) -> Inequality:
+        _monomial_one = Equation.extract_equation_from_string("1")
+        _eq = _monomial_one.sub(self.RASM_function)
+
 
 
 @dataclass
@@ -45,7 +48,7 @@ class SafetyConstraint(Constraint):
     unsafe_state_space: Space
     probability_threshold: float
 
-    def extract(self):
+    def extract(self) -> Inequality:
         pass
 
 
@@ -61,7 +64,5 @@ class DecreaseExpectationConstraint(Constraint):
     disturbance_distribution_expectations: list[float]
     epsilon: float
 
-    def extract(self):
+    def extract(self) -> Inequality:
         pass
-
-
