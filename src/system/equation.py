@@ -11,13 +11,17 @@ class Equation:
     """
     monomials: List[Monomial] = field(default_factory=list)
 
-    def add_monomial(self, monomial: Monomial) -> None: # TODO: not an efficient way!
+    def add_monomial(self, monomial: Monomial) -> None:
         for i in range(len(self.monomials)):
             _add = self.monomials[i].add(monomial)
             if _add is not None:
                 self.monomials[i] = _add
                 return
         self.monomials.append(monomial)
+
+    def negate(self) -> None:
+        for i in range(len(self.monomials)):
+            self.monomials[i] = self.monomials[i].negate()
 
     def __str__(self) -> str:
         return " + ".join([f"({m})" for m in self.monomials])

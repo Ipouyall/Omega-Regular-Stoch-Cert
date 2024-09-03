@@ -116,6 +116,13 @@ class Monomial:
             power=self.power
         )
 
+    def negate(self):
+        return Monomial(
+            coefficient=-self.coefficient,
+            variable_generators=self.variable_generators,
+            power=self.power
+        )
+
     def __str__(self) -> str:
         if self.coefficient == 1:
             return f"{' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}"
