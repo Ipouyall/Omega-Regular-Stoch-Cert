@@ -30,7 +30,7 @@ class ToolInput:
     state_space: Space
     action_policy: SystemControlPolicy
     disturbance: SystemStochasticNoise
-    dynamics: SystemDynamics  # todo: need to specify input format for this
+    dynamics: SystemDynamics
     initial_states: Space
     target_states: Space
     unsafe_states: Space
@@ -40,9 +40,13 @@ class ToolInput:
 
     def __post_init__(self):
         """Just to check the type of the attributes"""
-        for attr in self.__annotations__.keys():
-            logger.info(f"Attribute {attr} is of type {type(getattr(self, attr))}.")
-
+        """Check the type of the attributes and log or raise an error if the types don't match."""
+        for attr_name, attr_type in self.__annotations__.items():
+            attr_value = getattr(self, attr_name)
+            if not isinstance(attr_value, attr_type):
+                raise TypeError(
+                    f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
+                )
 
 class Parser:
     __organization = {
@@ -151,7 +155,6 @@ class Parser:
             theorem_name=data["synthesis_config"]["theorem_name"],
             solver_name=data["synthesis_config"]["solver_name"]
         )
-
 
         return ToolInput(
             state_space=state_space,
