@@ -6,6 +6,7 @@ from .constraints import NonNegativityConstraint, InitialLessThanOneConstraint, 
     DecreaseExpectationConstraint
 from ..equation import Equation, ConditionalEquation
 from ..polynomial import Monomial
+from ..state import SystemState
 from ..toolIO import ToolInput
 
 
@@ -57,7 +58,7 @@ class ReachAvoidSuperMartingaleCertificate:
             v_function=self.function,
             state_space=data.state_space,
             target_state_space=data.target_states,
-            current_state=None,
+            current_state=SystemState([f"S{i}" for i in range(1, self.state_dimension+1)], self.state_dimension), # TODO: Fix this
             action_policy=data.action_policy,
             system_dynamics=data.dynamics,
             system_disturbance=data.disturbance,

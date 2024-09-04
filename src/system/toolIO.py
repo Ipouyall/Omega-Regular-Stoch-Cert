@@ -36,6 +36,8 @@ class ToolInput:
     unsafe_states: Space
     probability_threshold: float
     synthesis_config: SynthesisConfig
+
+    __slots__ = ["state_space", "action_policy", "disturbance", "dynamics", "initial_states", "target_states", "unsafe_states", "probability_threshold", "synthesis_config"]
 # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
     def __post_init__(self):
@@ -139,13 +141,14 @@ class Parser:
             distribution_generator_parameters=data["disturbance"]["disturbance_parameters"],
         )
         _system_dynamic_equations = [
-            Equation() for _eq in data["system_dynamic"]["transformations"]
+            Equation.extract_equation_from_string(_eq)
+            for _eq in data["system_dynamic"]["transformations"]
         ]
         system_dynamic = SystemDynamics(
             state_dimension=data["states"]["space_dimension"],
             action_dimension=data["actions"]["space_dimension"],
             disturbance_dimension=data["disturbance"]["dimension"],
-            system_transformers=_system_dynamic_equations
+            system_transformations=_system_dynamic_equations
         )
 
         synthesis_config = SynthesisConfig(

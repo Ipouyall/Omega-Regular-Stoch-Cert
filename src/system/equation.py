@@ -78,12 +78,12 @@ class ConditionalEquation:
     condition_value: float
 
     def __post_init__(self):
-        for attr_name, attr_type in self.__annotations__.items():
-            attr_value = getattr(self, attr_name)
-            if not isinstance(attr_value, attr_type):
-                raise TypeError(
-                    f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
-                )
+        # for attr_name, attr_type in self.__annotations__.items():
+        #     attr_value = getattr(self, attr_name)
+        #     if not isinstance(attr_value, attr_type):
+        #         raise TypeError(
+        #             f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
+        #         )
         if self.condition_type not in EquationConditionType:
             raise ValueError(f"Invalid condition type: {self.condition_type}")
         if self.condition_value != 0:

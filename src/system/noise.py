@@ -5,6 +5,7 @@ import numpy as np
 
 
 __valid__distributions__ = ["normal"]
+__max__expectation__order__ = 10
 
 
 class NoiseGenerator(ABC):
@@ -129,6 +130,8 @@ class SystemStochasticNoise:
             self.noise_generators = NormalNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
 
     def get_expectations(self, max_deg) -> list[float]:
+        if max_deg > __max__expectation__order__:
+            raise ValueError(f"Maximal degree of expectation is {__max__expectation__order__}.")
         return self.noise_generators.get_expectations(max_deg)
 
 

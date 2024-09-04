@@ -2,9 +2,9 @@
   "states": {
     "space_dimension": 2,
     "system_space": "0 <= S1 <= 2 and -2 <= S2 <= 0",
-    "initial_space": "1 <= SI1 <= 2 and -1 <= SI2 <= 0",
-    "target_space": "0 <= ST1 <= 1 and -1 <= ST2 <= 0",
-    "unsafe_space": "1 <= SU1 <= 2 and -2 <= SU2 <= -1"
+    "initial_space": "1 <= S1 <= 2 and -1 <= S2 <= 0",
+    "target_space": "0 <= S1 <= 1 and -1 <= S2 <= 0",
+    "unsafe_space": "1 <= S1 <= 2 and -2 <= S2 <= -1"
   },
 
   "actions": {
@@ -14,17 +14,11 @@
   },
 
   "disturbance": {
-    "dimension": 2,
+    "dimension": 1,
     "distribution_name": "normal",
     "disturbance_parameters": {
-      "mean": [
-        0,
-        0
-      ],
-      "std_dev": [
-        1,
-        5
-      ],
+      "mean": 0,
+      "std_dev": 1,
       "seed": 42
     }
   },
@@ -41,8 +35,8 @@
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 3,
     "theorem_name": "handelman",
-    "solver_name": "z3",
+    "solver_name": "z3"
   }
 }

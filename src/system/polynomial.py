@@ -9,6 +9,7 @@ from . import logger
 
 
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
+__max_float_digits__ = 2
 
 
 @dataclass
@@ -87,10 +88,12 @@ class Monomial:
         if len(self.variable_generators) != len(self.power):
             logger.error(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
             raise ValueError(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
-        # if not isinstance(self.coefficient, Coefficient):
-        #     self.coefficient = Coefficient(str(self.coefficient))
 
-        # sort variable_generators and their respective powers
+        filtered = [(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0]
+        if not filtered:
+            self.variable_generators, self.power = [], []
+            return
+        self.variable_generators, self.power = zip(*filtered)
         self.variable_generators, self.power = zip(*sorted(zip(self.variable_generators, self.power), key=lambda x: x[0]))
 
     def __eq__(self, other):
@@ -126,9 +129,13 @@ class Monomial:
         )
 
     def __str__(self) -> str:
+        if self.coefficient == 0:
+            return "0"
+        if len(self.variable_generators) == 0:
+            return str(round(self.coefficient, __max_float_digits__))
         if self.coefficient == 1:
             return f"{' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}"
-        return f"{self.coefficient} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}" # .replace(" * 1", "")
+        return f"{round(self.coefficient, __max_float_digits__)} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}" # .replace(" * 1", "")
 
 
 
@@ -138,6 +145,8 @@ class PolynomialParser:
     @staticmethod
     def extraxt_monomials_from_string(polynomial: str) -> list[Monomial]:
         expr = parse_expr(polynomial)
+        if expr.is_number:
+            return [Monomial(coefficient=expr, variable_generators=[], power=[])]
         sympy_polynomial = sp.Poly(expr)
         return PolynomialParser._convert_sympy_polynomial_to_monomials(sympy_polynomial)
 

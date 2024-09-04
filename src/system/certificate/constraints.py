@@ -6,21 +6,21 @@ from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
 from ..equation import Equation, ConditionalEquation, EquationConditionType
 from ..noise import SystemStochasticNoise
+from ..polynomial import Monomial
 from ..space import Space
 from ..state import SystemState
 
 
 class Constraint(ABC):
 
-    def __post_init__(self):
-        """Just to check the type of the attributes"""
-        """Check the type of the attributes and log or raise an error if the types don't match."""
-        for attr_name, attr_type in self.__annotations__.items():
-            attr_value = getattr(self, attr_name)
-            if not isinstance(attr_value, attr_type):
-                raise TypeError(
-                    f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
-                )
+    # def __post_init__(self):
+    #     """Check the type of the attributes and log or raise an error if the types don't match."""
+    #     for attr_name, attr_type in get_type_hints(self.__class__).items():
+    #         attr_value = getattr(self, attr_name)
+    #         if not isinstance(attr_value, attr_type):
+    #             raise TypeError(
+    #                 f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
+    #             )
 
     @abstractmethod
     def extract(self) -> ConditionalEquation:
@@ -41,6 +41,8 @@ class NonNegativityConstraint(Constraint):
     v_function: Equation
     state_space: Space
 
+    __slots__ = ["v_function", "state_space"]
+
     def extract(self) -> ConditionalEquation:
         return ConditionalEquation(
             space=self.state_space,
@@ -58,8 +60,19 @@ class InitialLessThanOneConstraint(Constraint):
     v_function: Equation
     initial_state_space: Space
 
+    __slots__ = ["v_function", "initial_state_space"]
+
     def extract(self) -> ConditionalEquation:
-        _monomial_one = Equation.extract_equation_from_string("1")
+        # _monomial_one = Equation.extract_equation_from_string("1")
+        _monomial_one = Equation(
+            monomials=[
+                Monomial(
+                    coefficient=1,
+                    variable_generators=[],
+                    power=[],
+                )
+            ]
+        )
         _eq = _monomial_one.sub(self.v_function)
         return ConditionalEquation(
             space=self.initial_state_space,
@@ -67,7 +80,6 @@ class InitialLessThanOneConstraint(Constraint):
             condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
             condition_value=0
         )
-
 
 
 @dataclass
@@ -78,6 +90,8 @@ class SafetyConstraint(Constraint):
     v_function: Equation
     unsafe_state_space: Space
     probability_threshold: float
+
+    __slots__ = ["v_function", "unsafe_state_space", "probability_threshold"]
 
     def extract(self) -> ConditionalEquation:
         p = self.probability_threshold
@@ -108,9 +122,14 @@ class DecreaseExpectationConstraint(Constraint):
     maximal_equation_degree: int
     epsilon: float
 
+    __slots__ = [
+        "v_function", "state_space", "target_state_space", "current_state", "action_policy",
+        "system_dynamics", "system_disturbance", "maximal_equation_degree", "epsilon"
+    ]
+
     def extract(self) -> ConditionalEquation:
         _next_expected_State = self.system_dynamics(
-            state=self.current_state(),
+            state=self.current_state,
             action=self.action_policy(self.current_state),
             noise=None,
             evaluate=False,
@@ -119,13 +138,13 @@ class DecreaseExpectationConstraint(Constraint):
         _ns_args = _next_expected_State()
         _v_next = self.v_function(**_ns_args)
         disturbance_expectations = self.system_disturbance.get_expectations(self.maximal_equation_degree)
-        _Dim = 1 # As we assumed that we only have one dimension of disturbance
+        _Dim = 1 # As we assumed that we only have one dimension of disturbance TODO: fix this assumption
         _v_next.replace(" ", "")
         refined_disturbance_expectations = {
             f"D{_Dim}**{i}": d for i, d in enumerate(disturbance_expectations, start=1)
         }
         refined_disturbance_expectations[f"D{_Dim}"] = disturbance_expectations[0]
-        _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
+        # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
 
         _eq = Equation.extract_equation_from_string(_v_next)
         _eq.add(_eq_epsilon)
@@ -135,11 +154,8 @@ class DecreaseExpectationConstraint(Constraint):
 
 
         return ConditionalEquation(
-            space=None,
+            space=self.state_space, # todo: incorrect, fix it
             equation=_eq,
             condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
             condition_value=0
         )
-
-
-

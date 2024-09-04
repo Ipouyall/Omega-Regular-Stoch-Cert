@@ -85,8 +85,8 @@ class SystemControlPolicy:
         self.transitions = _transitions
 
     def __call__(self, state: SystemState) -> SystemControlAction:
-        if not isinstance(state, SystemState):
-            raise TypeError(f"Expected state to be of type SystemState, got {type(state)}")
+        # if not isinstance(state, SystemState):
+        #     raise TypeError(f"Expected state to be of type SystemState, got {type(state)}")
         if state.dimension != self.state_dimension:
             raise ValueError(f"State dimension does not match the expected state dimension ({state.dimension} != {self.state_dimension}).")
         if not self.transitions:
