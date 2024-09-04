@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from itertools import product
 
-from . import logger
+from .. import logger
 from .constraints import NonNegativityConstraint, InitialLessThanOneConstraint, SafetyConstraint, \
     DecreaseExpectationConstraint
 from ..equation import Equation, ConditionalEquation
@@ -22,8 +22,7 @@ class ReachAvoidSuperMartingaleCertificate:
 
     def _initialize_rasm_function(self):
         logger.info(
-            f"Initializing the V(x) function for the RASM certificate with a maximal degree of {self.maximal_degree}\
-             for a state space of dimension {self.state_dimension}."
+            f"Initializing the V(x) function for the RASM certificate with a maximal degree of {self.maximal_degree} for a state space of dimension {self.state_dimension}."
         )
         _state_variable_gens = [f"S{i}" for i in range(1, self.state_dimension + 1)]
         power_combinations = [
