@@ -150,7 +150,6 @@ class Parser:
 
         synthesis_config = SynthesisConfig(
             maximal_polynomial_degree=data["synthesis_config"]["maximal_polynomial_degree"],
-            expected_values=data["synthesis_config"]["expected_values"],
             theorem_name=data["synthesis_config"]["theorem_name"],
             solver_name=data["synthesis_config"]["solver_name"]
         )
