@@ -6,7 +6,6 @@
   "synthesis_config": {
     "maximal_polynomial_degree": 2,
     "theorem_name": "handelman",
-    "solver_name": "z3",
-    "expected_values": [0, 1]
+    "solver_name": "z3"
   }
 }

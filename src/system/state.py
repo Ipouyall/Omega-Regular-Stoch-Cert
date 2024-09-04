@@ -17,7 +17,9 @@ class SystemState:
             The dimension of the state space. If None, it will be inferred from the length of state_values.
     """
     state_values: List[Number]
-    dimension: Union[int, None] = None
+    dimension: int
+
+    __slots__ = ["state_values", "dimension"]
 
     def __post_init__(self):
         """
@@ -38,10 +40,9 @@ class SystemState:
             raise ValueError("The dimension of the state space must be greater than 0.")
 
     def __call__(self, *args, **kwargs):
-        """
-        Returns the state values as a tuple.
-        """
-        return tuple(self.state_values)
+        return {
+            f"S{i}": s for i, s in enumerate(self.state_values, start=1)
+        }
 
     def __str__(self):
         """

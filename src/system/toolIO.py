@@ -39,7 +39,6 @@ class ToolInput:
 # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
     def __post_init__(self):
-        """Just to check the type of the attributes"""
         """Check the type of the attributes and log or raise an error if the types don't match."""
         for attr_name, attr_type in self.__annotations__.items():
             attr_value = getattr(self, attr_name)

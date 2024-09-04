@@ -81,6 +81,8 @@ class Monomial:
     variable_generators: Sequence[str]
     power: Sequence[Number]
 
+    __slots__ = ["coefficient", "variable_generators", "power"]
+
     def __post_init__(self):
         if len(self.variable_generators) != len(self.power):
             logger.error(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")

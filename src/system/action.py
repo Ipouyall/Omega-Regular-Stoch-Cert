@@ -11,8 +11,30 @@ from .state import SystemState
 
 
 @dataclass
-class SystemAction:
-    action: Sequence[Number]
+class SystemControlAction:
+    action_values: Sequence[Number]
+    dimension: int
+
+    __slots__ = ["action_values", "dimension"]
+
+    def __post_init__(self):
+        if self.dimension is None:
+            logger.warning("The dimension of the action space has not been set. Attempting to infer the dimension from the number of action values.")
+            self.dimension = len(self.action_values)
+        if len(self.action_values) != self.dimension:
+            logger.warning(f"The number of action values does not match the dimension of the action space \
+            ({len(self.action_values)} != {self.dimension}). Correcting the dimension based on the number of action values.")
+
+        if self.dimension == 0:
+            raise ValueError("The dimension of the action space must be greater than 0.")
+
+    def __call__(self, *args, **kwargs):
+        return {
+            f"P{i}": p for i, p in enumerate(self.action_values, start=1)
+        }
+
+    def __str__(self):
+        return f"Action π{self.dimension}: {self.action_values}"
 
 
 @dataclass
@@ -62,6 +84,22 @@ class SystemControlPolicy:
             _transitions.append(_equation)
         self.transitions = _transitions
 
-    def __call__(self, state: SystemState) -> SystemAction: pass # TODO: implement this method after designing communication API
+    def __call__(self, state: SystemState) -> SystemControlAction:
+        if not isinstance(state, SystemState):
+            raise TypeError(f"Expected state to be of type SystemState, got {type(state)}")
+        if state.dimension != self.state_dimension:
+            raise ValueError(f"State dimension does not match the expected state dimension ({state.dimension} != {self.state_dimension}).")
+        if not self.transitions:
+            raise ValueError("Control policy is not provided.")
+
+        args = state()
+        return SystemControlAction(
+            dimension=self.action_space.dimension,
+            action_values=[
+                equation(**args)
+                for equation in self.transitions
+            ]
+        )
+
 
 

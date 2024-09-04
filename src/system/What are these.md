@@ -59,3 +59,29 @@ There would exist **n** equations for defining each state output dimension.
 
 ---
 
+# Certificate
+
+The certificate gets a system state and returns a float value.
+
+$$
+\begin{align*}
+\mathbf{V(s)} &= \mathbf{Certificate}(\mathbf{State_s})
+\end{align*}
+$$
+
+It expects the provided state to be a valid state vector as below:
+
+$$
+\begin{align*}
+\mathbf{State_s} &= \begin{bmatrix} S_1 & S_2 & \ldots & S_n \end{bmatrix}
+\end{align*}
+$$
+
+Also, the constants are being defined as:
+
+$$
+\begin{align*}
+\mathbf{constants_{V(s)}} &= \begin{bmatrix} V_1 & V_2 & \ldots & V_n & V_{n+1} \end{bmatrix}
+\end{align*}
+$$
+

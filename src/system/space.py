@@ -1,8 +1,23 @@
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
-class Space:  # TODO: complete this
-    dimension: int # TODO: are dimensions needed?
-    inequalities: List[str]
+class Space:
+    """
+    Each inequality defines boundaries one of the dimensions of the state space.
+    """
+    dimension: int
+    inequalities: list[str]
+
+    __slots__ = ["dimension", "inequalities"]
+
+    def __post_init__(self):
+        if not isinstance(self.inequalities, list):
+            raise TypeError("inequalities must be a list")
+        if self.dimension <= 0:
+            raise ValueError("dimension must be a positive integer")
+        if len(self.inequalities) != self.dimension:
+            raise ValueError("You must provide boundaries for all dimensions")
+
+    def get_inequalities(self):
+        return self.inequalities

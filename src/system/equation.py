@@ -1,8 +1,11 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List
+from enum import Enum
 
+from . import logger
 from .polynomial import Monomial, PolynomialParser
+from .space import Space
 
 
 @dataclass
@@ -55,3 +58,39 @@ class Equation:
     def extract_equation_from_string(cls, equation: str) -> "Equation":
         monomials = PolynomialParser.extraxt_monomials_from_string(equation)
         return cls(monomials=monomials)
+
+
+class EquationConditionType(Enum):
+    EQUAL = "=="
+    GREATER_THAN = ">"
+    LESS_THAN = "<"
+    GREATER_THAN_OR_EQUAL = ">="
+    LESS_THAN_OR_EQUAL = "<="
+
+    __slots__ = []
+
+
+@dataclass
+class ConditionalEquation:
+    space: Space
+    equation: Equation
+    condition_type: EquationConditionType
+    condition_value: float
+
+    def __post_init__(self):
+        for attr_name, attr_type in self.__annotations__.items():
+            attr_value = getattr(self, attr_name)
+            if not isinstance(attr_value, attr_type):
+                raise TypeError(
+                    f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
+                )
+        if self.condition_type not in EquationConditionType:
+            raise ValueError(f"Invalid condition type: {self.condition_type}")
+        if self.condition_value != 0:
+            logger.warning(f"Condition value is not zero: {self.condition_value}")
+        else:
+            self.condition_value = 0
+
+    def __str__(self) -> str:
+        return f"""for {self.space.get_inequalities()} : {self.equation} {self.condition_type.value} {self.condition_value}"""
+
