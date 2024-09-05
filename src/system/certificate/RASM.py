@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from itertools import product
+from textwrap import fill
 
 from .. import logger
 from .constraints import NonNegativityConstraint, InitialLessThanOneConstraint, SafetyConstraint, \
     DecreaseExpectationConstraint
 from ..equation import Equation, ConditionalEquation
 from ..polynomial import Monomial
-from ..state import SystemState
 from ..toolIO import ToolInput
 
 
@@ -57,12 +57,11 @@ class ReachAvoidSuperMartingaleCertificate:
             v_function=self.function,
             state_space=data.state_space,
             target_state_space=data.target_states,
-            current_state=SystemState([f"S{i}" for i in range(1, self.state_dimension+1)], self.state_dimension), # TODO: Fix this
             action_policy=data.action_policy,
             system_dynamics=data.dynamics,
             system_disturbance=data.disturbance,
             maximal_equation_degree=self.maximal_degree,
-            epsilon=0.1,
+            epsilon=data.synthesis_config.epsilon,
         )
 
         self.constraints = [
@@ -73,6 +72,10 @@ class ReachAvoidSuperMartingaleCertificate:
         ]
 
     def __str__(self) -> str:
-        constraints_str = "\n\t\t".join(str(constraint) for constraint in self.constraints)
-        return f"RASM Certificate: \n\tV(x) = {self.function} \n\tConstraints:\n\t\t{constraints_str}"
+        constraints_str = "\n+\t".join(
+            fill(str(constraint), width=100, subsequent_indent=" \t", initial_indent="")
+            for constraint in self.constraints
+        )
+        printable_v_function = fill(str(self.function), width=100, subsequent_indent=" \t", initial_indent="")
+        return f"RASM Certificate: \n+\tV(x) = {printable_v_function} \n- Constraints:\n+\t{constraints_str}"
 

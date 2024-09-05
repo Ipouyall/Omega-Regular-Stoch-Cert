@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 
 from ..action import SystemControlPolicy
@@ -115,17 +115,23 @@ class DecreaseExpectationConstraint(Constraint):
     v_function: Equation
     state_space: Space
     target_state_space: Space
-    current_state: SystemState  # TODO: check what is our current state
     action_policy: SystemControlPolicy
     system_dynamics: SystemDynamics
     system_disturbance: SystemStochasticNoise
     maximal_equation_degree: int
     epsilon: float
+    current_state: SystemState = field(init=False)
 
     __slots__ = [
-        "v_function", "state_space", "target_state_space", "current_state", "action_policy",
+        "v_function", "state_space", "target_state_space", "action_policy",
         "system_dynamics", "system_disturbance", "maximal_equation_degree", "epsilon"
     ]
+
+    def __post_init__(self):
+        self.current_state = SystemState(
+            state_values=[f"S{i}" for i in range(1, self.state_space.dimension + 1)],
+            dimension=self.state_space.dimension,
+        )
 
     def extract(self) -> ConditionalEquation:
         _next_expected_State = self.system_dynamics(
