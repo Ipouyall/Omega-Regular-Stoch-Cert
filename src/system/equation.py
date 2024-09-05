@@ -1,11 +1,9 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List
-from enum import Enum
 
 from . import logger
 from .polynomial import Monomial, PolynomialParser
-from .space import Space
 
 
 @dataclass
@@ -43,7 +41,15 @@ class Equation:
             new_equation.add_monomial(monomial.negate())
         return new_equation
 
+    def is_numeric(self) -> bool:
+        return len(self.monomials) == 1 and all([m.is_numeric() for m in self.monomials])
+
+    def is_zero(self) -> bool:
+        return all([m.coefficient == 0 for m in self.monomials])
+
     def __str__(self) -> str:
+        if len(self.monomials) == 0:
+            return "0"
         return " + ".join([f"({m})" for m in self.monomials])
 
     def __call__(self, **kwargs):
@@ -57,25 +63,18 @@ class Equation:
     @classmethod
     def extract_equation_from_string(cls, equation: str) -> "Equation":
         monomials = PolynomialParser.extraxt_monomials_from_string(equation)
+        monomials = [m for m in monomials if m.coefficient != 0]
         return cls(monomials=monomials)
-
-
-class EquationConditionType(Enum):
-    EQUAL = "=="
-    GREATER_THAN = ">"
-    LESS_THAN = "<"
-    GREATER_THAN_OR_EQUAL = ">="
-    LESS_THAN_OR_EQUAL = "<="
-
-    __slots__ = []
 
 
 @dataclass
 class ConditionalEquation:
-    space: Space
+    space: "Space"
     equation: Equation
-    condition_type: EquationConditionType
+    condition_type: "EquationConditionType"
     condition_value: float
+
+    __slots__ = ["space", "equation", "condition_type", "condition_value"]
 
     def __post_init__(self):
         # for attr_name, attr_type in self.__annotations__.items():
@@ -84,8 +83,8 @@ class ConditionalEquation:
         #         raise TypeError(
         #             f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
         #         )
-        if self.condition_type not in EquationConditionType:
-            raise ValueError(f"Invalid condition type: {self.condition_type}")
+        # if self.condition_type not in EquationConditionType:
+        #     raise ValueError(f"Invalid condition type: {self.condition_type}")
         if self.condition_value != 0:
             logger.warning(f"Condition value is not zero: {self.condition_value}")
         else:

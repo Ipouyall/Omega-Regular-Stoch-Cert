@@ -4,7 +4,8 @@ import re
 
 from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
-from ..equation import Equation, ConditionalEquation, EquationConditionType
+from ..equation import Equation, ConditionalEquation
+from ..inequality import EquationConditionType
 from ..noise import SystemStochasticNoise
 from ..polynomial import Monomial
 from ..space import Space

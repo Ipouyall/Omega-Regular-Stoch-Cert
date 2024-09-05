@@ -88,6 +88,10 @@ class Monomial:
         if len(self.variable_generators) != len(self.power):
             logger.error(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
             raise ValueError(f"The number of variables and powers must match: {self.variable_generators} vs. {self.power}")
+        if self.coefficient == 0:
+            self.variable_generators, self.power = [], []
+            self.coefficient = 0
+            return
 
         filtered = [(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0]
         if not filtered:
@@ -127,6 +131,9 @@ class Monomial:
             variable_generators=self.variable_generators,
             power=self.power
         )
+
+    def is_numeric(self) -> bool:
+        return len(self.variable_generators) == 0
 
     def __str__(self) -> str:
         if self.coefficient == 0:
