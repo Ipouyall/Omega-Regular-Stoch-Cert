@@ -2,14 +2,27 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import re
 
+from docutils.utils.math.tex2unichar import space
+
 from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
-from ..equation import Equation, ConditionalEquation
-from ..inequality import EquationConditionType
+from ..equation import Equation
+from ..inequality import EquationConditionType, Inequality
 from ..noise import SystemStochasticNoise
 from ..polynomial import Monomial
 from ..space import Space
 from ..state import SystemState
+
+
+@dataclass
+class ConstraintInequality:
+    space: Space
+    inequality: Inequality
+
+    __slots__ = ["space", "inequality"]
+
+    def __str__(self):
+        return f"{self.inequality}; forall {self.space}"
 
 
 class Constraint(ABC):
@@ -24,7 +37,7 @@ class Constraint(ABC):
     #             )
 
     @abstractmethod
-    def extract(self) -> ConditionalEquation:
+    def extract(self) -> ConstraintInequality:
         pass
 
 
@@ -44,12 +57,14 @@ class NonNegativityConstraint(Constraint):
 
     __slots__ = ["v_function", "state_space"]
 
-    def extract(self) -> ConditionalEquation:
-        return ConditionalEquation(
+    def extract(self) -> ConstraintInequality:
+        return ConstraintInequality(
             space=self.state_space,
-            equation=self.v_function,
-            condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-            condition_value=0
+            inequality=Inequality(
+                left_equation=self.v_function,
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
         )
 
 
@@ -63,23 +78,16 @@ class InitialLessThanOneConstraint(Constraint):
 
     __slots__ = ["v_function", "initial_state_space"]
 
-    def extract(self) -> ConditionalEquation:
-        # _monomial_one = Equation.extract_equation_from_string("1")
-        _monomial_one = Equation(
-            monomials=[
-                Monomial(
-                    coefficient=1,
-                    variable_generators=[],
-                    power=[],
-                )
-            ]
-        )
+    def extract(self) -> ConstraintInequality:
+        _monomial_one = Equation.extract_equation_from_string("1")
         _eq = _monomial_one.sub(self.v_function)
-        return ConditionalEquation(
+        return ConstraintInequality(
             space=self.initial_state_space,
-            equation=_eq,
-            condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-            condition_value=0
+            inequality=Inequality(
+                left_equation=_eq,
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
         )
 
 
@@ -94,15 +102,17 @@ class SafetyConstraint(Constraint):
 
     __slots__ = ["v_function", "unsafe_state_space", "probability_threshold"]
 
-    def extract(self) -> ConditionalEquation:
+    def extract(self) -> ConstraintInequality:
         p = self.probability_threshold
         _eq = Equation.extract_equation_from_string(f"1/(1-{p})")
         _eq = self.v_function.sub(_eq)
-        return ConditionalEquation(
+        return ConstraintInequality(
             space=self.unsafe_state_space,
-            equation=_eq,
-            condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-            condition_value=0,
+            inequality=Inequality(
+                left_equation=_eq,
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
         )
 
 
@@ -130,11 +140,11 @@ class DecreaseExpectationConstraint(Constraint):
 
     def __post_init__(self):
         self.current_state = SystemState(
-            state_values=[f"S{i}" for i in range(1, self.state_space.dimension + 1)],
+            state_values=None,
             dimension=self.state_space.dimension,
         )
 
-    def extract(self) -> ConditionalEquation:
+    def extract(self) -> ConstraintInequality:
         _next_expected_State = self.system_dynamics(
             state=self.current_state,
             action=self.action_policy(self.current_state),
@@ -160,9 +170,9 @@ class DecreaseExpectationConstraint(Constraint):
         # TODO: Calculate X/Xt space
 
 
-        return ConditionalEquation(
-            space=self.state_space, # todo: incorrect, fix it
-            equation=_eq,
-            condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-            condition_value=0
-        )
+        # return ConditionalEquation(
+        #     space=self.state_space, # todo: incorrect, fix it
+        #     equation=_eq,
+        #     condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+        #     condition_value=0
+        # )

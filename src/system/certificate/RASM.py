@@ -4,8 +4,8 @@ from textwrap import fill
 
 from .. import logger
 from .constraints import NonNegativityConstraint, InitialLessThanOneConstraint, SafetyConstraint, \
-    DecreaseExpectationConstraint
-from ..equation import Equation, ConditionalEquation
+    DecreaseExpectationConstraint, ConstraintInequality
+from ..equation import Equation
 from ..polynomial import Monomial
 from ..toolIO import ToolInput
 
@@ -15,7 +15,7 @@ class ReachAvoidSuperMartingaleCertificate:
     maximal_degree: int
     state_dimension: int
     function: Equation = field(init=False, default=None)
-    constraints: list[ConditionalEquation] = field(init=False, default=None)
+    constraints: list[ConstraintInequality] = field(init=False, default=None)
 
     def __post_init__(self):
         self._initialize_rasm_function()
@@ -68,7 +68,7 @@ class ReachAvoidSuperMartingaleCertificate:
             non_negativity.extract(),
             initial_bounded.extract(),
             safety.extract(),
-            decrease_expectation.extract(),
+            # decrease_expectation.extract(),
         ]
 
     def __str__(self) -> str:

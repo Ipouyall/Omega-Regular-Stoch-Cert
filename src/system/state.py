@@ -32,12 +32,13 @@ class SystemState:
         if self.dimension is None:
             logger.warning("The dimension of the state space has not been set. Attempting to infer the dimension from the number of state values.")
             self.dimension = len(self.state_values)
+        if self.dimension == 0:
+            raise ValueError("The dimension of the state space must be greater than 0.")
+        if self.state_values is None:
+            self.state_values = [f"S{i}" for i in range(1, self.dimension + 1)]
         if len(self.state_values) != self.dimension:
             logger.warning(f"The number of state values does not match the dimension of the state space \
             ({len(self.state_values)} != {self.dimension}). Correcting the dimension based on the number of state values.")
-
-        if self.dimension == 0:
-            raise ValueError("The dimension of the state space must be greater than 0.")
 
     def __call__(self, *args, **kwargs):
         return {

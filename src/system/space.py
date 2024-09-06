@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .equation import Equation
 from .inequality import Inequality, EquationConditionType
@@ -48,10 +48,6 @@ def _process_space_inequalities(inequality: str) -> list[Inequality]:
     ]
 
 
-
-
-
-
 @dataclass
 class Space:
     """
@@ -59,16 +55,13 @@ class Space:
     """
     dimension: int
     inequalities: str
-
-    __slots__ = ["dimension", "inequalities"]
+    listed_space_inequalities: list[Inequality] = field(init=False, default=None)
 
     def __post_init__(self):
         if not isinstance(self.inequalities, str):
             raise TypeError("inequalities must be a string")
         if self.dimension <= 0:
             raise ValueError("dimension must be a positive integer")
-        # if len(self.inequalities) != self.dimension:
-        #     raise ValueError("You must provide boundaries for all dimensions")
 
         self.inequalities = self.inequalities.replace(" ", "")\
             .replace("OR", "or").replace("AND", "and")
@@ -79,7 +72,7 @@ class Space:
     def get_inequalities(self):
         return self.inequalities
 
-    def extract_inequalities(self) -> list[Inequality]:
+    def _extract_inequalities(self) -> list[Inequality]:
         _inequalities = self.inequalities.split("and")
         _fix_comparators = lambda s: s.replace(" ", "").replace(">=", ">").replace("<=", "<")\
             .replace(">", ">=").replace("<", "<=")
@@ -88,5 +81,15 @@ class Space:
             for _ieq in _inequalities
             for p_ineq in _process_space_inequalities(_fix_comparators(_ieq))
         ]
+
+    def get_space_inequalities(self) -> list[Inequality]:
+        if self.listed_space_inequalities is None:
+            self.listed_space_inequalities = self._extract_inequalities()
+        return self.listed_space_inequalities
+
+    def __str__(self) -> str:
+        if self.listed_space_inequalities is None:
+            return f"{self.inequalities}"
+        return f"{', '.join([str(ineq) for ineq in self.listed_space_inequalities])}"
 
 
