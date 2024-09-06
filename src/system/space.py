@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 from .equation import Equation
 from .inequality import Inequality, EquationConditionType
@@ -55,7 +56,7 @@ class Space:
     """
     dimension: int
     inequalities: str
-    listed_space_inequalities: list[Inequality] = field(init=False, default=None)
+    listed_space_inequalities: Optional[list[Inequality]] = field(default=None)
 
     def __post_init__(self):
         if not isinstance(self.inequalities, str):
@@ -63,11 +64,18 @@ class Space:
         if self.dimension <= 0:
             raise ValueError("dimension must be a positive integer")
 
+        if not self.inequalities and len(self.inequalities) != 0:
+            self.inequalities = ' and '.join(str(i) for i in self.listed_space_inequalities)
+
         self.inequalities = self.inequalities.replace(" ", "")\
             .replace("OR", "or").replace("AND", "and")
 
         if "or" in self.inequalities:
             raise ValueError("OR is not supported in the current version")
+        # sort the listed_space_inequalities based on the left side of the inequality and delete repeated inequalities
+        if self.listed_space_inequalities is not None:
+            self.listed_space_inequalities = list(set(self.listed_space_inequalities))
+            self.listed_space_inequalities.sort(key=lambda ineq: str(ineq.left_equation))
 
     def get_inequalities(self):
         return self.inequalities
@@ -85,7 +93,23 @@ class Space:
     def get_space_inequalities(self) -> list[Inequality]:
         if self.listed_space_inequalities is None:
             self.listed_space_inequalities = self._extract_inequalities()
+            self.listed_space_inequalities = list(set(self.listed_space_inequalities))
+            self.listed_space_inequalities.sort(key=lambda ineq: str(ineq.left_equation))
         return self.listed_space_inequalities
+
+    def __eq__(self, other):
+        if not isinstance(other, Space):
+            return False
+        if self.dimension != other.dimension:
+            return False
+        _ieq1 = self.get_space_inequalities()
+        _ieq2 = other.get_space_inequalities()
+        if len(_ieq1) != len(_ieq2):
+            return False
+        for i in range(len(_ieq1)):
+            if _ieq1[i] != _ieq2[i]:
+                return False
+        return True
 
     def __str__(self) -> str:
         if self.listed_space_inequalities is None:

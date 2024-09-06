@@ -9,7 +9,6 @@ from ..dynamics import SystemDynamics
 from ..equation import Equation
 from ..inequality import EquationConditionType, Inequality
 from ..noise import SystemStochasticNoise
-from ..polynomial import Monomial
 from ..space import Space
 from ..state import SystemState
 
@@ -168,11 +167,19 @@ class DecreaseExpectationConstraint(Constraint):
         _eq = self.v_function.sub(_eq)
 
         # TODO: Calculate X/Xt space
+        state_space_equations = self.state_space.get_space_inequalities()
+        target_state_space_equations = self.target_state_space.get_space_inequalities()
+        states_excluded_target = state_space_equations + [ineq.neggate() for ineq in target_state_space_equations]
 
-
-        # return ConditionalEquation(
-        #     space=self.state_space, # todo: incorrect, fix it
-        #     equation=_eq,
-        #     condition_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-        #     condition_value=0
-        # )
+        return ConstraintInequality(
+            space=Space(
+                dimension=self.state_space.dimension,
+                inequalities="",
+                listed_space_inequalities=states_excluded_target
+            ),
+            inequality=Inequality(
+                left_equation=_eq,
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
+        )

@@ -3,8 +3,11 @@ from itertools import product
 from textwrap import fill
 
 from .. import logger
-from .constraints import NonNegativityConstraint, InitialLessThanOneConstraint, SafetyConstraint, \
-    DecreaseExpectationConstraint, ConstraintInequality
+from .constraints import (NonNegativityConstraint,
+                          InitialLessThanOneConstraint,
+                          SafetyConstraint,
+                          DecreaseExpectationConstraint,
+                          ConstraintInequality)
 from ..equation import Equation
 from ..polynomial import Monomial
 from ..toolIO import ToolInput
@@ -68,7 +71,7 @@ class ReachAvoidSuperMartingaleCertificate:
             non_negativity.extract(),
             initial_bounded.extract(),
             safety.extract(),
-            # decrease_expectation.extract(),
+            decrease_expectation.extract(),
         ]
 
     def __str__(self) -> str:
