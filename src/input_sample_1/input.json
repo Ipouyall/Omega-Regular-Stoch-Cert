@@ -14,11 +14,11 @@
   },
 
   "disturbance": {
-    "dimension": 1,
+    "dimension": 2,
     "distribution_name": "normal",
     "disturbance_parameters": {
-      "mean": 0,
-      "std_dev": 1,
+      "mean": [0, 0],
+      "std_dev": [1, 12],
       "seed": 42
     }
   },

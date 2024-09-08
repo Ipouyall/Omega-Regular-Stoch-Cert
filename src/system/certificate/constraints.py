@@ -151,13 +151,15 @@ class DecreaseExpectationConstraint(Constraint):
         _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
         _ns_args = _next_expected_State()
         _v_next = self.v_function(**_ns_args)
-        disturbance_expectations = self.system_disturbance.get_expectations(self.maximal_equation_degree)
-        _Dim = 1 # As we assumed that we only have one dimension of disturbance TODO: fix this assumption
         _v_next.replace(" ", "")
+        disturbance_expectations = self.system_disturbance.get_expectations(self.maximal_equation_degree)
         refined_disturbance_expectations = {
-            f"D{_Dim}**{i}": d for i, d in enumerate(disturbance_expectations, start=1)
+            f"D{dim+1}**{i}": d
+            for dim in range(self.system_disturbance.dimension)
+            for i, d in enumerate(disturbance_expectations[dim], start=1)
         }
-        refined_disturbance_expectations[f"D{_Dim}"] = disturbance_expectations[0]
+        for dim in range(self.system_disturbance.dimension):
+            refined_disturbance_expectations[f"D{dim}"] = disturbance_expectations[dim][0]
         # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
 
         _eq = Equation.extract_equation_from_string(_v_next)

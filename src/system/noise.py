@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List, Any
 import numpy as np
 
 
@@ -19,7 +19,7 @@ class NoiseGenerator(ABC):
         pass
 
     @abstractmethod
-    def get_expectations(self, order) -> list[float]:
+    def get_expectations(self, order) -> list[list[float]]:
         pass
 
     @abstractmethod
@@ -47,8 +47,8 @@ class NormalNoiseGenerator(NoiseGenerator):  # TODO: later we have to add expect
         seed (Optional[int]): Optional seed for reproducibility.
         rng (np.random.Generator): A random number generator instance.
     """
-    mean: float
-    std_dev: float
+    mean: list[float]
+    std_dev: list[float]
     dimension: int
     seed: Optional[int] = None
     rng: np.random.Generator = field(init=False)
@@ -70,13 +70,17 @@ class NormalNoiseGenerator(NoiseGenerator):  # TODO: later we have to add expect
         """
         Initializes the random number generator after the dataclass has been created.
         """
-        self._set_rng()
+        if len(self.mean) != self.dimension:
+            raise ValueError(f"Dimension of mean vector ({len(self.mean)}) does not match the specified dimension ({self.dimension}).")
+        if len(self.std_dev) != self.dimension:
+            raise ValueError(f"Dimension of standard deviation vector ({len(self.std_dev)}) does not match the specified dimension ({self.dimension}).")
+        # self._set_rng()
 
-    def _set_rng(self):
-        if self.seed is not None:
-            self.rng = np.random.default_rng(self.seed)
-        else:
-            self.rng = np.random.default_rng()
+    # def _set_rng(self):
+    #     if self.seed is not None:
+    #         self.rng = np.random.default_rng(self.seed)
+    #     else:
+    #         self.rng = np.random.default_rng()
 
     def generate_noise(self) -> list[float]:
         """
@@ -85,29 +89,38 @@ class NormalNoiseGenerator(NoiseGenerator):  # TODO: later we have to add expect
         Returns:
             Tuple[float, ...]: A tuple containing `dimension` noise values.
         """
-        return list(self.rng.normal(self.mean, self.std_dev, self.dimension))
+        # return list(self.rng.normal(self.mean, self.std_dev, self.dimension))
+        return NotImplemented
 
     def get_state(self):
         """
         Returns the current state of the random number generator.
         """
-        return self.rng.bit_generator.state
+        # return self.rng.bit_generator.state
+        return NotImplemented
 
-    def get_expectations(self, order) -> list[float]:
+    def get_expectations(self, order) -> list[list[float]]:
         """
         Returns the expected values of the noise distribution.
         """
-        return [self.__expectation_table__[i](self.mean, self.std_dev) for i in range(order)]
+        return [
+            [self.__expectation_table__[i](self.mean[j], self.std_dev[j])
+            for i in range(order)]
+            for j in range(self.dimension)
+        ]
 
     def __call__(self, *args, **kwargs):
-        return self.generate_noise()
+        return NotImplemented
+        # return self.generate_noise()
 
     def __iter__(self):
-        self._set_rng()
-        return self
+        return NotImplemented
+        # self._set_rng()
+        # return self
 
     def __next__(self):
-        return self.generate_noise()
+        return NotImplemented
+        # return self.generate_noise()
 
 
 @dataclass
@@ -129,7 +142,7 @@ class SystemStochasticNoise:
         if self.distribution_name == "normal":
             self.noise_generators = NormalNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
 
-    def get_expectations(self, max_deg) -> list[float]:
+    def get_expectations(self, max_deg) -> list[list[float]]:
         if max_deg > __max__expectation__order__:
             raise ValueError(f"Maximal degree of expectation is {__max__expectation__order__}.")
         return self.noise_generators.get_expectations(max_deg)
