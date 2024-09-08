@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import re
 
-from docutils.utils.math.tex2unichar import space
-
 from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
 from ..equation import Equation
@@ -15,13 +13,13 @@ from ..state import SystemState
 
 @dataclass
 class ConstraintInequality:
-    space: Space
+    spaces: list[Space]
     inequality: Inequality
 
-    __slots__ = ["space", "inequality"]
+    __slots__ = ["spaces", "inequality"]
 
     def __str__(self):
-        return f"{self.inequality}; forall {self.space}"
+        return f"{self.inequality}; forall {' or '.join(f'({s})' for s in self.spaces)}"
 
 
 class Constraint(ABC):
@@ -58,12 +56,12 @@ class NonNegativityConstraint(Constraint):
 
     def extract(self) -> ConstraintInequality:
         return ConstraintInequality(
-            space=self.state_space,
+            spaces=[self.state_space],
             inequality=Inequality(
                 left_equation=self.v_function,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=Equation.extract_equation_from_string("0")
-            )
+            ),
         )
 
 
@@ -81,7 +79,7 @@ class InitialLessThanOneConstraint(Constraint):
         _monomial_one = Equation.extract_equation_from_string("1")
         _eq = _monomial_one.sub(self.v_function)
         return ConstraintInequality(
-            space=self.initial_state_space,
+            spaces=[self.initial_state_space],
             inequality=Inequality(
                 left_equation=_eq,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
@@ -106,7 +104,7 @@ class SafetyConstraint(Constraint):
         _eq = Equation.extract_equation_from_string(f"1/(1-{p})")
         _eq = self.v_function.sub(_eq)
         return ConstraintInequality(
-            space=self.unsafe_state_space,
+            spaces=[self.unsafe_state_space],
             inequality=Inequality(
                 left_equation=_eq,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
@@ -169,14 +167,17 @@ class DecreaseExpectationConstraint(Constraint):
         # TODO: Calculate X/Xt space
         state_space_equations = self.state_space.get_space_inequalities()
         target_state_space_equations = self.target_state_space.get_space_inequalities()
-        states_excluded_target = state_space_equations + [ineq.neggate() for ineq in target_state_space_equations]
-
-        return ConstraintInequality(
-            space=Space(
+        spaces_excluded_target = [
+            Space(
                 dimension=self.state_space.dimension,
                 inequalities="",
-                listed_space_inequalities=states_excluded_target
-            ),
+                listed_space_inequalities=state_space_equations + [ineq.neggate()],
+            )
+            for ineq in target_state_space_equations
+        ]
+
+        return ConstraintInequality(
+            spaces=spaces_excluded_target,
             inequality=Inequality(
                 left_equation=_eq,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,

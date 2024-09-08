@@ -72,7 +72,7 @@ class Space:
 
         if "or" in self.inequalities:
             raise ValueError("OR is not supported in the current version")
-        # sort the listed_space_inequalities based on the left side of the inequality and delete repeated inequalities
+        
         if self.listed_space_inequalities is not None:
             self.listed_space_inequalities = list(set(self.listed_space_inequalities))
             self.listed_space_inequalities.sort(key=lambda ineq: str(ineq.left_equation))

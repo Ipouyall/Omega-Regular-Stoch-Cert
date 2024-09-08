@@ -16,7 +16,7 @@ class SystemState:
         dimension (Union[int, None]):
             The dimension of the state space. If None, it will be inferred from the length of state_values.
     """
-    state_values: List[Number]
+    state_values: List[Number]|None|List[str]
     dimension: int
 
     __slots__ = ["state_values", "dimension"]
