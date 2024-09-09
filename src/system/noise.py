@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, List, Any
+from typing import Optional
 import numpy as np
 
 
@@ -45,13 +45,13 @@ class NormalNoiseGenerator(NoiseGenerator):  # TODO: later we have to add expect
         std_dev (float): Standard deviation of the normal distribution.
         dimension (int): Dimension of the noise to generate.
         seed (Optional[int]): Optional seed for reproducibility.
-        rng (np.random.Generator): A random number generator instance.
+        # rng (np.random.Generator): A random number generator instance.
     """
     mean: list[float]
     std_dev: list[float]
     dimension: int
     seed: Optional[int] = None
-    rng: np.random.Generator = field(init=False)
+    # rng: np.random.Generator = field(init=False)
 
     __expectation_table__ = [
         lambda mu, sigma: mu,

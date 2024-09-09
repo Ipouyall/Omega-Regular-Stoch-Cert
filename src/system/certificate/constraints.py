@@ -19,7 +19,7 @@ class ConstraintInequality:
     __slots__ = ["spaces", "inequality"]
 
     def __str__(self):
-        return f"{self.inequality}; forall {' or '.join(f'({s})' for s in self.spaces)}"
+        return f"{self.inequality}; forall {' OR '.join(f'({s})' for s in self.spaces)}"
 
 
 class Constraint(ABC):
@@ -160,13 +160,12 @@ class DecreaseExpectationConstraint(Constraint):
         }
         for dim in range(self.system_disturbance.dimension):
             refined_disturbance_expectations[f"D{dim}"] = disturbance_expectations[dim][0]
-        # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
+        _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
 
         _eq = Equation.extract_equation_from_string(_v_next)
         _eq.add(_eq_epsilon)
         _eq = self.v_function.sub(_eq)
 
-        # TODO: Calculate X/Xt space
         state_space_equations = self.state_space.get_space_inequalities()
         target_state_space_equations = self.target_state_space.get_space_inequalities()
         spaces_excluded_target = [

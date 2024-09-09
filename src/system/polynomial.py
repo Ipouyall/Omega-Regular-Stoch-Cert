@@ -132,6 +132,9 @@ class Monomial:
             power=self.power
         )
 
+    def is_zero(self) -> bool:
+        return self.coefficient == 0
+
     def is_numeric(self) -> bool:
         return len(self.variable_generators) == 0
 

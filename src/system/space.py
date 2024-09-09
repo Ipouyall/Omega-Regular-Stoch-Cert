@@ -114,6 +114,6 @@ class Space:
     def __str__(self) -> str:
         if self.listed_space_inequalities is None:
             return f"{self.inequalities}"
-        return f"{', '.join([str(ineq) for ineq in self.listed_space_inequalities])}"
+        return f"{' and '.join([str(ineq) for ineq in self.listed_space_inequalities])}"
 
 
