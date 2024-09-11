@@ -126,7 +126,7 @@ class SafetyConstraint(Constraint):
 @dataclass
 class DecreaseExpectationConstraint(Constraint):
     """
-    forall x ∈ X → V(x) − E[V(x_{k+1}) | x_{k} = x] − ϵ ≥ 0
+    forall x ∈ X/Xt → V(x) − E[V(x_{k+1}) | x_{k} = x] − ϵ ≥ 0
 
     Please note that for the Expectation of Disturbance, we assume that the disturbance is one dimensional.
     """
