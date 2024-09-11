@@ -74,6 +74,9 @@ class ReachAvoidSuperMartingaleCertificate:
             decrease_expectation.extract(),
         ]
 
+    def get_constraints(self):
+        return self.constraints
+
     def __str__(self) -> str:
         constraints_str = "\n+\t".join(
             fill(str(constraint), width=100, subsequent_indent=" \t", initial_indent="")

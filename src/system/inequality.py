@@ -96,6 +96,9 @@ class Inequality:
             right_equation=self.right_equation,
         )
 
+    def to_SMT_preorder(self):
+        return f"{self.inequality_type.value} ({self.left_equation.to_SMT_preorder()}) ({self.right_equation.to_SMT_preorder()})"
+
     def __eq__(self, other):
         if not isinstance(other, Inequality):
             return False

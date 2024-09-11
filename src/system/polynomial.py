@@ -5,6 +5,7 @@ from typing import Sequence, Optional
 import sympy as sp
 from sympy.parsing.sympy_parser import parse_expr
 
+from samples.polynomials import SymbolicMonomial
 from . import logger
 
 
@@ -12,69 +13,17 @@ _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
 __max_float_digits__ = 2
 
 
-@dataclass
-class Coefficient:
-    symbol: str
-    value: Optional[float] = field(init=False, default=None)
-
-    def __post_init__(self):
-        if len(self.symbol) == 0:
-            logger.warning("Empty coefficient provided, setting it to 1")
-            self.symbol = "1"
-        if self.symbol.isnumeric():
-            self.value = float(self.symbol)
-
-    def is_known(self) -> bool:
-        return self.value is not None
-
-    def _add_two_coefficients(self, other):
-        if self.is_known() and other.is_known():
-            return Coefficient(str(self.value + other.value))
-        return Coefficient(f"{self.symbol}+{other.symbol}")
-
-    def _add_coefficient_and_number(self, other):
-        if self.is_known():
-            return Coefficient(str(self.value + other))
-        return Coefficient(f"{self.symbol}+{other}")
-
-    def _add_coefficient_and_symbol(self, other):
-        if self.is_known():
-            return Coefficient(f"{self.value}+{other}")
-        return Coefficient(f"{self.symbol}+{other}")
-
-    def _add(self, other):
-        if isinstance(other, Coefficient):
-            return self._add_two_coefficients(other)
-        if isinstance(other, (int, float)):
-            return self._add_coefficient_and_number(other)
-        if isinstance(other, str):
-            return self._add_coefficient_and_symbol(other)
-        logger.warning(f"Cannot add Coefficient with {other} of type {type(other)}")
-        return NotImplemented
-
-    def set_value(self, key: str, value: float) -> None:
-        self.symbol = self.symbol.replace(key, str(value))
-
-
-
-    def __str__(self):
-        return str(self.value) if self.is_known() else self.symbol
-
-    def __eq__(self, other):
-        if not isinstance(other, Coefficient):
-            return False
-        return self.value == other.value if self.is_known() and other.is_known() else self.symbol == other.symbol
-
-    def __add__(self, other):
-        return self._add(other)
-
-    def __iadd__(self, other):
-        ns = self._add(other)
-        if ns is not NotImplemented:
-            self.symbol = ns.symbol
-            self.value = ns.value
-        return self
-
+def _SMT_preorder_var_pow_helper(var, pow):
+    f"""
+    Converts {var}^{pow} to a preorder multiplication.
+    """
+    if pow == 0:
+        return "1"
+    if pow == 1:
+        return var
+    if pow == 2:
+        return f"* {var} {var}"
+    return f"* ({_SMT_preorder_var_pow_helper(var, pow//2)}) ({_SMT_preorder_var_pow_helper(var, (pow+1)//2)})"
 
 @dataclass
 class Monomial:
@@ -137,6 +86,16 @@ class Monomial:
 
     def is_numeric(self) -> bool:
         return len(self.variable_generators) == 0
+
+    def to_SMT_preorder(self) -> str:
+        if self.coefficient == 0:
+            return "0"
+        if len(self.variable_generators) == 0:
+            return str(round(self.coefficient, __max_float_digits__))
+        coefficient_var_pow = f"{self.coefficient}"
+        for v, p in zip(self.variable_generators, self.power):
+            coefficient_var_pow = f"* ({coefficient_var_pow}) ({_SMT_preorder_var_pow_helper(v, p)})"
+        return coefficient_var_pow
 
     def __str__(self) -> str:
         if self.coefficient == 0:

@@ -46,12 +46,20 @@ class Equation:
         return len(self.monomials) == 1 and all([m.is_numeric() for m in self.monomials])
 
     def is_zero(self) -> bool:
-        return all([m.coefficient == 0 for m in self.monomials])
+        return all([m.coefficient == 0 for m in self.monomials]) or len(self.monomials) == 0
 
     def __str__(self) -> str:
         if len(self.monomials) == 0:
             return "0"
         return " + ".join([f"({m})" for m in self.monomials])
+
+    def to_SMT_preorder(self) -> str:
+        if self.is_zero():
+            return "0"
+        eq = self.monomials[0].to_SMT_preorder()
+        for m in self.monomials[1:]:
+            eq = f"+ ({eq}) ({m.to_SMT_preorder()})"
+        return eq
 
     def __call__(self, **kwargs):
         _eq = str(self)

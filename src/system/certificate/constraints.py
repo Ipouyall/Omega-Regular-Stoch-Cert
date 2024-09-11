@@ -18,6 +18,16 @@ class ConstraintInequality:
 
     __slots__ = ["spaces", "inequality"]
 
+    def _spaces_to_SMT_preorder(self) -> str:
+        spc = self.spaces[0].to_SMT_preorder()
+        for s in self.spaces[1:]:
+            spc = f"or ({spc}) ({s.to_SMT_preorder()})"
+        return spc
+
+    def to_polyhorn_preorder(self) -> str:
+        variables = " ".join(f"(S{i} Real)" for i in range(1, self.spaces[0].dimension+1))
+        return f"(assert (forall ({variables}) (=> ({self._spaces_to_SMT_preorder()}) ({self.inequality.to_SMT_preorder()})) ))"
+
     def __str__(self):
         return f"{self.inequality}; forall {' OR '.join(f'({s})' for s in self.spaces)}"
 
