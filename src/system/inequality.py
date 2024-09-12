@@ -48,7 +48,7 @@ class EquationConditionType(Enum):
         return condition
 
     @staticmethod
-    def miror_condition(condition):
+    def mirror_condition(condition):
         if condition == EquationConditionType.GREATER_THAN_OR_EQUAL:
             return EquationConditionType.LESS_THAN_OR_EQUAL
         if condition == EquationConditionType.LESS_THAN_OR_EQUAL:
@@ -84,7 +84,7 @@ class Inequality:
     def _normalize(self):
         if self.inequality_type in [EquationConditionType.LESS_THAN, EquationConditionType.LESS_THAN_OR_EQUAL]:
             self.left_equation, self.right_equation = self.right_equation, self.left_equation
-            self.inequality_type = EquationConditionType.miror_condition(self.inequality_type)
+            self.inequality_type = EquationConditionType.mirror_condition(self.inequality_type)
         if not self.right_equation.is_zero():
             self.left_equation = self.left_equation.sub(self.right_equation)
             self.right_equation = Equation.extract_equation_from_string("0")
@@ -96,8 +96,8 @@ class Inequality:
             right_equation=self.right_equation,
         )
 
-    def to_SMT_preorder(self):
-        return f"{self.inequality_type.value} ({self.left_equation.to_SMT_preorder()}) ({self.right_equation.to_SMT_preorder()})"
+    def to_smt_preorder(self):
+        return f"({self.inequality_type.value} {self.left_equation.to_smt_preorder()} {self.right_equation.to_smt_preorder()})"
 
     def __eq__(self, other):
         if not isinstance(other, Inequality):

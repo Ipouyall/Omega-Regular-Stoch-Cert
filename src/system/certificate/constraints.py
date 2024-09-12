@@ -21,15 +21,15 @@ class ConstraintInequality:
     def _spaces_to_SMT_preorder(self) -> str:
         spc = self.spaces[0].to_SMT_preorder()
         for s in self.spaces[1:]:
-            spc = f"or ({spc}) ({s.to_SMT_preorder()})"
+            spc = f"(or {spc} {s.to_SMT_preorder()})"
         return spc
 
     def to_polyhorn_preorder(self) -> str:
         variables = " ".join(f"(S{i} Real)" for i in range(1, self.spaces[0].dimension+1))
-        return f"(assert (forall ({variables}) (=> ({self._spaces_to_SMT_preorder()}) ({self.inequality.to_SMT_preorder()})) ))"
+        return f"(assert (forall ({variables}) (=> {self._spaces_to_SMT_preorder()} {self.inequality.to_smt_preorder()}) ))"
 
     def __str__(self):
-        return f"{self.inequality}; forall {' OR '.join(f'({s})' for s in self.spaces)}"
+        return f"{self.inequality}; forall {' OR '.join(f'{s}' for s in self.spaces)}"
 
 
 class Constraint(ABC):
@@ -164,12 +164,12 @@ class DecreaseExpectationConstraint(Constraint):
         _v_next.replace(" ", "")
         disturbance_expectations = self.system_disturbance.get_expectations(self.maximal_equation_degree)
         refined_disturbance_expectations = {
-            f"D{dim+1}**{i}": d
+            f"D{dim+1}**{i}": str(d)
             for dim in range(self.system_disturbance.dimension)
             for i, d in enumerate(disturbance_expectations[dim], start=1)
         }
         for dim in range(self.system_disturbance.dimension):
-            refined_disturbance_expectations[f"D{dim}"] = disturbance_expectations[dim][0]
+            refined_disturbance_expectations[f"D{dim+1}"] = str(disturbance_expectations[dim][0])
         _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
 
         _eq = Equation.extract_equation_from_string(_v_next)

@@ -53,12 +53,12 @@ class Equation:
             return "0"
         return " + ".join([f"({m})" for m in self.monomials])
 
-    def to_SMT_preorder(self) -> str:
+    def to_smt_preorder(self) -> str:
         if self.is_zero():
             return "0"
-        eq = self.monomials[0].to_SMT_preorder()
+        eq = self.monomials[0].to_smt_preorder()
         for m in self.monomials[1:]:
-            eq = f"+ ({eq}) ({m.to_SMT_preorder()})"
+            eq = f"(+ {eq} {m.to_smt_preorder()})"
         return eq
 
     def __call__(self, **kwargs):

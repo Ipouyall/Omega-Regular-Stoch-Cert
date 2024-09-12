@@ -1,11 +1,11 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from numbers import Number
-from typing import Sequence, Optional
+from typing import Sequence
 
 import sympy as sp
+from sympy import expand
 from sympy.parsing.sympy_parser import parse_expr
 
-from samples.polynomials import SymbolicMonomial
 from . import logger
 
 
@@ -13,17 +13,17 @@ _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
 __max_float_digits__ = 2
 
 
-def _SMT_preorder_var_pow_helper(var, pow):
-    f"""
+def _smt_preorder_var_pow_helper(_var, _pow) -> str:
+    """
     Converts {var}^{pow} to a preorder multiplication.
     """
-    if pow == 0:
+    if _pow == 0:
         return "1"
-    if pow == 1:
-        return var
-    if pow == 2:
-        return f"* {var} {var}"
-    return f"* ({_SMT_preorder_var_pow_helper(var, pow//2)}) ({_SMT_preorder_var_pow_helper(var, (pow+1)//2)})"
+    if _pow == 1:
+        return _var
+    if _pow == 2:
+        return f"(* {_var} {_var})"
+    return f"(* {_smt_preorder_var_pow_helper(_var, _pow // 2)} {_smt_preorder_var_pow_helper(_var, (_pow + 1) // 2)})"
 
 @dataclass
 class Monomial:
@@ -87,24 +87,25 @@ class Monomial:
     def is_numeric(self) -> bool:
         return len(self.variable_generators) == 0
 
-    def to_SMT_preorder(self) -> str:
+    def to_smt_preorder(self) -> str:
         if self.coefficient == 0:
             return "0"
+        coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
         if len(self.variable_generators) == 0:
-            return str(round(self.coefficient, __max_float_digits__))
-        coefficient_var_pow = f"{self.coefficient}"
+            return coefficient_var_pow
         for v, p in zip(self.variable_generators, self.power):
-            coefficient_var_pow = f"* ({coefficient_var_pow}) ({_SMT_preorder_var_pow_helper(v, p)})"
+            coefficient_var_pow = f"(* {coefficient_var_pow} {_smt_preorder_var_pow_helper(v, p)})"
         return coefficient_var_pow
 
     def __str__(self) -> str:
         if self.coefficient == 0:
             return "0"
+        coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
         if len(self.variable_generators) == 0:
-            return str(round(self.coefficient, __max_float_digits__))
+            return coefficient_var_pow
         if self.coefficient == 1:
             return f"{' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}"
-        return f"{round(self.coefficient, __max_float_digits__)} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}" # .replace(" * 1", "")
+        return f"{coefficient_var_pow} * {' * '.join([_to_power(v, p) for v, p in zip(self.variable_generators, self.power) if p != 0])}" # .replace(" * 1", "")
 
 
 
@@ -113,7 +114,8 @@ class PolynomialParser:
 
     @staticmethod
     def extraxt_monomials_from_string(polynomial: str) -> list[Monomial]:
-        expr = parse_expr(polynomial)
+        expanded = expand(polynomial)
+        expr = parse_expr(str(expanded))
         if expr.is_number:
             return [Monomial(coefficient=expr, variable_generators=[], power=[])]
         sympy_polynomial = sp.Poly(expr)

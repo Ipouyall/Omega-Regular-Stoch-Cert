@@ -44,6 +44,8 @@ class SystemControlPolicy:
     maximal_degree: int
     transitions: Union[None, Sequence[Equation]] = None
     verification_mode: bool = field(init=False, default=False)
+    generated_constants: set[str] = field(init=False, default_factory=set)
+    constant_founded: bool = field(init=False, default=False)
 
     # TODO: add "action validation" and "next action" methods
 
@@ -60,6 +62,10 @@ class SystemControlPolicy:
             self._initialize_control_policy()
         else:
             self.verification_mode = True
+            self.transitions = [
+                Equation.extract_equation_from_string(str(equation))
+                for equation in self.transitions
+            ]
             logger.info("Control policy provided. Verification mode is enabled.")
 
     def update_control_policy(self, new_policy: Sequence[Equation]) -> None:
@@ -83,6 +89,21 @@ class SystemControlPolicy:
             _equation = Equation(monomials=_monomials)
             _transitions.append(_equation)
         self.transitions = _transitions
+
+    def _found_constants(self) -> None:
+        """Constants are in the form of `P{i}_{j}` where `i` is the action index and `j` is the monomial index."""
+        self.constant_founded = True
+        for equation in self.transitions:
+            for monomial in equation.monomials:
+                for variable in monomial.variable_generators:
+                    if variable.startswith("P") and variable not in self.generated_constants:
+                        self.generated_constants.add(variable)
+
+
+    def get_generated_constants(self) -> set[str]:
+        if not self.constant_founded:
+            self._found_constants()
+        return self.generated_constants
 
     def __call__(self, state: SystemState) -> SystemControlAction:
         # if not isinstance(state, SystemState):

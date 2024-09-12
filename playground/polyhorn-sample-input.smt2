@@ -13,7 +13,3 @@
 
 (check-sat)
 (get-model)
-
-
-(assert (forall ((x Real)) (= x 3)
-    (= (- (+ (* c_1 (* x x)) (* c_2 x)) 12) 0)))

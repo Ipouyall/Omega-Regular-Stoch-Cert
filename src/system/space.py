@@ -99,9 +99,9 @@ class Space:
 
     def to_SMT_preorder(self) -> str:
         inequalities = self.get_space_inequalities()
-        pre_ordered = inequalities[0].to_SMT_preorder()
+        pre_ordered = inequalities[0].to_smt_preorder()
         for ineq in inequalities[1:]:
-            pre_ordered = f"and ({pre_ordered}) ({ineq.to_SMT_preorder()})"
+            pre_ordered = f"(and {pre_ordered} {ineq.to_smt_preorder()})"
         return pre_ordered
 
     def __eq__(self, other):

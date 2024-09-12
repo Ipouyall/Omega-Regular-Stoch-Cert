@@ -19,6 +19,8 @@ class ReachAvoidSuperMartingaleCertificate:
     state_dimension: int
     function: Equation = field(init=False, default=None)
     constraints: list[ConstraintInequality] = field(init=False, default=None)
+    generated_constants: set[str] = field(init=False, default_factory=set)
+    generated_constants_founded: bool = field(init=False, default=False)
 
     def __post_init__(self):
         self._initialize_rasm_function()
@@ -41,6 +43,19 @@ class ReachAvoidSuperMartingaleCertificate:
             ) for i, powers in enumerate(power_combinations, start=1)
         ]
         self.function = Equation(monomials=_monomials)
+
+    def _find_generated_constants(self):
+        """generated constants are in format of `V{i}`"""
+        self.generated_constants_founded = True
+        for m in self.function.monomials:
+            for v in m.variable_generators:
+                if v.startswith("V"):
+                    self.generated_constants.add(v)
+
+    def get_generated_constants(self):
+        if not self.generated_constants_founded:
+            self._find_generated_constants()
+        return self.generated_constants
 
     def define_constraints(self, data: ToolInput):
         non_negativity = NonNegativityConstraint(
@@ -75,6 +90,8 @@ class ReachAvoidSuperMartingaleCertificate:
         ]
 
     def get_constraints(self):
+        if not self.constraints:
+            raise ValueError("Constraints are not defined yet.")
         return self.constraints
 
     def __str__(self) -> str:

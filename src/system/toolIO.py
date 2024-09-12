@@ -132,9 +132,8 @@ class Parser:
             ),
             state_dimension=data["states"]["space_dimension"],
             maximal_degree=data["synthesis_config"]["maximal_polynomial_degree"],
-            transitions=data["actions"]["control_policy"].get("control_policy", None)
+            transitions=data["actions"].get("control_policy", None)
         )
-
         disturbance = SystemStochasticNoise(
             dimension=data["disturbance"]["dimension"],
             distribution_name=data["disturbance"]["distribution_name"],
