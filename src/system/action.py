@@ -30,7 +30,7 @@ class SystemControlAction:
 
     def __call__(self, *args, **kwargs):
         return {
-            f"P{i}": p for i, p in enumerate(self.action_values, start=1)
+            f"A{i}": p for i, p in enumerate(self.action_values, start=1)
         }
 
     def __str__(self):
@@ -105,9 +105,10 @@ class SystemControlPolicy:
             self._found_constants()
         return self.generated_constants
 
+    def get_transitions(self):
+        return {f"A{i}": str(equation) for i, equation in enumerate(self.transitions, start=1)}
+
     def __call__(self, state: SystemState) -> SystemControlAction:
-        # if not isinstance(state, SystemState):
-        #     raise TypeError(f"Expected state to be of type SystemState, got {type(state)}")
         if state.dimension != self.state_dimension:
             raise ValueError(f"State dimension does not match the expected state dimension ({state.dimension} != {self.state_dimension}).")
         if not self.transitions:

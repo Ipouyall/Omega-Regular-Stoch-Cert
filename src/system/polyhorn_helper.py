@@ -19,7 +19,10 @@ class CommunicationBridge:
         constants = "\n".join([CommunicationBridge.__constant_definition_template.format(const_name=const) for const in constants])
 
         constraints = certificate.get_constraints()
-        constraints = "\n".join([constraint.to_polyhorn_preorder() for constraint in constraints])
+        constraints = "\n".join([
+            constraint.to_polyhorn_preorder()
+            for constraint in constraints
+        ])
 
         return f"{constants}\n\n{constraints}\n\n{CommunicationBridge.__check_sat_template}\n{CommunicationBridge.__get_model_template}"
 

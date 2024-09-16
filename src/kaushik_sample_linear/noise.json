@@ -1,0 +1,11 @@
+{
+  "disturbance": {
+    "dimension": 2,
+    "distribution_name": "normal",
+    "disturbance_parameters": {
+      "mean": [0, 0],
+      "std_dev": [0.1, 0.1],
+      "seed": 42
+    }
+  }
+}

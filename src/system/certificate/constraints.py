@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import re
+from typing import Optional
 
 from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
@@ -16,7 +17,7 @@ class ConstraintInequality:
     spaces: list[Space]
     inequality: Inequality
 
-    __slots__ = ["spaces", "inequality"]
+    __slots__ = ["spaces", "inequality", "Action_dim"]
 
     def _spaces_to_SMT_preorder(self) -> str:
         spc = self.spaces[0].to_SMT_preorder()
@@ -61,6 +62,7 @@ class NonNegativityConstraint(Constraint):
     """
     v_function: Equation
     state_space: Space
+
 
     __slots__ = ["v_function", "state_space"]
 
@@ -138,7 +140,7 @@ class DecreaseExpectationConstraint(Constraint):
     system_disturbance: SystemStochasticNoise
     maximal_equation_degree: int
     epsilon: float
-    current_state: SystemState = field(init=False)
+    current_state: SystemState = field(init=False, default=None)
 
     __slots__ = [
         "v_function", "state_space", "target_state_space", "action_policy",
@@ -146,10 +148,11 @@ class DecreaseExpectationConstraint(Constraint):
     ]
 
     def __post_init__(self):
-        self.current_state = SystemState(
-            state_values=None,
-            dimension=self.state_space.dimension,
-        )
+        if self.current_state is None:
+            self.current_state = SystemState(
+                state_values=None,
+                dimension=self.state_space.dimension,
+            )
 
     def extract(self) -> ConstraintInequality:
         _next_expected_State = self.system_dynamics(

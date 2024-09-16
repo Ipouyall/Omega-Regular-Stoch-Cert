@@ -1,11 +1,11 @@
 {
   "RASM_config": {
-    "probability_threshold": 0.01
+    "probability_threshold": 0.4
   },
 
   "synthesis_config": {
     "maximal_polynomial_degree": 5,
-    "epsilon": 0.5,
+    "epsilon": 1,
     "theorem_name": "handelman",
     "solver_name": "z3"
   }
