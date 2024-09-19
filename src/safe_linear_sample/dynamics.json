@@ -1,0 +1,8 @@
+{
+  "system_dynamic": {
+    "transformations": [
+      "0.1 * S1",
+      "0.1 * S2"
+    ]
+  }
+}

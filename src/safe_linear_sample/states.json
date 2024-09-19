@@ -1,0 +1,9 @@
+{
+  "states": {
+    "space_dimension": 2,
+    "system_space": "0 <= S1 ** 2 + S2 ** 2 <= 100 and S1**2 >= 0 and S2**2 >= 0",
+    "initial_space": "16 <= S1 ** 2 + S2 ** 2 <= 25",
+    "target_space": "S1 ** 2 + S2 ** 2 <= 16",
+    "unsafe_space": "81 <= S1**2 + S2 ** 2 <= 100"
+  }
+}

@@ -10,7 +10,7 @@ from . import logger
 
 
 _to_power = lambda v, p: f"{v}**{p}" if p != 1 else str(v)
-__max_float_digits__ = 2
+# __max_float_digits__ = 20
 
 
 def _smt_preorder_var_pow_helper(_var, _pow) -> str:
@@ -29,7 +29,7 @@ def _smt_preorder_var_pow_helper(_var, _pow) -> str:
 class Monomial:
     coefficient: float
     variable_generators: Sequence[str]
-    power: Sequence[Number]
+    power: Sequence[float]
 
     __slots__ = ["coefficient", "variable_generators", "power"]
 
@@ -90,7 +90,8 @@ class Monomial:
     def to_smt_preorder(self) -> str:
         if self.coefficient == 0:
             return "0"
-        coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
+        coefficient_var_pow = str(self.coefficient)
+        # coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
         if len(self.variable_generators) == 0:
             return coefficient_var_pow
         for v, p in zip(self.variable_generators, self.power):
@@ -100,7 +101,8 @@ class Monomial:
     def __str__(self) -> str:
         if self.coefficient == 0:
             return "0"
-        coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
+        coefficient_var_pow = str(self.coefficient)
+        # coefficient_var_pow = str(round(self.coefficient, __max_float_digits__))
         if len(self.variable_generators) == 0:
             return coefficient_var_pow
         if self.coefficient == 1:

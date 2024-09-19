@@ -162,6 +162,8 @@ class DecreaseExpectationConstraint(Constraint):
             evaluate=False,
         )
         _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
+        print(f"Epsilon: {self.epsilon}")
+
         _ns_args = _next_expected_State()
         _v_next = self.v_function(**_ns_args)
         _v_next.replace(" ", "")
@@ -176,8 +178,9 @@ class DecreaseExpectationConstraint(Constraint):
         _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
 
         _eq = Equation.extract_equation_from_string(_v_next)
-        _eq.add(_eq_epsilon)
+        _eq = _eq.add(_eq_epsilon)
         _eq = self.v_function.sub(_eq)
+        print(f"Decrease Expectation Constraint: {_eq}")
 
         state_space_equations = self.state_space.get_space_inequalities()
         target_state_space_equations = self.target_state_space.get_space_inequalities()

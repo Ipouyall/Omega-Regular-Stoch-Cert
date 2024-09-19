@@ -1,0 +1,10 @@
+{
+  "actions": {
+    "space": "0 <= A1 <= 1 and 0 <= A2 <= 1",
+    "space_dimension": 2,
+    "control_policy": [
+      "0",
+      "0"
+    ]
+  }
+}
