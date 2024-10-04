@@ -1,0 +1,14 @@
+HOA: v1
+tool: "owl" "* *"
+Start: 0
+acc-name: generalized-Buchi 1
+Acceptance: 1 Inf(0)
+properties: trans-acc trans-label
+AP: 2 "a" "b"
+--BODY--
+State: 0
+[!0 & 1] 0
+[0 & 1] 1
+State: 1
+[1] 1 {0}
+--END--
