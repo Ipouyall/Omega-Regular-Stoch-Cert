@@ -6,7 +6,7 @@ from . import logger
 from .action import SystemControlPolicy
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
-from .equation import Equation
+from .polynomial.equation import Equation
 from .noise import SystemStochasticNoise
 from .space import Space
 

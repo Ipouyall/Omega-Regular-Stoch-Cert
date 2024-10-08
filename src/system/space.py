@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .equation import Equation
-from .inequality import Inequality, EquationConditionType
+from .polynomial.equation import Equation
+from .polynomial.inequality import Inequality, EquationConditionType
 
 
 def _process_space_inequalities(inequality: str) -> list[Inequality]:

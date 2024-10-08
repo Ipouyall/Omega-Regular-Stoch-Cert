@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import re
-from typing import Optional
 
 from ..action import SystemControlPolicy
 from ..dynamics import SystemDynamics
-from ..equation import Equation
-from ..inequality import EquationConditionType, Inequality
+from ..polynomial.equation import Equation
+from ..polynomial.inequality import EquationConditionType, Inequality
 from ..noise import SystemStochasticNoise
 from ..space import Space
 from ..state import SystemState

@@ -6,7 +6,8 @@ from itertools import product
 
 from . import logger
 from .space import Space
-from .equation import Equation, Monomial
+from .polynomial.equation import Equation
+from .polynomial.polynomial import Monomial
 from .state import SystemState
 
 

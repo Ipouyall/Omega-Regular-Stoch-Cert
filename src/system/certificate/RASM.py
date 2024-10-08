@@ -2,14 +2,14 @@ from dataclasses import dataclass, field
 from itertools import product
 from textwrap import fill
 
-from .. import logger
+from . import logger
 from .constraints import (NonNegativityConstraint,
                           InitialLessThanOneConstraint,
                           SafetyConstraint,
                           DecreaseExpectationConstraint,
                           ConstraintInequality)
-from ..equation import Equation
-from ..polynomial import Monomial
+from ..polynomial.equation import Equation
+from ..polynomial.polynomial import Monomial
 from ..toolIO import ToolInput
 
 

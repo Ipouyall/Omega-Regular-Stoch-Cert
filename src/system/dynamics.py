@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Union
 
 from .action import SystemControlAction
-from .equation import Equation
+from .polynomial.equation import Equation
 from .state import SystemState
 
 

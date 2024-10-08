@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from numbers import Number
 from typing import Sequence
 
 import sympy as sp
