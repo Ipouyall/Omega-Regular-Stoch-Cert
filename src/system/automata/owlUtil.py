@@ -1,7 +1,7 @@
 import subprocess
 
 
-def run_ltl2ldba(path_to_rabinizer, formula):
+def execute_ltl2ldba_tool(path_to_rabinizer, formula):
     """
     Run the ltl2ldba command with the given LTL formula.
 

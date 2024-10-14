@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from .hoaParser import HOAAutomataState
@@ -74,6 +74,16 @@ class Automata:
     states: list[AutomataState]
     accepting_sink_sets_id: list[str]
     atomic_symbol_to_propositions: dict[str, int]
+    # accepting_sinks_states_id: dict[str, list[str]] = field(init=False, default_factory=dict)
+
+    # def __post_init__(self):
+    #     self.accepting_sinks_states_id = {
+    #         sink_id: [] for sink_id in self.accepting_sink_sets_id
+    #     }
+    #     for state in self.states:
+    #         if state.is_accepting():
+    #             for acc_id in state.accepting_signature:
+    #                 self.accepting_sinks_states_id[acc_id].append(state.state_id)
 
     def __str__(self):
         start = f">> {self.start_state_id}"

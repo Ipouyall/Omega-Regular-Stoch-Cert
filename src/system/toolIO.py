@@ -3,12 +3,7 @@ import json
 import yaml
 
 from . import logger
-from .action import SystemControlPolicy
-from .config import SynthesisConfig
-from .dynamics import SystemDynamics
 from .polynomial.equation import Equation
-from .noise import SystemStochasticNoise
-from .space import Space
 
 
 @dataclass
@@ -17,28 +12,15 @@ class ToolInput:
     Combines all the inputs required by the system into a single dataclass to be passed to the tool.
 
     Attributes:
-        state_space (Space): The state space and its dimensionality.
-        action_policy (SystemControlPolicy): The action space and its dimensionality.
-        disturbance (SystemStochasticNoise): The stochastic disturbance space and its dimensionality.
-        dynamics (SystemDynamics): The system dynamics function.
-        initial_states (Space): The initial set of states defined by inequalities.
-        target_states (Space): The target set of states defined by inequalities.
-        unsafe_states (Space): The unsafe set of states defined by inequalities.
-        probability_threshold (float): The probability threshold for system safety, in the range [0, 1).
-        synthesis_config (SynthesisConfig): Configuration settings for the synthesis, including max polynomial degree and expected values.
-    """
-    state_space: Space
-    action_policy: SystemControlPolicy
-    disturbance: SystemStochasticNoise
-    dynamics: SystemDynamics
-    initial_states: Space
-    target_states: Space
-    unsafe_states: Space
-    probability_threshold: float
-    synthesis_config: SynthesisConfig
 
-    __slots__ = ["state_space", "action_policy", "disturbance", "dynamics", "initial_states", "target_states", "unsafe_states", "probability_threshold", "synthesis_config"]
-# in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
+    """
+    actions_pre: dict
+    disturbance_pre: dict
+    sds_pre: dict
+    synthesis_config_pre: dict
+    specification_pre: dict
+
+    # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
     def __post_init__(self):
         """Check the type of the attributes and log or raise an error if the types don't match."""
@@ -49,16 +31,14 @@ class ToolInput:
                     f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
                 )
 
-class Parser:
+class IOParser:
     __organization = {
-      "states": [
-        "space_dimension", "system_space", "initial_space", "target_space", "unsafe_space"
-      ],
-      "actions": ["space", "space_dimension", "control_policy"],
-      "disturbance": ["dimension", "distribution_name", "disturbance_parameters", "seed"],
-      "system_dynamic": [],
-      "RASM_config": ["probability_threshold"],
-      "synthesis_config": [],
+        "actions": ["control_policy"],
+        "disturbance": ["distribution_name","disturbance_parameters"],
+        "stochastic_dynamical_system": ["state_space_dimension","control_space_dimension","disturbance_space_dimension","dynamics"],
+        "synthesis_config": ["maximal_polynomial_degree","epsilon","probability_threshold","theorem_name","solver_name"],
+        "Specification": ["ltl_formula","predicate_lookup"],
+
     }
 
     def __init__(self, *input_files: str):
@@ -66,8 +46,8 @@ class Parser:
             raise ValueError("At least one input file must be provided.")
         self.input_files = input_files
 
-    @classmethod
-    def _parse_json(cls, *file_path: str) -> dict:
+    @staticmethod
+    def _parse_json(*file_path: str) -> dict:
         _structure = {}
         for file in file_path:
             logger.info(f"Parsing JSON file: {file}")
@@ -86,8 +66,8 @@ class Parser:
         logger.info(f"All the provided JSON files parsed successfully.")
         return _structure
 
-    @classmethod
-    def _parse_yaml(cls, *file_path: str) -> dict:
+    @staticmethod
+    def _parse_yaml(*file_path: str) -> dict:
         _structure = {}
         for file in file_path:
             logger.info(f"Parsing YAML file: {file}")
@@ -106,67 +86,57 @@ class Parser:
         logger.info(f"All the provided YAML files parsed successfully.")
         return _structure
 
-    @classmethod
-    def _process_dict_to_tool_input(cls, data: dict) -> ToolInput:
-        state_space = Space(
-            dimension=data["states"]["space_dimension"],
-            inequalities=data["states"]["system_space"]
-        )
-        initial_space = Space(
-            dimension=data["states"]["space_dimension"],
-            inequalities=data["states"]["initial_space"]
-        )
-        target_space = Space(
-            dimension=data["states"]["space_dimension"],
-            inequalities=data["states"]["target_space"]
-        )
-        unsafe_space = Space(
-            dimension=data["states"]["space_dimension"],
-            inequalities=data["states"]["unsafe_space"]
-        )
+    @staticmethod
+    def _process_dict_to_tool_input(data: dict) -> ToolInput:
+        _poly_max_ever = data["synthesis_config"]["maximal_polynomial_degree"]
+        action_max_deg = data["actions"].get("maximal_polynomial_degree", _poly_max_ever) if "actions" in data else _poly_max_ever
+        actions = {
+            "action_dimension": data["stochastic_dynamical_system"]["control_space_dimension"],
+            "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],
+            "maximal_degree": action_max_deg,
+            "policies": data["actions"].get("control_policy", None) if "actions" in data else None,
+        }
 
-        action_policy = SystemControlPolicy(
-            action_space=Space(
-                dimension=data["actions"]["space_dimension"],
-                inequalities=data["actions"]["space"]
-            ),
-            state_dimension=data["states"]["space_dimension"],
-            maximal_degree=data["synthesis_config"]["maximal_polynomial_degree"],
-            transitions=data["actions"].get("control_policy", None)
-        )
-        disturbance = SystemStochasticNoise(
-            dimension=data["disturbance"]["dimension"],
-            distribution_name=data["disturbance"]["distribution_name"],
-            distribution_generator_parameters=data["disturbance"]["disturbance_parameters"],
-        )
+        disturbance = {
+            "dimension": data["stochastic_dynamical_system"]["disturbance_space_dimension"],
+            "distribution_name": data["disturbance"]["distribution_name"],
+            "distribution_generator_parameters": data["disturbance"]["disturbance_parameters"],
+        }
+
         _system_dynamic_equations = [
             Equation.extract_equation_from_string(_eq)
-            for _eq in data["system_dynamic"]["transformations"]
+            for _eq in data["stochastic_dynamical_system"]["dynamics"]
         ]
-        system_dynamic = SystemDynamics(
-            state_dimension=data["states"]["space_dimension"],
-            action_dimension=data["actions"]["space_dimension"],
-            disturbance_dimension=data["disturbance"]["dimension"],
-            system_transformations=_system_dynamic_equations
-        )
+        system_dynamic = {
+            "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],
+            "action_dimension": data["stochastic_dynamical_system"]["control_space_dimension"],
+            "disturbance_dimension": data["stochastic_dynamical_system"]["disturbance_space_dimension"],
+            "system_transformations": _system_dynamic_equations
+        }
 
-        synthesis_config = SynthesisConfig(
-            maximal_polynomial_degree=data["synthesis_config"]["maximal_polynomial_degree"],
-            epsilon=data["synthesis_config"]["epsilon"],
-            theorem_name=data["synthesis_config"]["theorem_name"],
-            solver_name=data["synthesis_config"]["solver_name"]
-        )
+        synthesis_config = {
+            "maximal_polynomial_degree": data["synthesis_config"]["maximal_polynomial_degree"],
+            "probability_threshold": data["synthesis_config"]["probability_threshold"],
+            "epsilon": data["synthesis_config"]["epsilon"],
+            "theorem_name": data["synthesis_config"]["theorem_name"],
+            "solver_name": data["synthesis_config"]["solver_name"],
+            "owl_path": data["synthesis_config"]["owl_path"],
+        }
+
+        specification = {
+            "ltl_formula": data["Specification"].get("ltl_formula", None),
+            "predicate_lookup": data["Specification"]["predicate_lookup"],
+            "owl_binary_path": data["synthesis_config"].get("owl_path", None),
+            "hoa_path": data["Specification"].get("hoa_path", None),
+        }
+
 
         return ToolInput(
-            state_space=state_space,
-            action_policy=action_policy,
-            disturbance=disturbance,
-            dynamics=system_dynamic,
-            initial_states=initial_space,
-            target_states=target_space,
-            unsafe_states=unsafe_space,
-            probability_threshold=data["RASM_config"]["probability_threshold"],
-            synthesis_config=synthesis_config
+            actions_pre=actions,
+            disturbance_pre=disturbance,
+            sds_pre=system_dynamic,
+            synthesis_config_pre=synthesis_config,
+            specification_pre=specification,
         )
 
 

@@ -97,6 +97,9 @@ class Monomial:
             coefficient_var_pow = f"(* {coefficient_var_pow} {_smt_preorder_var_pow_helper(v, p)})"
         return coefficient_var_pow
 
+    def get_symbolic_constant(self) -> set:
+        return {v for v in self.variable_generators if "_" in v}
+
     def __str__(self) -> str:
         if self.coefficient == 0:
             return "0"

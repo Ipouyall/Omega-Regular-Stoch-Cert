@@ -85,3 +85,10 @@ $$
 \end{align*}
 $$
 
+---
+
+# Input constraints
+
+1. Only constants are allowed to have underscore ('_') in their names. 
+2. State dimensions should be provided as `S1, S2, ..., Sn` for and n-dimensional state space. 
+3. Action dimensions should be provided as `A1, A2, ..., Am` for and m-dimensional action space (being used in transition function).

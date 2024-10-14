@@ -192,7 +192,7 @@ class HOAParser:
     __slots__ = ["parser"]
 
     def __init__(self):
-        self.parser: Lark(hoa_grammar, parser='lalr', transformer=HOA_Transformer())
+        self.parser = Lark(hoa_grammar, parser='lalr', transformer=HOA_Transformer())
 
     def __call__(self, hoa_format_ldba):
         ldba = self.parser.parse(hoa_format_ldba.replace("properties", "Properties"))
