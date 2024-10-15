@@ -85,10 +85,13 @@ class Automata:
     #             for acc_id in state.accepting_signature:
     #                 self.accepting_sinks_states_id[acc_id].append(state.state_id)
 
-    def __str__(self):
+    def to_detailed_str(self):
         start = f">> {self.start_state_id}"
         states = "\n".join([str(st) for st in self.states])
         return f"{start}\n{states}"
+
+    def __str__(self):
+        return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, Σ={'{'}{','.join(self.atomic_symbol_to_propositions.keys())}{'}'}, F={'{'}{','.join(self.accepting_sink_sets_id)}{'}'})"
 
     @classmethod
     def from_hoa(cls, hoa_header, hoa_states: list[HOAAutomataState]):

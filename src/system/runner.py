@@ -10,6 +10,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
+from .certificate.template import CertificateTemplate, CertificateTemplateType, LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
@@ -41,7 +42,11 @@ class RunningStage(Enum):
     PREPARE_REQUIREMENTS = 1
     CONSTRUCT_SYSTEM_STATES = 2
     POLICY_PREPARATION = 3
-    Done = 4
+    SYNTHESIZE_TEMPLATE = 4
+    # GENERATE_CONSTRAINTS = 5
+    # PREPARE_SOLVER_INPUTS = 6
+    # RUN_SOLVER = 7
+    Done = 5
 
     def next(self):
         return RunningStage((self.value + 1) % len(RunningStage))
@@ -70,7 +75,8 @@ class Runner:
             RunningStage.PARSE_INPUT: self._run_stage_parsing,
             RunningStage.PREPARE_REQUIREMENTS: self._run_stage_prepare_req,
             RunningStage.CONSTRUCT_SYSTEM_STATES: self._run_stage_state_construction,
-            RunningStage.POLICY_PREPARATION: self._run_stage_policy_preparation
+            RunningStage.POLICY_PREPARATION: self._run_stage_policy_preparation,
+            RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
         }
 
     def run(self):
@@ -124,6 +130,7 @@ class Runner:
             hoa_states=automata["states"]
         )
         print("+ Constructed 'LDBA' successfully.")
+        print("+", ldba)
 
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
@@ -138,4 +145,16 @@ class Runner:
         self.history["control policy"] = policy
         print("+", policy)
 
+    @stage_logger
+    def _run_template_synthesis(self):
+        template = LTLCertificateDecomposedTemplates(
+            state_dimension=self.history["initiator"].sds_pre["state_dimension"],
+            action_dimension=self.history["initiator"].sds_pre["action_dimension"],
+            abstraction_dimension=len(self.history["ldba"].states),
+            accepting_components_count=len(self.history["ldba"].accepting_sink_sets_id),
+            maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
+        )
+        print("+ Synthesized 'Certificate Templates' successfully.")
+        print("+", template)
+        self.history["template"] = template
 

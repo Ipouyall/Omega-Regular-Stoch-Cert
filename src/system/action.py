@@ -4,8 +4,6 @@ from enum import Enum
 from numbers import Number
 from typing import Sequence, Union
 
-from pygments.lexers.wgsl import NotLineEndRE
-
 from . import logger
 from .polynomial.equation import Equation
 from .polynomial.polynomial import Monomial
@@ -107,11 +105,10 @@ class SystemControlPolicy:
     def _initialize_control_policy(self) -> None:
         logger.info(f"Initializing a control policy template with a maximal degree of {self.maximal_degree}, for space dimension {self.state_dimension} and action space dimension {self.action_dimension}.")
         _transitions = []
-        cp_generator = list(power_generator(
+        cp_generator = power_generator(
             poly_max_degree=self.maximal_degree,
             variable_generators=self.state_dimension,
-            constants_signature_start=self.prefix
-        ))
+        )
         variable_generators = [f"S{i}" for i in range(1, self.state_dimension + 1)]
 
         for i in range(1, self.action_dimension+1):
@@ -144,12 +141,17 @@ class SystemControlPolicy:
     def __str__(self):
         return f"{self.type}: {self.state_dimension} -> {self.action_dimension}"
 
-    def __call__(self, state: SystemState) -> SystemControlAction:
+    def __call__(self, state: SystemState=None) -> SystemControlAction:
+        if state is None:
+            return SystemControlAction(
+                dimension=self.action_dimension,
+                action_values=self.transitions
+            )
+
         if state.dimension != self.state_dimension:
             raise ValueError(f"State dimension does not match the expected state dimension ({state.dimension} != {self.state_dimension}).")
         if not self.transitions:
             raise ValueError("Control policy is not provided.")
-
         args = state()
         return SystemControlAction(
             dimension=self.action_dimension,
