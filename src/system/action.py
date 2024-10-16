@@ -2,12 +2,11 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 from numbers import Number
-from typing import Sequence, Union
+from typing import Sequence, Union, Dict
 
 from . import logger
 from .polynomial.equation import Equation
 from .polynomial.polynomial import Monomial
-from .state import SystemState
 from .utils import power_generator
 
 
@@ -141,25 +140,10 @@ class SystemControlPolicy:
     def __str__(self):
         return f"{self.type}: {self.state_dimension} -> {self.action_dimension}"
 
-    def __call__(self, state: SystemState=None) -> SystemControlAction:
-        if state is None:
-            return SystemControlAction(
-                dimension=self.action_dimension,
-                action_values=self.transitions
-            )
-
-        if state.dimension != self.state_dimension:
-            raise ValueError(f"State dimension does not match the expected state dimension ({state.dimension} != {self.state_dimension}).")
-        if not self.transitions:
-            raise ValueError("Control policy is not provided.")
-        args = state()
-        return SystemControlAction(
-            dimension=self.action_dimension,
-            action_values=[
-                equation(**args)
-                for equation in self.transitions
-            ]
-        )
+    def __call__(self) -> Dict[str, Equation]:
+        return {
+            f"A{i}": equation for i, equation in enumerate(self.transitions, start=1)
+        }
 
 
 @dataclass
@@ -182,7 +166,7 @@ class SystemDecomposedControlPolicy:
 
     def _initialize_synthesized_policies(self) -> None:
         print("+ Initializing control policy for policy synthesis.")
-        prefixes = ["Pa"] + [f"Pb{i}" for i in range(1, self.abstraction_dimension+1)]
+        prefixes = ["Pa"] + [f"Pb{i}" for i in range(self.abstraction_dimension)]
         types = [PolicyType.ACCEPTANCE] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
         self.policies = [
             SystemControlPolicy(
@@ -195,13 +179,22 @@ class SystemDecomposedControlPolicy:
             ) for prefix, ptype in zip(prefixes, types)
         ]
 
+    def get_policy(self, policy_type: PolicyType, policy_id: int = None) -> SystemControlPolicy:
+        """Policy id is required for Buchi policies."""
+        if policy_type == PolicyType.ACCEPTANCE:
+            return self.policies[0]
+        if policy_type == PolicyType.BUCHI:
+            if policy_id is None:
+                raise ValueError("Policy ID is required for Buchi policies.")
+            return self.policies[policy_id]
+        raise ValueError(f"Invalid policy type: {policy_type}.")
+
     def _initialize_provided_policies(self):
         raise NotImplemented
-
 
     def get_generated_constants(self) -> set[str]:
         return self.generated_constants
 
     def __str__(self):
         return (f"Decomposed control policy: {self.state_dimension} -> {self.action_dimension} (x{len(self.policies)})\n" +
-                "\n".join(f"  - {policy}" for policy in self.policies))
+                "\n".join(f"    - {policy}" for policy in self.policies))

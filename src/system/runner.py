@@ -10,7 +10,8 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
-from .certificate.template import CertificateTemplate, CertificateTemplateType, LTLCertificateDecomposedTemplates
+from .certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease
+from .certificate.template import LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
@@ -43,10 +44,10 @@ class RunningStage(Enum):
     CONSTRUCT_SYSTEM_STATES = 2
     POLICY_PREPARATION = 3
     SYNTHESIZE_TEMPLATE = 4
-    # GENERATE_CONSTRAINTS = 5
+    GENERATE_CONSTRAINTS = 5
     # PREPARE_SOLVER_INPUTS = 6
     # RUN_SOLVER = 7
-    Done = 5
+    Done = 6
 
     def next(self):
         return RunningStage((self.value + 1) % len(RunningStage))
@@ -77,6 +78,7 @@ class Runner:
             RunningStage.CONSTRUCT_SYSTEM_STATES: self._run_stage_state_construction,
             RunningStage.POLICY_PREPARATION: self._run_stage_policy_preparation,
             RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
+            RunningStage.GENERATE_CONSTRAINTS: self._run_stage_generate_constraints,
         }
 
     def run(self):
@@ -91,12 +93,12 @@ class Runner:
     @stage_logger
     def _run_stage_parsing(self):
         if os.path.isdir(self.input_path):
-            print("- Directory detected. Parsing all files in the directory.")
+            print("+ Directory detected. Parsing all files in the directory.")
             files = glob.glob(os.path.join(self.input_path, "*.yaml")) + glob.glob(os.path.join(self.input_path, "*.json")) + glob.glob(os.path.join(self.input_path, "*.yml"))
-            logger.info(f"Provided a directory. {len(files)} files found in {self.input_path}")
+            logger.info(f"  + Provided a directory. {len(files)} files found in {self.input_path}")
         elif os.path.isfile(self.input_path):
             files = [self.input_path]
-            logger.info(f"Provided a file. {self.input_path} will be parsed.")
+            logger.info(f"+ Provided a file. {self.input_path} will be parsed.")
         else:
             raise FileNotFoundError(f"Input path not found: {self.input_path}")
 
@@ -130,7 +132,7 @@ class Runner:
             hoa_states=automata["states"]
         )
         print("+ Constructed 'LDBA' successfully.")
-        print("+", ldba)
+        print("  +", ldba)
 
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
@@ -143,7 +145,7 @@ class Runner:
             abstraction_dimension=len(self.history["ldba"].accepting_sink_sets_id)
         )
         self.history["control policy"] = policy
-        print("+", policy)
+        print("  +", policy)
 
     @stage_logger
     def _run_template_synthesis(self):
@@ -155,6 +157,29 @@ class Runner:
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
         )
         print("+ Synthesized 'Certificate Templates' successfully.")
-        print("+", template)
+        print("  +", template)
         self.history["template"] = template
+
+    @stage_logger
+    def _run_stage_generate_constraints(self):
+        non_negativity_generator = NonNegativityConstraint(template_manager=self.history["template"])
+        non_negativity_constraints = non_negativity_generator.extract()
+        print("+ Generated 'Non-Negativity Constraints' successfully.")
+        for t in non_negativity_constraints:
+            print("  +", t)
+
+        strict_expected_decrease_generator = StrictExpectedDecrease(
+            template_manager=self.history["template"],
+            decomposed_control_policy=self.history["control policy"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+            epsilon=self.history["synthesis"].epsilon,
+            probability_threshold=self.history["synthesis"].probability_threshold
+        )
+        strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
+        print("+ Generated 'Strict Expected Decrease Constraints' successfully.")
+        for t in strict_expected_decrease_constraints:
+            print("  +", t)
+
+
 

@@ -71,10 +71,6 @@ class Inequality:
     def __post_init__(self):
         if self.inequality_type not in EquationConditionType:
             raise ValueError(f"Invalid inequality type: {self.inequality_type}")
-        # if self.bound != 0:
-        #     logger.warning(f"You may use 0 bounded for more efficiency")
-        # else:
-        #     self.bound = 0
 
         if self.inequality_type not in [EquationConditionType.LESS_THAN_OR_EQUAL, EquationConditionType.GREATER_THAN_OR_EQUAL]:
             logger.warning(f"You may use '>=' or '<=' for more efficiency. Currently, we are relaxing the condition be default.")
@@ -107,7 +103,18 @@ class Inequality:
     def __hash__(self):
         return hash(str(self))
 
-    def __str__(self) -> str:
+    def to_detailed_string(self) -> str:
         return f"{self.left_equation} {self.inequality_type.value} {self.right_equation}"
+
+    def __str__(self) -> str:
+        if len(self.left_equation.monomials) > 1:
+            lhs = "LHS"
+        else:
+            lhs = str(self.left_equation)
+        if len(self.right_equation.monomials) > 1:
+            rhs = "RHS"
+        else:
+            rhs = str(self.right_equation)
+        return f"{lhs} {self.inequality_type.value} {rhs}"
 
 

@@ -61,12 +61,10 @@ class Equation:
             eq = f"(+ {eq} {m.to_smt_preorder()})"
         return eq
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> str:
         _eq = str(self)
         for k, v in kwargs.items():
             _eq = _eq.replace(k, f"({v})")
-        if kwargs.get("evaluate", False):
-            _eq = eval(_eq)
         return _eq
 
     @classmethod

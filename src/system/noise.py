@@ -49,7 +49,7 @@ class NormalNoiseGenerator(NoiseGenerator):
         if len(self.std_dev) != self.dimension:
             raise ValueError(f"Dimension of standard deviation vector ({len(self.std_dev)}) does not match the specified dimension ({self.dimension}).")
 
-    def get_expectations(self, order) -> list[list[float]]:
+    def get_expectations(self, order=__max__expectation__order__) -> list[list[float]]:
         """
         Returns the expected values of the noise distribution.
         """

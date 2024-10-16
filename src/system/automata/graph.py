@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Dict
 
 from .hoaParser import HOAAutomataState
 
@@ -55,6 +56,11 @@ class AutomataState:
     accepting_signature: list[str]
 
     def __post_init__(self):
+        if not isinstance(self.state_id, str):
+            raise ValueError("State ID must be a string.")
+        for _as in self.accepting_signature:
+            if not isinstance(_as, str):
+                raise ValueError("Accepting signature must be a string.")
         if self.status == AutomataStateStat.Accepting and len(self.accepting_signature) == 0:
             raise ValueError("Accepting state must have an accepting signature.")
         if self.status == AutomataStateStat.NonAccepting and len(self.accepting_signature) > 0:
@@ -71,19 +77,16 @@ class AutomataState:
 @dataclass
 class Automata:
     start_state_id: str
-    states: list[AutomataState]
+    states: Dict[str, AutomataState]
     accepting_sink_sets_id: list[str]
     atomic_symbol_to_propositions: dict[str, int]
-    # accepting_sinks_states_id: dict[str, list[str]] = field(init=False, default_factory=dict)
-
+    # accepting_states_id: set[str] = field(init=False, default_factory=set)
+    #
     # def __post_init__(self):
-    #     self.accepting_sinks_states_id = {
-    #         sink_id: [] for sink_id in self.accepting_sink_sets_id
-    #     }
-    #     for state in self.states:
-    #         if state.is_accepting():
-    #             for acc_id in state.accepting_signature:
-    #                 self.accepting_sinks_states_id[acc_id].append(state.state_id)
+    #     self.accepting_states_id = {st.state_id for st in self.states.values() if st.is_accepting()}
+
+    def get_state(self, state_id: str):
+        return self.states[state_id]
 
     def to_detailed_str(self):
         start = f">> {self.start_state_id}"
@@ -99,8 +102,7 @@ class Automata:
         accepting_sink_components = hoa_header['accepting_sink_sets_id']
         propositions_translation_dict = hoa_header['atomic_symbol_to_propositions']
         last_state_id = len(hoa_states) - 1
-        org_states = []
-        synth_states = []
+        refined_states: Dict[str, AutomataState] = {}
 
         for state in hoa_states:
             trans = []
@@ -113,12 +115,13 @@ class Automata:
                         predicate=""
                     )
                     new_state = AutomataState(
-                        state_id=last_state_id,
+                        state_id=str(last_state_id),
                         status=AutomataStateStat.Accepting,
                         transitions=[epsilon_tr],
                         accepting_signature=tr.accepting_signature
                     )
-                    synth_states.append(new_state)
+                    refined_states[new_state.state_id] = new_state
+
 
                     new_tr = AutomataTransition(
                         type=AutomataTransitionType.Propositional,
@@ -138,12 +141,11 @@ class Automata:
                 transitions=trans,
                 accepting_signature=[]
             )
-            org_states.append(new_st)
+            refined_states[new_st.state_id] = new_st
 
-        states = org_states + synth_states
         return cls(
             start_state_id=start_state_id,
-            states=states,
+            states=refined_states,
             accepting_sink_sets_id=accepting_sink_components,
             atomic_symbol_to_propositions=propositions_translation_dict
         )

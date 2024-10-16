@@ -1,50 +1,24 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import re
 
-from ..action import SystemControlPolicy
+from fontTools.misc.bezierTools import epsilon
+from numpy.ma.core import zeros
+from sympy.stats.rv import probability
+
+from .constraint_inequality import ConstraintInequality
+from .template import LTLCertificateDecomposedTemplates, CertificateTemplate
+from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..automata.graph import Automata
 from ..dynamics import SystemDynamics
 from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality
-from ..noise import SystemStochasticNoise
-from ..space import Space
-from ..state import SystemState
 
-
-@dataclass
-class ConstraintInequality:
-    spaces: list[Space]
-    inequality: Inequality
-
-    __slots__ = ["spaces", "inequality", "Action_dim"]
-
-    def _spaces_to_SMT_preorder(self) -> str:
-        spc = self.spaces[0].to_SMT_preorder()
-        for s in self.spaces[1:]:
-            spc = f"(or {spc} {s.to_SMT_preorder()})"
-        return spc
-
-    def to_polyhorn_preorder(self) -> str:
-        variables = " ".join(f"(S{i} Real)" for i in range(1, self.spaces[0].dimension+1))
-        return f"(assert (forall ({variables}) (=> {self._spaces_to_SMT_preorder()} {self.inequality.to_smt_preorder()}) ))"
-
-    def __str__(self):
-        return f"{self.inequality}; forall {' OR '.join(f'{s}' for s in self.spaces)}"
 
 
 class Constraint(ABC):
-
-    # def __post_init__(self):
-    #     """Check the type of the attributes and log or raise an error if the types don't match."""
-    #     for attr_name, attr_type in get_type_hints(self.__class__).items():
-    #         attr_value = getattr(self, attr_name)
-    #         if not isinstance(attr_value, attr_type):
-    #             raise TypeError(
-    #                 f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
-    #             )
-
     @abstractmethod
-    def extract(self) -> ConstraintInequality:
+    def extract(self) -> list[ConstraintInequality]:
         pass
 
 
@@ -57,146 +31,222 @@ def _replace_keys_with_values(s, dictionary):
 @dataclass
 class NonNegativityConstraint(Constraint):
     """
-    forall x ∈ X → V(x) ≥ 0
+    forall s ∈ R → V(s,q) ≥ 0
     """
-    v_function: Equation
-    state_space: Space
+    template_manager: LTLCertificateDecomposedTemplates
 
+    __slots__ = ["template_manager"]
 
-    __slots__ = ["v_function", "state_space"]
-
-    def extract(self) -> ConstraintInequality:
-        return ConstraintInequality(
-            spaces=[self.state_space],
-            inequality=Inequality(
-                left_equation=self.v_function,
-                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-                right_equation=Equation.extract_equation_from_string("0")
-            ),
-        )
-
-
-@dataclass
-class InitialLessThanOneConstraint(Constraint):
-    """
-    forall x ∈ X_{initial} → 1 - V(x) ≥ 0
-    """
-    v_function: Equation
-    initial_state_space: Space
-
-    __slots__ = ["v_function", "initial_state_space"]
-
-    def extract(self) -> ConstraintInequality:
-        _monomial_one = Equation.extract_equation_from_string("1")
-        _eq = _monomial_one.sub(self.v_function)
-        return ConstraintInequality(
-            spaces=[self.initial_state_space],
-            inequality=Inequality(
-                left_equation=_eq,
+    def extraxt_reach_and_stay(self) -> list[ConstraintInequality]:
+        _ineq = [
+            Inequality(
+                left_equation=t,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=Equation.extract_equation_from_string("0")
             )
-        )
-
-
-@dataclass
-class SafetyConstraint(Constraint):
-    """
-    forall x ∈ X_{unsafe} → V(x) - 1/(1-p) ≥ 0
-    """
-    v_function: Equation
-    unsafe_state_space: Space
-    probability_threshold: float
-
-    __slots__ = ["v_function", "unsafe_state_space", "probability_threshold"]
-
-    def extract(self) -> ConstraintInequality:
-        p = self.probability_threshold
-        _eq = Equation.extract_equation_from_string(f"1/(1-{p})")
-        _eq = self.v_function.sub(_eq)
-        return ConstraintInequality(
-            spaces=[self.unsafe_state_space],
-            inequality=Inequality(
-                left_equation=_eq,
-                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-                right_equation=Equation.extract_equation_from_string("0")
+            for t in self.template_manager.reach_and_stay_template.templates.values()
+        ]
+        return [
+            ConstraintInequality(
+                variables=self.template_manager.variable_generators,
+                lhs=None,
+                rhs=_ineq
             )
-        )
-
-
-@dataclass
-class DecreaseExpectationConstraint(Constraint):
-    """
-    forall x ∈ X/Xt → V(x) − E[V(x_{k+1}) | x_{k} = x] − ϵ ≥ 0
-
-    Please note that for the Expectation of Disturbance, we assume that the disturbance is one dimensional.
-    """
-    v_function: Equation
-    state_space: Space
-    target_state_space: Space
-    action_policy: SystemControlPolicy
-    system_dynamics: SystemDynamics
-    system_disturbance: SystemStochasticNoise
-    maximal_equation_degree: int
-    epsilon: float
-    current_state: SystemState = field(init=False, default=None)
-
-    __slots__ = [
-        "v_function", "state_space", "target_state_space", "action_policy",
-        "system_dynamics", "system_disturbance", "maximal_equation_degree", "epsilon"
-    ]
-
-    def __post_init__(self):
-        if self.current_state is None:
-            self.current_state = SystemState(
-                state_values=None,
-                dimension=self.state_space.dimension,
-            )
-
-    def extract(self) -> ConstraintInequality:
-        _next_expected_State = self.system_dynamics(
-            state=self.current_state,
-            action=self.action_policy(self.current_state),
-            noise=None,
-            evaluate=False,
-        )
-        _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
-        print(f"Epsilon: {self.epsilon}")
-
-        _ns_args = _next_expected_State()
-        _v_next = self.v_function(**_ns_args)
-        _v_next.replace(" ", "")
-        disturbance_expectations = self.system_disturbance.get_expectations(self.maximal_equation_degree)
-        refined_disturbance_expectations = {
-            f"D{dim+1}**{i}": str(d)
-            for dim in range(self.system_disturbance.dimension)
-            for i, d in enumerate(disturbance_expectations[dim], start=1)
-        }
-        for dim in range(self.system_disturbance.dimension):
-            refined_disturbance_expectations[f"D{dim+1}"] = str(disturbance_expectations[dim][0])
-        _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
-
-        _eq = Equation.extract_equation_from_string(_v_next)
-        _eq = _eq.add(_eq_epsilon)
-        _eq = self.v_function.sub(_eq)
-        print(f"Decrease Expectation Constraint: {_eq}")
-
-        state_space_equations = self.state_space.get_space_inequalities()
-        target_state_space_equations = self.target_state_space.get_space_inequalities()
-        spaces_excluded_target = [
-            Space(
-                dimension=self.state_space.dimension,
-                inequalities="",
-                listed_space_inequalities=state_space_equations + [ineq.neggate()],
-            )
-            for ineq in target_state_space_equations
         ]
 
-        return ConstraintInequality(
-            spaces=spaces_excluded_target,
-            inequality=Inequality(
-                left_equation=_eq,
+    def extract_buchi(self) -> list[ConstraintInequality]:
+        _ineqs = [
+            [Inequality(
+                left_equation=t,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=Equation.extract_equation_from_string("0")
+            ) for t in bt.templates.values()]
+            for bt in self.template_manager.buchi_templates
+        ]
+        return [
+            ConstraintInequality(
+                variables=self.template_manager.variable_generators,
+                lhs=None,
+                rhs=_ineq
             )
-        )
+            for _ineq in _ineqs
+        ]
+
+
+    def extract(self) -> list[ConstraintInequality]:
+        return self.extraxt_reach_and_stay() + self.extract_buchi()
+
+
+@dataclass
+class StrictExpectedDecrease(Constraint):
+
+    template_manager: LTLCertificateDecomposedTemplates
+    decomposed_control_policy: SystemDecomposedControlPolicy
+    system_dynamics: SystemDynamics
+    automata: Automata
+    epsilon: float
+    probability_threshold: float
+
+    __slots__ = ["template_manager", "decomposed_control_policy", "automata", "epsilon", "probability_threshold"]
+
+    def extraxt_reach_and_stay(self) -> list[ConstraintInequality]:  # TODO: We may need to consider the noise(expectation) as well
+        """
+        forall S and q ∈ Q/Qt, [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] − ϵ ≥ 0]
+        """
+        constraints = []
+        _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
+        _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
+        _eq_zero = Equation.extract_equation_from_string("0")
+
+        for _q_id in range(self.template_manager.abstraction_dimension):
+            q = self.automata.get_state(str(_q_id))
+            current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+            if q.is_accepting():
+                continue
+            _left_land_side = Inequality(
+                left_equation=_p.sub(current_v),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=_eq_zero
+            )
+
+            next_possible_q_ids = (t.destination_id for t in q.transitions) # TODO: we may need to consider labels as well
+            next_possible_v = [
+                self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+                for _q_id in next_possible_q_ids
+            ]
+
+            _s_ra_control_policy = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
+            _s_control_action = _s_ra_control_policy()
+            _s_next_states = self.system_dynamics(_s_control_action)  # Dict: {state_id: StringEquation}
+
+            possible_next_vs = [
+                _v(**_s_next_states).replace(" ", "")
+                for _v in next_possible_v
+            ]
+            # TODO: add disturbance expectation here
+            #       Convert each string equation to Equation, to be expanded
+            #       Then consider sample code below
+            # disturbance_expectations = Get are the disturbances, then
+            # refined_disturbance_expectations = {
+            #     f"D{dim + 1}**{i}": str(d)
+            #     for dim in range(self.system_disturbance.dimension)
+            #     for i, d in enumerate(disturbance_expectations[dim], start=1)
+            # }
+            # for dim in range(self.system_disturbance.dimension):
+            #     refined_disturbance_expectations[f"D{dim + 1}"] = str(disturbance_expectations[dim][0])
+            # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
+            expected_next_v_eq = [
+                Equation.extract_equation_from_string(_v)
+                for _v in possible_next_vs
+            ]
+            _t = current_v.sub(_eq_epsilon)
+            _t_right_hand_sides = [
+                current_v.sub(_expected_v)
+                for _expected_v in expected_next_v_eq
+            ]
+            _right_hand_sides = [
+                Inequality(
+                    left_equation=_lhs,
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=_eq_zero
+                )
+                for _lhs in _t_right_hand_sides
+            ]
+            constraints.append(
+                ConstraintInequality(
+                    variables=self.template_manager.variable_generators,
+                    lhs=_left_land_side,
+                    rhs=_right_hand_sides,
+                    aggregation_type="disjunction",
+                )
+            )
+        return constraints
+
+    def extract_buchi(self) -> list[ConstraintInequality]:
+        print("NOTE! Extracting Strict Expected Decrease Constraints for buchi hasn't implemented yet")
+        return []
+
+
+    def extract(self) -> list[ConstraintInequality]:
+        return self.extraxt_reach_and_stay() + self.extract_buchi()
+
+
+
+#     def extract(self) -> ConstraintInequality:
+#         _next_expected_State
+#         _eq_epsilon
+#         _v_next
+#
+#         _eq = Equation.extract_equation_from_string(_v_next)
+#         _eq = _eq.add(_eq_epsilon)
+#         _eq = self.v_function.sub(_eq)
+#         print(f"Decrease Expectation Constraint: {_eq}")
+#
+#         state_space_equations = self.state_space.get_space_inequalities()
+#         target_state_space_equations = self.target_state_space.get_space_inequalities()
+#         spaces_excluded_target = [
+#             Space(
+#                 dimension=self.state_space.dimension,
+#                 inequalities="",
+#                 listed_space_inequalities=state_space_equations + [ineq.neggate()],
+#             )
+#             for ineq in target_state_space_equations
+#         ]
+#
+#         return ConstraintInequality(
+#             spaces=spaces_excluded_target,
+#             inequality=Inequality(
+#                 left_equation=_eq,
+#                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+#                 right_equation=Equation.extract_equation_from_string("0")
+#             )
+#         )
+
+# @dataclass
+# class InitialLessThanOneConstraint(Constraint):
+#     """
+#     forall x ∈ X_{initial} → 1 - V(x) ≥ 0
+#     """
+#     v_function: Equation
+#     initial_state_space: Space
+#
+#     __slots__ = ["v_function", "initial_state_space"]
+#
+#     def extract(self) -> ConstraintInequality:
+#         _monomial_one = Equation.extract_equation_from_string("1")
+#         _eq = _monomial_one.sub(self.v_function)
+#         return ConstraintInequality(
+#             spaces=[self.initial_state_space],
+#             inequality=Inequality(
+#                 left_equation=_eq,
+#                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+#                 right_equation=Equation.extract_equation_from_string("0")
+#             )
+#         )
+#
+#
+# @dataclass
+# class SafetyConstraint(Constraint):
+#     """
+#     forall x ∈ X_{unsafe} → V(x) - 1/(1-p) ≥ 0
+#     """
+#     v_function: Equation
+#     unsafe_state_space: Space
+#     probability_threshold: float
+#
+#     __slots__ = ["v_function", "unsafe_state_space", "probability_threshold"]
+#
+#     def extract(self) -> ConstraintInequality:
+#         p = self.probability_threshold
+#         _eq = Equation.extract_equation_from_string(f"1/(1-{p})")
+#         _eq = self.v_function.sub(_eq)
+#         return ConstraintInequality(
+#             spaces=[self.unsafe_state_space],
+#             inequality=Inequality(
+#                 left_equation=_eq,
+#                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+#                 right_equation=Equation.extract_equation_from_string("0")
+#             )
+#         )
+#
+#

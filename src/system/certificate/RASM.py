@@ -6,8 +6,8 @@ from . import logger
 from .constraints import (NonNegativityConstraint,
                           InitialLessThanOneConstraint,
                           SafetyConstraint,
-                          DecreaseExpectationConstraint,
-                          ConstraintInequality)
+                          DecreaseExpectationConstraint)
+from .constraint_inequality import ConstraintInequality
 from ..polynomial.equation import Equation
 from ..polynomial.polynomial import Monomial
 from ..toolIO import ToolInput

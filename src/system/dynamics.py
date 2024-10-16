@@ -1,9 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Dict
 
-from .action import SystemControlAction
 from .polynomial.equation import Equation
-from .state import SystemState
 
 
 @dataclass
@@ -27,21 +25,12 @@ class SystemDynamics:
         if len(self.system_transformations) != self.state_dimension:
             raise ValueError(f"The number of system transformers must match the state dimension. ({len(self.system_transformations)} != {self.state_dimension})")
 
-    def __call__(self, state: SystemState, action: SystemControlAction, noise: Union[None, list[float]], evaluate: bool = False) -> SystemState:
+    def __call__(self, args: Dict) -> Dict[str, str]:
         """
         Feed in the noise values of you want to do the evaluation, otherwise feed the expectations.
         """
-        args = {}
-        args.update(state())
-        args.update(action())
-        if noise is not None:
-            args.update({f"D{i}": d for i, d in enumerate(noise, start=1)})
-
-        return SystemState(
-            dimension=self.state_dimension,
-            state_values=[
-                transformer(**args, evaluate=evaluate)
-                for transformer in self.system_transformations
-            ]
-        )
+        return {
+            f"S{i}": transformer(**args)
+            for i, transformer in enumerate(self.system_transformations, start=1)
+        }
 
