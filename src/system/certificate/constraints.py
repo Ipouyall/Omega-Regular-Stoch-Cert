@@ -2,12 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import re
 
-from fontTools.misc.bezierTools import epsilon
-from numpy.ma.core import zeros
-from sympy.stats.rv import probability
-
-from .constraint_inequality import ConstraintInequality
-from .template import LTLCertificateDecomposedTemplates, CertificateTemplate
+from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, GuardedInequality, SubConstraint
+from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy, PolicyType
 from ..automata.graph import Automata
 from ..dynamics import SystemDynamics
@@ -46,16 +42,20 @@ class NonNegativityConstraint(Constraint):
             )
             for t in self.template_manager.reach_and_stay_template.templates.values()
         ]
+        _sub = SubConstraint(
+            expr_1=_ineq,
+            aggregation_type=ConstraintAggregationType.CONJUNCTION
+        )
         return [
             ConstraintInequality(
                 variables=self.template_manager.variable_generators,
                 lhs=None,
-                rhs=_ineq
+                rhs=_sub,
             )
         ]
 
     def extract_buchi(self) -> list[ConstraintInequality]:
-        _ineqs = [
+        _inequalities = [
             [Inequality(
                 left_equation=t,
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
@@ -67,9 +67,9 @@ class NonNegativityConstraint(Constraint):
             ConstraintInequality(
                 variables=self.template_manager.variable_generators,
                 lhs=None,
-                rhs=_ineq
+                rhs=SubConstraint(expr_1=_ineq, aggregation_type=ConstraintAggregationType.CONJUNCTION),
             )
-            for _ineq in _ineqs
+            for _ineq in _inequalities
         ]
 
 
@@ -79,7 +79,6 @@ class NonNegativityConstraint(Constraint):
 
 @dataclass
 class StrictExpectedDecrease(Constraint):
-
     template_manager: LTLCertificateDecomposedTemplates
     decomposed_control_policy: SystemDecomposedControlPolicy
     system_dynamics: SystemDynamics
@@ -109,7 +108,8 @@ class StrictExpectedDecrease(Constraint):
                 right_equation=_eq_zero
             )
 
-            next_possible_q_ids = (t.destination_id for t in q.transitions) # TODO: we may need to consider labels as well
+            next_possible_q_ids = (t.destination_id for t in q.transitions)
+            next_possible_v_guards = (t.predicate for t in q.transitions)
             next_possible_v = [
                 self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                 for _q_id in next_possible_q_ids
@@ -141,23 +141,26 @@ class StrictExpectedDecrease(Constraint):
             ]
             _t = current_v.sub(_eq_epsilon)
             _t_right_hand_sides = [
-                current_v.sub(_expected_v)
+                _t.sub(_expected_v)
                 for _expected_v in expected_next_v_eq
             ]
             _right_hand_sides = [
-                Inequality(
-                    left_equation=_lhs,
-                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-                    right_equation=_eq_zero
+                GuardedInequality(
+                    guard=_guard,
+                    inequality=Inequality(
+                        left_equation=_lhs,
+                        inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                        right_equation=_eq_zero
+                    ),
+                    aggregation_type=ConstraintAggregationType.CONJUNCTION
                 )
-                for _lhs in _t_right_hand_sides
+                for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
             constraints.append(
                 ConstraintInequality(
                     variables=self.template_manager.variable_generators,
-                    lhs=_left_land_side,
-                    rhs=_right_hand_sides,
-                    aggregation_type="disjunction",
+                    lhs=SubConstraint(expr_1=_left_land_side),
+                    rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
             )
         return constraints

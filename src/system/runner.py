@@ -1,9 +1,13 @@
 import glob
 import os.path
+import sys
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
 from typing import Dict, Callable
+
+from tqdm import tqdm
 
 from . import logger
 from .action import SystemDecomposedControlPolicy
@@ -26,13 +30,19 @@ RESET = "\033[0m"
 
 
 def stage_logger(func):
+    total_time_spent = 0
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        print(f"{BOLD}{self.running_stage}{RESET} Stage started...")
+        self.pbar.write(f"{BOLD}{self.running_stage}{RESET} Stage started...")
 
+        st = time.perf_counter()
         result = func(self, *args, **kwargs)
+        du = time.perf_counter()  - st
 
-        print(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
+        self.pbar.write(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
+        self.pbar.update(1)
+        self.pbar.set_postfix({"Spent": f"{du:.4f}s"})
+        time.sleep(0.5)
 
         return result
     return wrapper
@@ -63,6 +73,7 @@ class Runner:
     output_path: str
     running_stage: RunningStage = field(init=False, default=RunningStage.PARSE_INPUT)
     history: dict = field(init=False, default_factory=dict)
+    pbar: tqdm = field(init=False, default=None)
 
     def __post_init__(self):
         if not self.output_path:
@@ -80,6 +91,12 @@ class Runner:
             RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
             RunningStage.GENERATE_CONSTRAINTS: self._run_stage_generate_constraints,
         }
+        self.pbar = tqdm(
+            range(RunningStage.Done.value),
+            file=sys.stdout,
+            colour="cyan",
+            leave=False,
+        )
 
     def run(self):
         while self.running_stage != RunningStage.Done:
@@ -87,13 +104,14 @@ class Runner:
             if stage_runner is None:
                 raise ValueError(f"Unknown stage: {self.running_stage}")
             stage_runner()
-
             self.running_stage = self.running_stage.next()
+        self.pbar.close()
+
 
     @stage_logger
     def _run_stage_parsing(self):
         if os.path.isdir(self.input_path):
-            print("+ Directory detected. Parsing all files in the directory.")
+            self.pbar.write("+ Directory detected. Parsing all files in the directory.")
             files = glob.glob(os.path.join(self.input_path, "*.yaml")) + glob.glob(os.path.join(self.input_path, "*.json")) + glob.glob(os.path.join(self.input_path, "*.yml"))
             logger.info(f"  + Provided a directory. {len(files)} files found in {self.input_path}")
         elif os.path.isfile(self.input_path):
@@ -118,11 +136,11 @@ class Runner:
     @stage_logger
     def _run_stage_state_construction(self):
         sds = SystemDynamics(**self.history["initiator"].sds_pre)
-        print("+ Constructed 'Stochastic Dynamical System' successfully.")
+        self.pbar.write("+ Constructed 'Stochastic Dynamical System' successfully.")
 
         ltl_specification = LDBASpecification(**self.history["initiator"].specification_pre)
         ldba_hoa = ltl_specification.get_HOA(os.path.join(self.output_path, "ltl2ldba.hoa"))
-        print("+ Retrieved 'LDBA HOA' successfully.")
+        self.pbar.write("+ Retrieved 'LDBA HOA' successfully.")
 
         hoa_parser = HOAParser()
         automata = hoa_parser(ldba_hoa)
@@ -131,8 +149,8 @@ class Runner:
             hoa_header=automata["header"],
             hoa_states=automata["states"]
         )
-        print("+ Constructed 'LDBA' successfully.")
-        print("  +", ldba)
+        self.pbar.write("+ Constructed 'LDBA' successfully.")
+        self.pbar.write(f"  + {ldba}")
 
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
@@ -145,7 +163,7 @@ class Runner:
             abstraction_dimension=len(self.history["ldba"].accepting_sink_sets_id)
         )
         self.history["control policy"] = policy
-        print("  +", policy)
+        self.pbar.write(f"  + {policy}")
 
     @stage_logger
     def _run_template_synthesis(self):
@@ -156,17 +174,17 @@ class Runner:
             accepting_components_count=len(self.history["ldba"].accepting_sink_sets_id),
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
         )
-        print("+ Synthesized 'Certificate Templates' successfully.")
-        print("  +", template)
+        self.pbar.write("+ Synthesized 'Certificate Templates' successfully.")
+        self.pbar.write(f"  + {template}")
         self.history["template"] = template
 
     @stage_logger
     def _run_stage_generate_constraints(self):
         non_negativity_generator = NonNegativityConstraint(template_manager=self.history["template"])
         non_negativity_constraints = non_negativity_generator.extract()
-        print("+ Generated 'Non-Negativity Constraints' successfully.")
+        self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
         for t in non_negativity_constraints:
-            print("  +", t)
+            self.pbar.write(f"  + {t}")
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -177,9 +195,9 @@ class Runner:
             probability_threshold=self.history["synthesis"].probability_threshold
         )
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
-        print("+ Generated 'Strict Expected Decrease Constraints' successfully.")
+        self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
         for t in strict_expected_decrease_constraints:
-            print("  +", t)
+            self.pbar.write(f"  + {t}")
 
 
 

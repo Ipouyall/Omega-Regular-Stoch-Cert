@@ -5,6 +5,21 @@ from typing import Dict
 from .hoaParser import HOAAutomataState
 
 
+def _rapid_reversed_dict_replacement(string, **kwargs):
+    for key, value in kwargs.items():
+        string = string.replace(str(value), str(key))
+    return string
+
+def _rapid_dict_replacement(string, **kwargs):
+    keep_alive = 1
+    while keep_alive != 0:
+        keep_alive = 0
+        for key, value in kwargs.items():
+            _string = string.replace(str(key), f"({value})")
+            keep_alive += 1 if _string != string else 0
+            string = _string
+    return string
+
 class AutomataTransitionType(Enum):
     Any = "any"
     Epsilon = "epsilon"
@@ -42,6 +57,8 @@ class AutomataTransition:
     predicate: str
 
     def __post_init__(self):
+        if self.type in [AutomataTransitionType.Any, AutomataTransitionType.Epsilon]:
+            self.predicate = ""
         self.predicate = self.predicate.replace("&", " & ").replace("|", " | ")
 
     def __str__(self):
@@ -70,8 +87,8 @@ class AutomataState:
         return self.status == AutomataStateStat.Accepting
 
     def __str__(self):
-        t = "\n" + 9 * " "
-        return f"- {self.status} {self.state_id:<3}" + t.join([str(tr) for tr in self.transitions])
+        t = "\n" + 11 * " "
+        return f"  - {self.status} {self.state_id:<3}" + t.join([str(tr) for tr in self.transitions])
 
 
 @dataclass
@@ -80,18 +97,23 @@ class Automata:
     states: Dict[str, AutomataState]
     accepting_sink_sets_id: list[str]
     atomic_symbol_to_propositions: dict[str, int]
-    # accepting_states_id: set[str] = field(init=False, default_factory=set)
-    #
-    # def __post_init__(self):
-    #     self.accepting_states_id = {st.state_id for st in self.states.values() if st.is_accepting()}
+
+
+    def __post_init__(self):
+        self._fix_transitions_labels()
+
+    def _fix_transitions_labels(self):
+        for state in self.states.values():
+            for tr in state.transitions:
+                tr.predicate = _rapid_reversed_dict_replacement(tr.predicate, **self.atomic_symbol_to_propositions)
 
     def get_state(self, state_id: str):
         return self.states[state_id]
 
     def to_detailed_str(self):
-        start = f">> {self.start_state_id}"
-        states = "\n".join([str(st) for st in self.states])
-        return f"{start}\n{states}"
+        start = f"  → {self.start_state_id}"
+        states = "\n".join([str(st) for st in self.states.values()])
+        return f"{self}\n{start}\n{states}"
 
     def __str__(self):
         return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, Σ={'{'}{','.join(self.atomic_symbol_to_propositions.keys())}{'}'}, F={'{'}{','.join(self.accepting_sink_sets_id)}{'}'})"

@@ -165,7 +165,7 @@ class SystemDecomposedControlPolicy:
             self.generated_constants.update(policy.get_generated_constants())
 
     def _initialize_synthesized_policies(self) -> None:
-        print("+ Initializing control policy for policy synthesis.")
+        logger.info("Initializing control policy for policy synthesis.")
         prefixes = ["Pa"] + [f"Pb{i}" for i in range(self.abstraction_dimension)]
         types = [PolicyType.ACCEPTANCE] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
         self.policies = [
