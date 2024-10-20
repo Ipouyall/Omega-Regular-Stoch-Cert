@@ -14,7 +14,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
-from .certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease
+from .certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease, NonStrictExpectedDecrease
 from .certificate.template import LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
@@ -197,6 +197,19 @@ class Runner:
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
         for t in strict_expected_decrease_constraints:
+            self.pbar.write(f"  + {t}")
+
+        non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
+            template_manager=self.history["template"],
+            decomposed_control_policy=self.history["control policy"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+            epsilon=self.history["synthesis"].epsilon,
+            probability_threshold=self.history["synthesis"].probability_threshold
+        )
+        non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
+        self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
+        for t in non_strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t}")
 
 
