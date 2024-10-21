@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
-
+from typing import Optional, Dict
 
 __valid__distributions__ = ["normal"]
 __max__expectation__order__ = 10
@@ -9,7 +8,7 @@ __max__expectation__order__ = 10
 
 class NoiseGenerator(ABC):
     @abstractmethod
-    def get_expectations(self, order) -> list[list[float]]:
+    def get_expectations(self, order) -> dict[str, str]:
         pass
 
 
@@ -49,15 +48,23 @@ class NormalNoiseGenerator(NoiseGenerator):
         if len(self.std_dev) != self.dimension:
             raise ValueError(f"Dimension of standard deviation vector ({len(self.std_dev)}) does not match the specified dimension ({self.dimension}).")
 
-    def get_expectations(self, order=__max__expectation__order__) -> list[list[float]]:
+    def get_expectations(self, order=__max__expectation__order__) -> dict[str, str]:
         """
         Returns the expected values of the noise distribution.
         """
-        return [
+        _exp = [
             [self.__expectation_table__[i](self.mean[j], self.std_dev[j])
             for i in range(order)]
             for j in range(self.dimension)
         ]
+        refined_disturbance_expectations = {
+            f"D{dim + 1}**{i}": str(d)
+            for dim in range(len(_exp))
+            for i, d in enumerate(_exp[dim], start=1)
+        }
+        for dim in range(len(_exp)):
+            refined_disturbance_expectations[f"D{dim + 1}"] = str(_exp[dim][0])
+        return refined_disturbance_expectations
 
 
 @dataclass
@@ -79,7 +86,7 @@ class SystemStochasticNoise:
         if self.distribution_name == "normal":
             self.noise_generators = NormalNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
 
-    def get_expectations(self, max_deg) -> list[list[float]]:
+    def get_expectations(self, max_deg=__max__expectation__order__) -> dict[str, str]:
         if max_deg > __max__expectation__order__:
             raise ValueError(f"Maximal degree of expectation is {__max__expectation__order__}.")
         return self.noise_generators.get_expectations(max_deg)

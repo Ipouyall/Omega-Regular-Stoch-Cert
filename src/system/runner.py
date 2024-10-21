@@ -190,6 +190,7 @@ class Runner:
             template_manager=self.history["template"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
+            disturbance=self.history["disturbance"],
             automata=self.history["ldba"],
             epsilon=self.history["synthesis"].epsilon,
             probability_threshold=self.history["synthesis"].probability_threshold
@@ -203,6 +204,7 @@ class Runner:
             template_manager=self.history["template"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
+            disturbance=self.history["disturbance"],
             automata=self.history["ldba"],
             epsilon=self.history["synthesis"].epsilon,
             probability_threshold=self.history["synthesis"].probability_threshold

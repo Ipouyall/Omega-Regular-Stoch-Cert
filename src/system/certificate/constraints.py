@@ -7,6 +7,7 @@ from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy, PolicyType
 from ..automata.graph import Automata
 from ..dynamics import SystemDynamics
+from ..noise import SystemStochasticNoise
 from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality
 
@@ -81,6 +82,7 @@ class NonNegativityConstraint(Constraint):
 class StrictExpectedDecrease(Constraint):
     template_manager: LTLCertificateDecomposedTemplates
     decomposed_control_policy: SystemDecomposedControlPolicy
+    disturbance: SystemStochasticNoise
     system_dynamics: SystemDynamics
     automata: Automata
     epsilon: float
@@ -97,14 +99,18 @@ class StrictExpectedDecrease(Constraint):
         _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
         _eq_zero = Equation.extract_equation_from_string("0")
 
+        #  S' under π_accept
         _s_ra_control_policy_accept = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
         _s_control_action_accept = _s_ra_control_policy_accept()
         _s_next_states_under_accept = self.system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
             q = self.automata.get_state(str(_q_id))
+            # q ∈ Q/Qt
             if q.is_accepting():
                 continue
+
+            #  V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
             _left_land_side = Inequality(
                 left_equation=_p.sub(current_v),
@@ -112,6 +118,7 @@ class StrictExpectedDecrease(Constraint):
                 right_equation=_eq_zero
             )
 
+            #  V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
             next_possible_v_guards = (t.predicate for t in q.transitions)
             next_possible_v = [
@@ -119,35 +126,35 @@ class StrictExpectedDecrease(Constraint):
                 for _q_id in next_possible_q_ids
             ]
 
+            #  V(s', q')
             possible_next_vs = [
                 _v(**_s_next_states_under_accept).replace(" ", "")
                 for _v in next_possible_v
             ]
-            # TODO: add disturbance expectation here
-            #       Convert each string equation to Equation, to be expanded
-            #       Then consider sample code below
-            # disturbance_expectations = Get are the disturbances, then
-            # refined_disturbance_expectations = {
-            #     f"D{dim + 1}**{i}": str(d)
-            #     for dim in range(self.system_disturbance.dimension)
-            #     for i, d in enumerate(disturbance_expectations[dim], start=1)
-            # }
-            # for dim in range(self.system_disturbance.dimension):
-            #     refined_disturbance_expectations[f"D{dim + 1}"] = str(disturbance_expectations[dim][0])
-            # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
+
+            # E[V(s',q')]
+            disturbance_expectations = self.disturbance.get_expectations()
+            expected_possible_next_vs = (
+                _replace_keys_with_values(_v, disturbance_expectations)
+                for _v in possible_next_vs
+            )
             expected_next_v_eq = [
                 Equation.extract_equation_from_string(_v)
-                for _v in possible_next_vs
+                for _v in expected_possible_next_vs
             ]
+
+            # V(s,q) − ϵ
             _t = current_v.sub(_eq_epsilon)
+
+            # V(s,q) − E[V(s',q')] − ϵ
             _t_right_hand_sides = [
                 _t.sub(_expected_v)
                 for _expected_v in expected_next_v_eq
             ]
             _right_hand_sides = [
-                GuardedInequality(
-                    guard=_guard,
-                    inequality=Inequality(
+                GuardedInequality(  # if transition (q to q') is possible, then:  V(s,q) − E[V(s',q')] − ϵ ≥ 0
+                    guard=_guard,  # the label of the transition
+                    inequality=Inequality(  # V(s,q) − E[V(s',q')] − ϵ ≥ 0
                         left_equation=_lhs,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
@@ -157,7 +164,7 @@ class StrictExpectedDecrease(Constraint):
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
             constraints.append(
-                ConstraintInequality(
+                ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] − ϵ ≥ 0]
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(expr_1=_left_land_side),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
@@ -178,6 +185,7 @@ class StrictExpectedDecrease(Constraint):
 class NonStrictExpectedDecrease(Constraint):
     template_manager: LTLCertificateDecomposedTemplates
     decomposed_control_policy: SystemDecomposedControlPolicy
+    disturbance: SystemStochasticNoise
     system_dynamics: SystemDynamics
     automata: Automata
     epsilon: float
@@ -193,14 +201,18 @@ class NonStrictExpectedDecrease(Constraint):
         _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
         _eq_zero = Equation.extract_equation_from_string("0")
 
+        #  S' under π_accept
         _s_ra_control_policy_accept = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
         _s_control_action_accept = _s_ra_control_policy_accept()
         _s_next_states_under_accept = self.system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
             q = self.automata.get_state(str(_q_id))
+            # q ∈ Q_{accept}
             if not q.is_accepting():
                 continue
+
+            # V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
             _left_land_side = Inequality(
                 left_equation=_p.sub(current_v),
@@ -208,6 +220,7 @@ class NonStrictExpectedDecrease(Constraint):
                 right_equation=_eq_zero
             )
 
+            # V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
             next_possible_v_guards = (t.predicate for t in q.transitions)
             next_possible_v = [
@@ -215,34 +228,32 @@ class NonStrictExpectedDecrease(Constraint):
                 for _q_id in next_possible_q_ids
             ]
 
+            # V(s', q')
             possible_next_vs = [
                 _v(**_s_next_states_under_accept).replace(" ", "")
                 for _v in next_possible_v
             ]
-            # TODO: add disturbance expectation here
-            #       Convert each string equation to Equation, to be expanded
-            #       Then consider sample code below
-            # disturbance_expectations = Get are the disturbances, then
-            # refined_disturbance_expectations = {
-            #     f"D{dim + 1}**{i}": str(d)
-            #     for dim in range(self.system_disturbance.dimension)
-            #     for i, d in enumerate(disturbance_expectations[dim], start=1)
-            # }
-            # for dim in range(self.system_disturbance.dimension):
-            #     refined_disturbance_expectations[f"D{dim + 1}"] = str(disturbance_expectations[dim][0])
-            # _v_next = _replace_keys_with_values(_v_next, refined_disturbance_expectations)
+
+            # E[V(s',q')]
+            disturbance_expectations = self.disturbance.get_expectations()
+            expected_possible_next_vs = (
+                _replace_keys_with_values(_v, disturbance_expectations)
+                for _v in possible_next_vs
+            )
             expected_next_v_eq = [
                 Equation.extract_equation_from_string(_v)
-                for _v in possible_next_vs
+                for _v in expected_possible_next_vs
             ]
+
+            # V(s,q) − E[V(s',q')]
             _t_right_hand_sides = [
                 current_v.sub(_expected_v)
                 for _expected_v in expected_next_v_eq
             ]
             _right_hand_sides = [
-                GuardedInequality(
-                    guard=_guard,
-                    inequality=Inequality(
+                GuardedInequality(  # if transition (q to q') is possible, then:  V(s,q) − E[V(s',q')] ≥ 0
+                    guard=_guard,  # the label of the transition
+                    inequality=Inequality(  # V(s,q) − E[V(s',q')] ≥ 0
                         left_equation=_lhs,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
@@ -252,7 +263,7 @@ class NonStrictExpectedDecrease(Constraint):
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
             constraints.append(
-                ConstraintInequality(
+                ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] ≥ 0]
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(expr_1=_left_land_side),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
