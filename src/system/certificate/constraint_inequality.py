@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 
-from src.system.polynomial.inequality import Inequality
+from ..polynomial.inequality import Inequality
 
 
 class ConstraintAggregationType:
