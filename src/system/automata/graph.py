@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Dict
 
 from .hoaParser import HOAAutomataState
+from .utils import find_sccs_covering_accepting_sink_sets
 
 
 def _rapid_reversed_dict_replacement(string, **kwargs):
@@ -101,11 +102,18 @@ class Automata:
 
     def __post_init__(self):
         self._fix_transitions_labels()
+        self._discover_accepting_components()
 
     def _fix_transitions_labels(self):
         for state in self.states.values():
             for tr in state.transitions:
                 tr.predicate = _rapid_reversed_dict_replacement(tr.predicate, **self.atomic_symbol_to_propositions)
+
+    def _discover_accepting_components(self):
+        self.accepting_components = find_sccs_covering_accepting_sink_sets(self)
+        accepting_nodes = {node for component in self.accepting_components for node in component}
+        for node in accepting_nodes:
+            self.states[node].status = AutomataStateStat.Accepting
 
     def get_state(self, state_id: str):
         return self.states[state_id]

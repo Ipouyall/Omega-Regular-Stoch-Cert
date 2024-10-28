@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Union
 
 from ..polynomial.inequality import Inequality
+from .utils import infix_to_prefix
 
 
 class ConstraintAggregationType:
@@ -9,13 +10,48 @@ class ConstraintAggregationType:
     DISJUNCTION = "disjunction" # or
 
 
+operation_to_symbol = {
+    "conjunction": ("and", "&"),
+    "disjunction": ("or", "|"),
+}
+
+bool_to_smt_bool = {
+    "|": "or",
+    "&": "and",
+    "!": "not",
+}
+
+
+def _list_to_smt_preorder(ineq: list[Inequality], aggregation_type: ConstraintAggregationType) -> str:
+    _str = ineq[0].to_smt_preorder()
+    for ieq in ineq[1:]:
+        _str = f"({operation_to_symbol[aggregation_type][0]} {_str} {ieq.to_smt_preorder()})"
+    return _str
+
+
+def _single_to_smt_preorder(ineq: Inequality) -> str:
+    return ineq.to_smt_preorder()
+
+
+def _to_smt_preorder_helper(inequality: Union[Inequality|list[Inequality]|None], aggregation_type: ConstraintAggregationType) -> Union[str|None]:
+    if inequality is None:
+        return None
+    if isinstance(inequality, list):
+        return _list_to_smt_preorder(inequality, aggregation_type)
+    return _single_to_smt_preorder(inequality)
+
+
 @dataclass
 class Guard:
     guard: str
 
-    @staticmethod
-    def to_smt_preorder() -> str:
-        return NotImplemented
+    def to_smt_preorder(self) -> str:
+        if not self.guard:
+            return "(> 1 0)"
+        preorder = infix_to_prefix(self.guard)
+        for key, value in bool_to_smt_bool.items():
+            preorder = preorder.replace(key, value)
+        return preorder
 
     def is_guarded(self) -> bool:
         return True if self.guard else False
@@ -35,25 +71,19 @@ class GuardedInequality:
     guard: Union[Guard|str]
     aggregation_type: ConstraintAggregationType = ConstraintAggregationType.CONJUNCTION
 
-    __operation_to_symbol = {
-        "conjunction": ("and", "&"),
-        "disjunction": ("or", "|"),
-    }
-
     def __post_init__(self):
         if isinstance(self.guard, str):
             self.guard = Guard(self.guard)
 
-    @staticmethod
-    def to_smt_preorder() -> str:
-        return NotImplemented
+    def to_smt_preorder(self) -> str:
+        return f"(and {self.guard.to_smt_preorder()} {_to_smt_preorder_helper(self.inequality, self.aggregation_type)})"
 
     @staticmethod
     def hand_side_to_str(guard: Guard, inequality: Union[Inequality|list[Inequality]], aggregation_type) -> str:
         if isinstance(inequality, list):
             if len(inequality) > 2:
-                return f"{guard} & ({inequality[0]}) {GuardedInequality.__operation_to_symbol[aggregation_type][1]} ..+{len(inequality) - 2}.. {GuardedInequality.__operation_to_symbol[aggregation_type][1]} ({inequality[-1]})"
-            return f"{guard} & " f" {GuardedInequality.__operation_to_symbol[aggregation_type][1]} ".join(
+                return f"{guard} & ({inequality[0]}) {operation_to_symbol[aggregation_type][1]} ..+{len(inequality) - 2}.. {operation_to_symbol[aggregation_type][1]} ({inequality[-1]})"
+            return f"{guard} & " f" {operation_to_symbol[aggregation_type][1]} ".join(
                 f"({ineq})" for ineq in inequality)
         return f"{guard} & ({inequality })"
 
@@ -61,7 +91,7 @@ class GuardedInequality:
         if not self.guard.is_guarded():
             return SubConstraint.expression_to_str(self.inequality, self.aggregation_type)
         if isinstance(self.inequality, list):
-            return f"{self.guard.to_detailed_str()} & (" + f" {GuardedInequality.__operation_to_symbol[self.aggregation_type][1]} ".join(
+            return f"{self.guard.to_detailed_str()} & (" + f" {operation_to_symbol[self.aggregation_type][1]} ".join(
                 f"({ineq.to_detailed_string()})" for ineq in self.inequality) + ')'
         return f"{self.guard.to_detailed_str()} & ({self.inequality.to_detailed_string()})"
 
@@ -77,42 +107,18 @@ class SubConstraint:
     expr_2: Union[Inequality|list[Inequality]|GuardedInequality|list[GuardedInequality]|None] = None
     aggregation_type: ConstraintAggregationType = None
 
-    __operation_to_symbol = {
-        "conjunction": ("and", "&"),
-        "disjunction": ("or", "|"),
-    }
-
     def __post_init__(self):
         if self.expr_1 is None and self.expr_2 is None:
             raise ValueError("You should provide at least one expression.")
         if self.aggregation_type is None and (isinstance(self.expr_1, list) or isinstance(self.expr_2, list)):
             raise ValueError("Aggregation type must be provided for list of expressions.")
 
-    @staticmethod
-    def _list_to_smt_preorder(ineq: list[Inequality], aggregation_type: ConstraintAggregationType) -> str:
-        _str = ineq[0].to_smt_preorder()
-        for ieq in ineq[1:]:
-            _str = f"({SubConstraint.__operation_to_symbol[aggregation_type][0]} {_str} {ieq.to_smt_preorder()})"
-        return _str
-
-    @staticmethod
-    def _single_to_smt_preorder(ineq: Inequality) -> str:
-        return ineq.to_smt_preorder()
-
-    @staticmethod
-    def _to_smt_preorder_helper(inequality: Union[Inequality|list[Inequality]|None], aggregation_type: ConstraintAggregationType) -> Union[str|None]:
-        if inequality is None:
-            return None
-        if isinstance(inequality, list):
-            return SubConstraint._list_to_smt_preorder(inequality, aggregation_type)
-        return SubConstraint._single_to_smt_preorder(inequality)
-
     def to_smt_preorder(self) -> str:
-        _expr1 = self._to_smt_preorder_helper(self.expr_1, self.aggregation_type)
-        _expr2 = self._to_smt_preorder_helper(self.expr_2, self.aggregation_type)
+        _expr1 = _to_smt_preorder_helper(self.expr_1, self.aggregation_type)
+        _expr2 = _to_smt_preorder_helper(self.expr_2, self.aggregation_type)
 
         if _expr1 is not None and _expr2 is not None:
-            return f"({SubConstraint.__operation_to_symbol[self.aggregation_type][0]} {_expr1} {_expr2})"
+            return f"({operation_to_symbol[self.aggregation_type][0]} {_expr1} {_expr2})"
         if _expr1 is None:
             return f"{_expr2}"
         return f"{_expr1}"
@@ -123,11 +129,11 @@ class SubConstraint:
             return None
         if isinstance(expression, list):
             if detailed:
-                return f" {SubConstraint.__operation_to_symbol[aggregation_type][1]} ".join(
+                return f" {operation_to_symbol[aggregation_type][1]} ".join(
                     f"({ineq.to_detailed_string()})" for ineq in expression)
             if len(expression) > 3:
-                return f"({expression[0]}) {SubConstraint.__operation_to_symbol[aggregation_type][1]} ..+{len(expression) - 2}.. {SubConstraint.__operation_to_symbol[aggregation_type][1]} ({expression[-1]})"
-            return f" {SubConstraint.__operation_to_symbol[aggregation_type][1]} ".join(
+                return f"({expression[0]}) {operation_to_symbol[aggregation_type][1]} ..+{len(expression) - 2}.. {operation_to_symbol[aggregation_type][1]} ({expression[-1]})"
+            return f" {operation_to_symbol[aggregation_type][1]} ".join(
                 f"({ineq})" for ineq in expression)
         return f"{expression}"
 
@@ -136,7 +142,7 @@ class SubConstraint:
         _expr2 = self.expression_to_str(self.expr_2, self.aggregation_type, detailed=True)
 
         if _expr1 is not None and _expr2 is not None:
-            return f"({_expr1} {SubConstraint.__operation_to_symbol[self.aggregation_type][1]} {_expr2})"
+            return f"({_expr1} {operation_to_symbol[self.aggregation_type][1]} {_expr2})"
         if _expr1 is None:
             return f"{_expr2}"
         return f"{_expr1}"
@@ -146,7 +152,7 @@ class SubConstraint:
         _expr2 = self.expression_to_str(self.expr_2, self.aggregation_type)
 
         if _expr1 is not None and _expr2 is not None:
-            return f"({_expr1} {SubConstraint.__operation_to_symbol[self.aggregation_type][1]} {_expr2})"
+            return f"({_expr1} {operation_to_symbol[self.aggregation_type][1]} {_expr2})"
         if _expr1 is None:
             return f"{_expr2}"
         return f"{_expr1}"

@@ -97,8 +97,13 @@ class HOAAutomataTransition:
     accepting_signature: list[str]
 
     def __post_init__(self):
+        if isinstance(self.label, Token):
+            self.label = str(self.label.value)
+        if isinstance(self.destination, Token):
+            self.destination = str(self.destination.value)
         if self.label in ["t"]:
             self.label = "any"
+
 
     def __str__(self):
         return f"{self.label} -> ({self.destination})" + '{' + ', '.join(self.accepting_signature) + '}'

@@ -19,6 +19,7 @@ from .certificate.template import LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
+from .polyhorn_helper import CommunicationBridge
 from .toolIO import IOParser
 
 
@@ -55,9 +56,9 @@ class RunningStage(Enum):
     POLICY_PREPARATION = 3
     SYNTHESIZE_TEMPLATE = 4
     GENERATE_CONSTRAINTS = 5
-    # PREPARE_SOLVER_INPUTS = 6
+    PREPARE_SOLVER_INPUTS = 6
     # RUN_SOLVER = 7
-    Done = 6
+    Done = 7
 
     def next(self):
         return RunningStage((self.value + 1) % len(RunningStage))
@@ -90,6 +91,7 @@ class Runner:
             RunningStage.POLICY_PREPARATION: self._run_stage_policy_preparation,
             RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
             RunningStage.GENERATE_CONSTRAINTS: self._run_stage_generate_constraints,
+            RunningStage.PREPARE_SOLVER_INPUTS: self._run_stage_prepare_solver_inputs,
         }
         self.pbar = tqdm(
             range(RunningStage.Done.value),
@@ -106,7 +108,6 @@ class Runner:
             stage_runner()
             self.running_stage = self.running_stage.next()
         self.pbar.close()
-
 
     @stage_logger
     def _run_stage_parsing(self):
@@ -214,5 +215,28 @@ class Runner:
         for t in non_strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t}")
 
+        self.history["constraints"] = {
+            "non_negativity": non_negativity_constraints,
+            "strict_expected_decrease": strict_expected_decrease_constraints,
+            "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
+        }
 
+    @stage_logger
+    def _run_stage_prepare_solver_inputs(self):
+        polyhorn_input = CommunicationBridge.get_input_string(
+            policy=self.history["control policy"],
+            **self.history["constraints"]
+        )
+        polyhorn_config = CommunicationBridge.get_input_config(
+            **self.history["initiator"].synthesis_config_pre,
+            output_path=self.output_path
+        )
+        CommunicationBridge.dump_polyhorn_input(
+            input_string=polyhorn_input,
+            config=polyhorn_config,
+            temp_dir=self.output_path
+        )
 
+    @stage_logger
+    def _run_solver(self):
+        result = CommunicationBridge.feed_to_polyhorn(self.output_path)
