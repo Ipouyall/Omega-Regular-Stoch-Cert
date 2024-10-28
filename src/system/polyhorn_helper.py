@@ -47,8 +47,8 @@ class CommunicationBridge:
 
     @staticmethod
     def dump_polyhorn_input(input_string, config, temp_dir):
-        config_path = f"{temp_dir}_temporary_polyhorn_config.json"
-        input_path = f"{temp_dir}_temporary_polyhorn_input.smt2"
+        config_path = os.path.join(temp_dir, "temporary_polyhorn_config.json")
+        input_path = os.path.join(temp_dir, "temporary_polyhorn_input.smt2")
         with open(config_path, "w") as f:
             f.write(config)
         with open(input_path, "w") as f:
