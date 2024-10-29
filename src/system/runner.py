@@ -31,7 +31,6 @@ RESET = "\033[0m"
 
 
 def stage_logger(func):
-    total_time_spent = 0
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         self.pbar.write(f"{BOLD}{self.running_stage}{RESET} Stage started...")
@@ -240,3 +239,6 @@ class Runner:
     @stage_logger
     def _run_solver(self):
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
+        self.pbar.write("+ Polyhorn solver completed.")
+        self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
+        self.history["solver_result"] = result
