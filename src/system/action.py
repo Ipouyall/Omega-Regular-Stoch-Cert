@@ -156,6 +156,9 @@ class SystemDecomposedControlPolicy:
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
+        self.policies = [
+            policy for policy in self.policies if policy
+        ]
         if not self.policies:
             self._initialize_synthesized_policies()
         else:

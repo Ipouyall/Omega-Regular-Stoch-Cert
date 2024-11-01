@@ -37,7 +37,7 @@ class IOParser:
         "disturbance": ["distribution_name","disturbance_parameters"],
         "stochastic_dynamical_system": ["state_space_dimension","control_space_dimension","disturbance_space_dimension","dynamics"],
         "synthesis_config": ["maximal_polynomial_degree","epsilon","probability_threshold","theorem_name","solver_name"],
-        "Specification": ["ltl_formula","predicate_lookup"],
+        "specification": ["ltl_formula","predicate_lookup"],
 
     }
 
@@ -87,7 +87,7 @@ class IOParser:
         return _structure
 
     @staticmethod
-    def _process_dict_to_tool_input(data: dict) -> ToolInput:
+    def process_dict_to_tool_input(data: dict) -> ToolInput:
         _poly_max_ever = data["synthesis_config"]["maximal_polynomial_degree"]
         action_max_deg = data["actions"].get("maximal_polynomial_degree", _poly_max_ever) if "actions" in data else _poly_max_ever
         actions = {
@@ -124,10 +124,10 @@ class IOParser:
         }
 
         specification = {
-            "ltl_formula": data["Specification"].get("ltl_formula", None),
-            "predicate_lookup": data["Specification"]["predicate_lookup"],
+            "ltl_formula": data["specification"].get("ltl_formula", None),
+            "predicate_lookup": data["specification"]["preposition_lookup"],
             "owl_binary_path": data["synthesis_config"].get("owl_path", None),
-            "hoa_path": data["Specification"].get("hoa_path", None),
+            "hoa_path": data["specification"].get("hoa_path", None),
         }
 
 
@@ -156,6 +156,6 @@ class IOParser:
             _structure.update(self._parse_json(*json_files))
         if yaml_files:
             _structure.update(self._parse_yaml(*yaml_files))
-        return self._process_dict_to_tool_input(_structure)
+        return self.process_dict_to_tool_input(_structure)
 
 

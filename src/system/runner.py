@@ -42,7 +42,7 @@ def stage_logger(func):
         self.pbar.write(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
         self.pbar.update(1)
         self.pbar.set_postfix({"Spent": f"{du:.4f}s"})
-        time.sleep(0.1)
+        # time.sleep(0.1)
 
         return result
     return wrapper
