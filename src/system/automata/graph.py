@@ -6,6 +6,8 @@ from .hoaParser import HOAAutomataState
 from .utils import find_bottom_sccs_covering_accepting_sink_sets
 
 
+_a_to_z_string = "abcdefghijklmnopqrstuvwxyz"
+
 def _rapid_reversed_dict_replacement(string, **kwargs):
     for key, value in kwargs.items():
         string = string.replace(str(value), str(key))
@@ -16,9 +18,17 @@ def _rapid_dict_replacement(string, **kwargs):
     while keep_alive != 0:
         keep_alive = 0
         for key, value in kwargs.items():
-            _string = string.replace(str(key), f"({value})")
+            _string = string.replace(str(key), str(value))
             keep_alive += 1 if _string != string else 0
             string = _string
+    return string
+
+def _fast_dict_replacement(string, lookup: dict, safe=False):
+    for key in lookup.keys():
+        string = string.replace(str(key), f"'''{key}'''")
+    for key, value in lookup.items():
+        _v = f"({value})" if safe else str(value)
+        string = string.replace(f"'''{key}'''", _v)
     return string
 
 class AutomataTransitionType(Enum):
@@ -62,8 +72,12 @@ class AutomataTransition:
             self.predicate = ""
         self.predicate = self.predicate.replace("&", " & ").replace("|", " | ")
 
+    def to_string(self, lookup_table):
+        _pred = _fast_dict_replacement(self.predicate, lookup_table, safe=True)
+        return f"--[{_pred:^10}]--> {self.destination_id}"
+
     def __str__(self):
-        return f"--[{self.predicate:^5}]--> {self.destination_id}"
+        return self.to_string({})
 
 
 @dataclass
@@ -87,9 +101,12 @@ class AutomataState:
     def is_accepting(self):
         return self.status == AutomataStateStat.Accepting
 
-    def __str__(self):
+    def to_string(self, lookup_table):
         t = "\n" + 11 * " "
-        return f"  - {self.status} {self.state_id:<3}" + t.join([str(tr) for tr in self.transitions])
+        return f"  - {self.status} {self.state_id:<3}" + t.join([tr.to_string(lookup_table) for tr in self.transitions])
+
+    def __str__(self):
+        return self.to_string({})
 
 
 @dataclass
@@ -97,17 +114,23 @@ class Automata:
     start_state_id: str
     states: Dict[str, AutomataState]
     accepting_sink_sets_id: list[str]
-    atomic_symbol_to_propositions: dict[str, int]
+    symbol_to_atomic_propositions: dict[int, str]
+    atomic_preposition_lookup: dict[str, str]
+    lookup_table: dict[str, str] = field(init=False, default_factory=dict)
 
 
     def __post_init__(self):
-        self._fix_transitions_labels()
+        # self._fix_transitions_labels()
         self._discover_accepting_components()
+        self.lookup_table = {
+            str(k): _fast_dict_replacement(str(v), self.atomic_preposition_lookup)
+            for k, v in self.symbol_to_atomic_propositions.items()
+        }
 
     def _fix_transitions_labels(self):
         for state in self.states.values():
             for tr in state.transitions:
-                tr.predicate = _rapid_reversed_dict_replacement(tr.predicate, **self.atomic_symbol_to_propositions)
+                tr.predicate = _rapid_reversed_dict_replacement(tr.predicate, **self.symbol_to_atomic_propositions)
 
     def _discover_accepting_components(self):
         self.accepting_components = find_bottom_sccs_covering_accepting_sink_sets(self)
@@ -118,16 +141,16 @@ class Automata:
     def get_state(self, state_id: str):
         return self.states[state_id]
 
-    def to_detailed_str(self):
+    def to_detailed_string(self):
         start = f"  → {self.start_state_id}"
-        states = "\n".join([str(st) for st in self.states.values()])
+        states = "\n".join([st.to_string(self.lookup_table) for st in self.states.values()])
         return f"{self}\n{start}\n{states}"
 
     def __str__(self):
-        return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, Σ={'{'}{','.join(self.atomic_symbol_to_propositions.keys())}{'}'}, F={'{'}{','.join(self.accepting_sink_sets_id)}{'}'})"
+        return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, |Σ|={len(self.symbol_to_atomic_propositions.keys())}, F={'{'}{','.join(self.accepting_sink_sets_id)}{'}'})"
 
     @classmethod
-    def from_hoa(cls, hoa_header, hoa_states: list[HOAAutomataState]):
+    def from_hoa(cls, hoa_header, hoa_states: list[HOAAutomataState], lookup_table: dict):
         start_state_id = hoa_header['start_state_id']
         accepting_sink_components = hoa_header['accepting_sink_sets_id']
         propositions_translation_dict = hoa_header['atomic_symbol_to_propositions']
@@ -177,6 +200,7 @@ class Automata:
             start_state_id=start_state_id,
             states=refined_states,
             accepting_sink_sets_id=accepting_sink_components,
-            atomic_symbol_to_propositions=propositions_translation_dict
+            symbol_to_atomic_propositions=propositions_translation_dict,
+            atomic_preposition_lookup=lookup_table
         )
 

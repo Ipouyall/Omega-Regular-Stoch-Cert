@@ -81,7 +81,6 @@ class SystemControlPolicy:
     def __post_init__(self):
         if self.transitions is not None and len(self.transitions) != self.action_dimension:
             logger.error(f"No valid control policy provided. Ignoring the provided policy.")
-            logger.info(f"Number of control policy equations must match the action space dimension. Expected {self.action_space.dimension} equations, got {len(self.transitions)}.")
             self.transitions = None
         if not self.transitions:
             self.mode = PolicyMode.SYNTHESIS

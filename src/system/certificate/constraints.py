@@ -159,7 +159,8 @@ class StrictExpectedDecrease(Constraint):
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
                     ),
-                    aggregation_type=ConstraintAggregationType.CONJUNCTION
+                    aggregation_type=ConstraintAggregationType.CONJUNCTION,
+                    lookup_table=self.automata.lookup_table,
                 )
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
@@ -284,6 +285,7 @@ class StrictExpectedDecrease(Constraint):
                     GuardedInequality(
                         guard=_guard,
                         inequality=_ineq,
+                        lookup_table=self.automata.lookup_table,
                     )
                     for _ineq, _guard in zip(_right_hand_sides_buchi, next_possible_v_guards)
                 ]
@@ -390,7 +392,8 @@ class NonStrictExpectedDecrease(Constraint):
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
                     ),
-                    aggregation_type=ConstraintAggregationType.CONJUNCTION
+                    aggregation_type=ConstraintAggregationType.CONJUNCTION,
+                    lookup_table=self.automata.lookup_table,
                 )
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
@@ -473,6 +476,7 @@ class NonStrictExpectedDecrease(Constraint):
                     GuardedInequality(
                         guard=_guard,
                         inequality=_ineq,
+                        lookup_table=self.automata.lookup_table,
                     )
                     for _ineq, _guard in zip(_rhs_reach_and_stay, next_possible_v_guards)
                 ]

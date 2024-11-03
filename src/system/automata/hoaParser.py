@@ -133,7 +133,7 @@ class HOAParsedHeaderHelper:
     @staticmethod
     def extract_atomic_propositions_to_symbol(parsed_tree):
         return {
-            str(k): int(v)
+            int(v): str(k)
             for k, v in parsed_tree['header']['ap_decl']['propositions'].items()
         }
 

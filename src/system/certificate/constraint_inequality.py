@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Optional
 
 from ..polynomial.inequality import Inequality
 from .utils import infix_to_prefix
@@ -44,6 +44,7 @@ def _to_smt_preorder_helper(inequality: Union[Inequality|list[Inequality]|None],
 @dataclass
 class Guard:
     guard: str
+    lookup_table: dict[str, str]
 
     def to_smt_preorder(self) -> str:
         if not self.guard:
@@ -70,10 +71,13 @@ class GuardedInequality:
     inequality: Union[Inequality|list[Inequality]]
     guard: Union[Guard|str]
     aggregation_type: ConstraintAggregationType = ConstraintAggregationType.CONJUNCTION
+    lookup_table: Optional[dict[str, str]] = None
 
     def __post_init__(self):
-        if isinstance(self.guard, str):
-            self.guard = Guard(self.guard)
+        if isinstance(self.guard, str) and self.lookup_table is None:
+            raise ValueError("You should provide lookup table for the string guard.")
+        elif isinstance(self.guard, str):
+            self.guard = Guard(self.guard, self.lookup_table)
 
     def to_smt_preorder(self) -> str:
         return f"(and {self.guard.to_smt_preorder()} {_to_smt_preorder_helper(self.inequality, self.aggregation_type)})"

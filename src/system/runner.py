@@ -1,7 +1,6 @@
 import glob
 import os.path
 import sys
-import time
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
@@ -35,14 +34,13 @@ def stage_logger(func):
     def wrapper(self, *args, **kwargs):
         self.pbar.write(f"{BOLD}{self.running_stage}{RESET} Stage started...")
 
-        st = time.perf_counter()
+        # st = time.perf_counter()
         result = func(self, *args, **kwargs)
-        du = time.perf_counter()  - st
+        # du = time.perf_counter()  - st
 
         self.pbar.write(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
         self.pbar.update(1)
-        self.pbar.set_postfix({"Spent": f"{du:.4f}s"})
-        # time.sleep(0.1)
+        # self.pbar.set_postfix({"Spent": f"{du:.4f}s"})
 
         return result
     return wrapper
@@ -147,7 +145,8 @@ class Runner:
 
         ldba = Automata.from_hoa(
             hoa_header=automata["header"],
-            hoa_states=automata["states"]
+            hoa_states=automata["states"],
+            lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
         self.pbar.write(f"  + {ldba}")
