@@ -14,9 +14,11 @@ class CommunicationBridge:
     __get_model_template = "(get-model)"
 
     @staticmethod
-    def get_input_string(policy: SystemDecomposedControlPolicy, **certificate: list[ConstraintInequality]) -> str:
-        constants = policy.get_generated_constants()
-        constants = "\n".join([CommunicationBridge.__constant_definition_template.format(const_name=const) for const in constants])
+    def get_input_string(generated_constants: set[str], **certificate: list[ConstraintInequality]) -> str:
+        constants = "\n".join(
+            CommunicationBridge.__constant_definition_template.format(const_name=const)
+            for const in generated_constants
+        )
 
         constraints = "\n".join([
             constraint.to_polyhorn_preorder()
@@ -31,6 +33,7 @@ class CommunicationBridge:
         """
         It looks for the following keys: "theorem_name", "maximal_polynomial_degree", "solver_name", "output_path"
         """
+
         config_template = {
             "theorem_name": synthesis_config["theorem_name"],
             "degree_of_sat": synthesis_config["maximal_polynomial_degree"],
@@ -38,7 +41,7 @@ class CommunicationBridge:
             "degree_of_strict_unsat": 0,
             "max_d_of_strict": 0,
             "solver_name": synthesis_config["solver_name"],
-            "output_path": os.path.abspath(synthesis_config["output_path"]),
+            "output_path": os.path.abspath(os.path.join(synthesis_config["output_path"], "poly_horn_temp.txt")),
             "unsat_core_heuristic": False,
             "SAT_heuristic": False,
             "integer_arithmetic": False
@@ -59,8 +62,8 @@ class CommunicationBridge:
         """
         https://github.com/ChatterjeeGroup-ISTA/PolyHorn
         """
-        config_path = f"{temp_dir}_temporary_polyhorn_config.json"
-        input_path = f"{temp_dir}_temporary_polyhorn_input.smt2"
+        config_path = os.path.join(temp_dir, "temporary_polyhorn_config.json")
+        input_path = os.path.join(temp_dir, "temporary_polyhorn_input.smt2")
 
         is_sat, model = execute(
             formula=input_path,

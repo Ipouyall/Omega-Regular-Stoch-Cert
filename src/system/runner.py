@@ -54,8 +54,8 @@ class RunningStage(Enum):
     SYNTHESIZE_TEMPLATE = 4
     GENERATE_CONSTRAINTS = 5
     PREPARE_SOLVER_INPUTS = 6
-    # RUN_SOLVER = 7
-    Done = 7
+    RUN_SOLVER = 7
+    Done = 8
 
     def next(self):
         return RunningStage((self.value + 1) % len(RunningStage))
@@ -89,6 +89,7 @@ class Runner:
             RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
             RunningStage.GENERATE_CONSTRAINTS: self._run_stage_generate_constraints,
             RunningStage.PREPARE_SOLVER_INPUTS: self._run_stage_prepare_solver_inputs,
+            RunningStage.RUN_SOLVER: self._run_solver,
         }
         self.pbar = tqdm(
             range(RunningStage.Done.value),
@@ -221,8 +222,9 @@ class Runner:
 
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
+        constraints = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
-            policy=self.history["control policy"],
+            generated_constants=constraints,
             **self.history["constraints"]
         )
         polyhorn_config = CommunicationBridge.get_input_config(

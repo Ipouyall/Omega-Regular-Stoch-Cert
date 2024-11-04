@@ -13,8 +13,6 @@ class EquationConditionType(Enum):
     GREATER_THAN_OR_EQUAL = ">="
     LESS_THAN_OR_EQUAL = "<="
 
-    __slots__ = []
-
     @classmethod
     def extract_from_string(cls, string):
         string = string.strip()
@@ -33,6 +31,22 @@ class EquationConditionType(Enum):
             return EquationConditionType.GREATER_THAN_OR_EQUAL
         if condition == EquationConditionType.LESS_THAN_OR_EQUAL:
             return EquationConditionType.GREATER_THAN
+        if condition == EquationConditionType.EQUAL:
+            return EquationConditionType.Not_EQUAL
+        if condition == EquationConditionType.Not_EQUAL:
+            return EquationConditionType.EQUAL
+        return condition
+
+    @staticmethod
+    def neggate_relax_condition(condition):
+        if condition == EquationConditionType.GREATER_THAN:
+            return EquationConditionType.LESS_THAN_OR_EQUAL
+        if condition == EquationConditionType.GREATER_THAN_OR_EQUAL:
+            return EquationConditionType.LESS_THAN_OR_EQUAL
+        if condition == EquationConditionType.LESS_THAN:
+            return EquationConditionType.GREATER_THAN_OR_EQUAL
+        if condition == EquationConditionType.LESS_THAN_OR_EQUAL:
+            return EquationConditionType.GREATER_THAN_OR_EQUAL
         if condition == EquationConditionType.EQUAL:
             return EquationConditionType.Not_EQUAL
         if condition == EquationConditionType.Not_EQUAL:
@@ -88,7 +102,7 @@ class Inequality:
     def neggate(self):
         return Inequality(
             left_equation=self.left_equation,
-            inequality_type=EquationConditionType.neggate_condition(self.inequality_type),
+            inequality_type=EquationConditionType.neggate_relax_condition(self.inequality_type),
             right_equation=self.right_equation,
         )
 

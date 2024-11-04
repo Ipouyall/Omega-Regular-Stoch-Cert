@@ -1,8 +1,12 @@
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Union, Optional
+
+from sympy.physics.units import newton
 
 from ..polynomial.inequality import Inequality
 from .utils import infix_to_prefix
+from ..space import extract_space_inequalities
 
 
 class ConstraintAggregationType:
@@ -18,9 +22,11 @@ operation_to_symbol = {
 bool_to_smt_bool = {
     "|": "or",
     "&": "and",
-    "!": "not",
 }
 
+_zero_to_ten = "0123456789"
+_ten_chars = "abcdefghij"
+_translation_table = str.maketrans(_zero_to_ten, _ten_chars)
 
 def _list_to_smt_preorder(ineq: list[Inequality], aggregation_type: ConstraintAggregationType) -> str:
     _str = ineq[0].to_smt_preorder()
@@ -41,6 +47,26 @@ def _to_smt_preorder_helper(inequality: Union[Inequality|list[Inequality]|None],
     return _single_to_smt_preorder(inequality)
 
 
+@lru_cache(maxsize=64)
+def _guard_lookup_to_preorder_helper(preposition, label) -> dict[str, str]:
+    return {
+        f"!{preposition}": _to_smt_preorder_helper(
+            inequality=[_eq.neggate() for _eq in extract_space_inequalities(label)],
+            aggregation_type=ConstraintAggregationType.DISJUNCTION
+        ),
+        f"{preposition}": _to_smt_preorder_helper(
+            inequality=extract_space_inequalities(label),
+            aggregation_type=ConstraintAggregationType.CONJUNCTION
+        )
+    }
+
+def _guard_lookup_to_preorder(lookup_table: dict[str, str]) -> dict[str, str]:
+    new_table = {}
+    for key, value in lookup_table.items():
+        new_table.update(_guard_lookup_to_preorder_helper(key, value))
+    return new_table
+
+
 @dataclass
 class Guard:
     guard: str
@@ -49,9 +75,15 @@ class Guard:
     def to_smt_preorder(self) -> str:
         if not self.guard:
             return "(> 1 0)"
-        preorder = infix_to_prefix(self.guard)
-        for key, value in bool_to_smt_bool.items():
-            preorder = preorder.replace(key, value)
+        preorder = infix_to_prefix(self.guard).replace(" ", "")
+        preorder = preorder.translate(_translation_table)
+        _to_smt = _guard_lookup_to_preorder(self.lookup_table)
+        for key, value in _to_smt.items():
+            preorder = preorder.replace(key.translate(_translation_table), value)
+        for sign, translation in bool_to_smt_bool.items():
+            preorder = preorder.replace(sign, translation)
+        if preorder.startswith("((") and preorder.endswith("))"):
+            return preorder[1:-1]
         return preorder
 
     def is_guarded(self) -> bool:
