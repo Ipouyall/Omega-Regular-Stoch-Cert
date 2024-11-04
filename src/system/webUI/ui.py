@@ -173,7 +173,8 @@ class WebUI:
         automata = hoa_parser(self.hoa)
         self.ldba = Automata.from_hoa(
             hoa_header=automata["header"],
-            hoa_states=automata["states"]
+            hoa_states=automata["states"],
+            lookup_table=self.initiator.specification_pre["predicate_lookup"]
         )
 
     @ui_stage_logger
