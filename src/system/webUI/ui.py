@@ -41,7 +41,7 @@ def ui_stage_logger(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         self.stage_desc.write(f"{self.running_stage.name.replace('_', ' ').title()} (running...)")
-        self.pbar.progress((self.running_stage.value) / total_stages)
+        self.pbar.progress(self.running_stage.value / total_stages)
 
         _st = time.perf_counter_ns()
         result = func(self, *args, **kwargs)
