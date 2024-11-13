@@ -102,7 +102,7 @@ class HOAAutomataTransition:
         if isinstance(self.destination, Token):
             self.destination = str(self.destination.value)
         if self.label in ["t"]:
-            self.label = "any"
+            self.label = ""
 
 
     def __str__(self):

@@ -184,7 +184,7 @@ class Runner:
         non_negativity_constraints = non_negativity_generator.extract()
         self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
         for t in non_negativity_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -198,7 +198,7 @@ class Runner:
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
         for t in strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -212,7 +212,7 @@ class Runner:
         non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
         for t in non_strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         self.history["constraints"] = {
             "non_negativity": non_negativity_constraints,
@@ -242,4 +242,5 @@ class Runner:
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
         self.pbar.write("+ Polyhorn solver completed.")
         self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
+        self.pbar.write(f"    Model: {result['model']}")
         self.history["solver_result"] = result

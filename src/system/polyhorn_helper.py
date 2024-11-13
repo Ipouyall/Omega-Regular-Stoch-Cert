@@ -43,7 +43,7 @@ class CommunicationBridge:
             "solver_name": synthesis_config["solver_name"],
             "output_path": os.path.abspath(os.path.join(synthesis_config["output_path"], "poly_horn_temp.txt")),
             "unsat_core_heuristic": False,
-            "SAT_heuristic": False,
+            "SAT_heuristic": True,
             "integer_arithmetic": False
         }
         return json.dumps(config_template, indent=4)

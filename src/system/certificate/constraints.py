@@ -100,8 +100,8 @@ class StrictExpectedDecrease(Constraint):
         _eq_zero = Equation.extract_equation_from_string("0")
 
         #  S' under π_accept
-        _s_ra_control_policy_accept = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
-        _s_control_action_accept = _s_ra_control_policy_accept()
+        _s_control_policy_accept = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
+        _s_control_action_accept = _s_control_policy_accept()
         _s_next_states_under_accept = self.system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
@@ -121,16 +121,16 @@ class StrictExpectedDecrease(Constraint):
             #  V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
             next_possible_v_guards = (t.predicate for t in q.transitions)
-            next_possible_v = [
+            next_possible_v = (
                 self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                 for _q_id in next_possible_q_ids
-            ]
+            )
 
             #  V(s', q')
-            possible_next_vs = [
+            possible_next_vs = (
                 _v(**_s_next_states_under_accept).replace(" ", "")
                 for _v in next_possible_v
-            ]
+            )
 
             # E[V(s',q')]
             disturbance_expectations = self.disturbance.get_expectations()
@@ -138,19 +138,19 @@ class StrictExpectedDecrease(Constraint):
                 _replace_keys_with_values(_v, disturbance_expectations)
                 for _v in possible_next_vs
             )
-            expected_next_v_eq = [
+            expected_next_v_eq = (
                 Equation.extract_equation_from_string(_v)
                 for _v in expected_possible_next_vs
-            ]
+            )
 
             # V(s,q) − ϵ
             _t = current_v.sub(_eq_epsilon)
 
             # V(s,q) − E[V(s',q')] − ϵ
-            _t_right_hand_sides = [
+            _t_right_hand_sides = (
                 _t.sub(_expected_v)
                 for _expected_v in expected_next_v_eq
-            ]
+            )
             _right_hand_sides = [
                 GuardedInequality(  # if transition (q to q') is possible, then:  V(s,q) − E[V(s',q')] − ϵ ≥ 0
                     guard=_guard,  # the label of the transition
@@ -213,82 +213,82 @@ class StrictExpectedDecrease(Constraint):
                     for _q_id in next_possible_q_ids
                 ]
                 #  V^{reach-and-stay}(s', q')
-                possible_next_vs_reach_and_stay = [
+                possible_next_vs_reach_and_stay = (
                     _v(**_s_next_states_under_buchi).replace(" ", "")
                     for _v in next_possible_v_reach_and_stay
-                ]
+                )
                 # E[V^{reach-and-stay}(s',q')]
                 disturbance_expectations = self.disturbance.get_expectations()
                 expected_possible_next_vs_reach_and_stay = (
                     _replace_keys_with_values(_v, disturbance_expectations)
                     for _v in possible_next_vs_reach_and_stay
                 )
-                expected_next_v_eq_reach_and_stay = [
+                expected_next_v_eq_reach_and_stay = (
                     Equation.extract_equation_from_string(_v)
                     for _v in expected_possible_next_vs_reach_and_stay
-                ]
+                )
                 # V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')
-                _t_right_hand_sides_reach_and_stay = [
+                _t_right_hand_sides_reach_and_stay = (
                     current_v_reach_and_stay.sub(_expected_v)
                     for _expected_v in expected_next_v_eq_reach_and_stay
-                ]
+                )
                 # V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] ≥ 0
-                _rhs_reach_and_stay = [
+                _rhs_reach_and_stay = (
                     Inequality(
                         left_equation=_lhs,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
                     )
                     for _lhs in _t_right_hand_sides_reach_and_stay
-                ]
+                )
 
                 #  V^{buchi i}(s,q)
                 current_v_buchi = self.template_manager.buchi_templates[_buchi_id].templates[str(_q_id)]
                 # V^{buchi i}(s, q')
-                next_possible_v_buchi = [
+                next_possible_v_buchi = (
                     self.template_manager.buchi_templates[_buchi_id].templates[str(_q_id)]
                     for _q_id in next_possible_q_ids
-                ]
+                )
                 #  V^{buchi i}(s', q')
-                possible_next_vs_buchi = [
+                possible_next_vs_buchi = (
                     _v(**_s_next_states_under_buchi).replace(" ", "")
                     for _v in next_possible_v_buchi
-                ]
+                )
                 # E[V^{buchi i}(s',q')]
                 expected_possible_next_vs_buchi = (
                     _replace_keys_with_values(_v, disturbance_expectations)
                     for _v in possible_next_vs_buchi
                 )
-                expected_next_v_eq_buchi = [
+                expected_next_v_eq_buchi = (
                     Equation.extract_equation_from_string(_v)
                     for _v in expected_possible_next_vs_buchi
-                ]
+                )
                 # V^{buchi i}(s,q) − ϵ
                 _t_buchi = current_v_buchi.sub(_eq_epsilon)
                 # V^{buchi i}(s,q) − E[V^{buchi i}(s',q')] − ϵ
-                _t_right_hand_sides_buchi = [
+                _t_right_hand_sides_buchi = (
                     _t_buchi.sub(_expected_v)
                     for _expected_v in expected_next_v_eq_buchi
-                ]
+                )
                 # V^{buchi i}(s,q) − E[V^{buchi i}(s',q')] − ϵ ≥ 0
-                _right_hand_sides_buchi = [
+                _right_hand_sides_buchi = (
                     Inequality(
                         left_equation=_lhs,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
                     )
                     for _lhs in _t_right_hand_sides_buchi
-                ]
+                )
 
                 # if transition (q to q') is possible, then:  V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] ≥ 0
-                _rhs_buchi = [
+                _rhs_buchi = (
                     GuardedInequality(
                         guard=_guard,
                         inequality=_ineq,
                         lookup_table=self.automata.lookup_table,
                     )
                     for _ineq, _guard in zip(_right_hand_sides_buchi, next_possible_v_guards)
-                ]
+                )
 
                 # [V^{buchi i}(s,q) − E[V^{buchi i}(s',q')] − ϵ ≥ 0] and [V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] ≥ 0]
                 _rhs = [
@@ -357,10 +357,10 @@ class NonStrictExpectedDecrease(Constraint):
             # V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
             next_possible_v_guards = (t.predicate for t in q.transitions)
-            next_possible_v = [
+            next_possible_v = (
                 self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                 for _q_id in next_possible_q_ids
-            ]
+            )
 
             # V(s', q')
             possible_next_vs = [
@@ -380,10 +380,10 @@ class NonStrictExpectedDecrease(Constraint):
             ]
 
             # V(s,q) − E[V(s',q')]
-            _t_right_hand_sides = [
+            _t_right_hand_sides = (
                 current_v.sub(_expected_v)
                 for _expected_v in expected_next_v_eq
-            ]
+            )
             _right_hand_sides = [
                 GuardedInequality(  # if transition (q to q') is possible, then:  V(s,q) − E[V(s',q')] ≥ 0
                     guard=_guard,  # the label of the transition
@@ -435,41 +435,41 @@ class NonStrictExpectedDecrease(Constraint):
                 )
 
                 #  V^{reach-and-stay}(s, q')
-                next_possible_q_ids = [t.destination_id for t in q.transitions]
+                next_possible_q_ids = (t.destination_id for t in q.transitions)
                 next_possible_v_guards = (t.predicate for t in q.transitions)
-                next_possible_v_reach_and_stay = [
+                next_possible_v_reach_and_stay = (
                     self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                     for _q_id in next_possible_q_ids
-                ]
+                )
                 #  V^{reach-and-stay}(s', q')
-                possible_next_vs_reach_and_stay = [
+                possible_next_vs_reach_and_stay = (
                     _v(**_s_next_states_under_buchi).replace(" ", "")
                     for _v in next_possible_v_reach_and_stay
-                ]
+                )
                 # E[V^{reach-and-stay}(s',q')]
                 disturbance_expectations = self.disturbance.get_expectations()
                 expected_possible_next_vs_reach_and_stay = (
                     _replace_keys_with_values(_v, disturbance_expectations)
                     for _v in possible_next_vs_reach_and_stay
                 )
-                expected_next_v_eq_reach_and_stay = [
+                expected_next_v_eq_reach_and_stay = (
                     Equation.extract_equation_from_string(_v)
                     for _v in expected_possible_next_vs_reach_and_stay
-                ]
+                )
                 # V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')
-                _t_right_hand_sides_reach_and_stay = [
+                _t_right_hand_sides_reach_and_stay = (
                     current_v_reach_and_stay.sub(_expected_v)
                     for _expected_v in expected_next_v_eq_reach_and_stay
-                ]
+                )
                 # V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] ≥ 0
-                _rhs_reach_and_stay = [
+                _rhs_reach_and_stay = (
                     Inequality(
                         left_equation=_lhs,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=_eq_zero
                     )
                     for _lhs in _t_right_hand_sides_reach_and_stay
-                ]
+                )
 
                 # if transition (q to q') is possible, then:  V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] ≥ 0
                 _rhs = [

@@ -79,7 +79,9 @@ class Guard:
         preorder = preorder.translate(_translation_table)
         _to_smt = _guard_lookup_to_preorder(self.lookup_table)
         for key, value in _to_smt.items():
-            preorder = preorder.replace(key.translate(_translation_table), value)
+            key = key.translate(_translation_table)
+            preorder = preorder.replace(f"({key})", value)
+            preorder = preorder.replace(key, value)
         for sign, translation in bool_to_smt_bool.items():
             preorder = preorder.replace(sign, translation)
         if preorder.startswith("((") and preorder.endswith("))"):
@@ -163,25 +165,23 @@ class SubConstraint:
     def expression_to_str(expression: Union[Inequality|list[Inequality]|None], aggregation_type: ConstraintAggregationType, detailed: bool = False) -> Union[str|None]:
         if expression is None:
             return None
-        if isinstance(expression, list):
-            if detailed:
-                return f" {operation_to_symbol[aggregation_type][1]} ".join(
-                    f"({ineq.to_detailed_string()})" for ineq in expression)
-            if len(expression) > 3:
-                return f"({expression[0]}) {operation_to_symbol[aggregation_type][1]} ..+{len(expression) - 2}.. {operation_to_symbol[aggregation_type][1]} ({expression[-1]})"
-            return f" {operation_to_symbol[aggregation_type][1]} ".join(
-                f"({ineq})" for ineq in expression)
-        return f"{expression}"
+        if not isinstance(expression, list):
+            return f"{expression.to_detailed_string()}" if detailed else str(expression)
+        join_str = f" {operation_to_symbol[aggregation_type][1]} "
+        if detailed:
+            return join_str.join(f"({ineq.to_detailed_string()})" for ineq in expression)
+        if len(expression) > 3:
+            return f"({expression[0]}){join_str}..+{len(expression) - 2}..{join_str}({expression[-1]})"
+        return join_str.join(f"({ineq})" for ineq in expression)
+
 
     def to_detailed_string(self):
         _expr1 = self.expression_to_str(self.expr_1, self.aggregation_type, detailed=True)
         _expr2 = self.expression_to_str(self.expr_2, self.aggregation_type, detailed=True)
 
-        if _expr1 is not None and _expr2 is not None:
+        if _expr1 and _expr2:
             return f"({_expr1} {operation_to_symbol[self.aggregation_type][1]} {_expr2})"
-        if _expr1 is None:
-            return f"{_expr2}"
-        return f"{_expr1}"
+        return _expr1 or _expr2
 
     def __str__(self):
         _expr1 = self.expression_to_str(self.expr_1, self.aggregation_type)
@@ -248,8 +248,8 @@ class ConstraintInequality:
 
     def to_detail_string(self):
         _variables = " ".join(f"({v} Real)" for v in self.variables)
-        _lhs = self._hand_side_to_str(self.lhs, detailed=True)
-        _rhs = self._hand_side_to_str(self.rhs, detailed=True)
+        _lhs = self._hand_side_to_str(hand_side=self.lhs, detailed=True)
+        _rhs = self._hand_side_to_str(hand_side=self.rhs, detailed=True)
 
         if _lhs is None and _rhs is None:
             return "Not defined"
