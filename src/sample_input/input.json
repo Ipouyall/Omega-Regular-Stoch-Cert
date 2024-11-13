@@ -14,10 +14,10 @@
 
   "stochastic_dynamical_system": {
     "state_space_dimension": 1,
-    "control_space_dimension": 1,
+    "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
     "dynamics": [
-      "S1 * 0.1 + A1"
+      "S1 * 0.1"
     ]
   },
 
@@ -31,7 +31,7 @@
   },
 
   "specification": {
-    "ltl_formula": "a U b",
+    "ltl_formula": "F a",
     "preposition_lookup": {
       "a": "0 <= S1 ** 2 <= 81",
       "b": "0 <= S1 ** 2 <= 16"
