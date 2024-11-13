@@ -29,8 +29,8 @@ class WebUIRunningStage(Enum):
     SYNTHESIZE_TEMPLATE = 3
     GENERATE_CONSTRAINTS = 4
     PREPARE_SOLVER_INPUTS = 5
-    # RUN_SOLVER = 6
-    CLEAN_TRASHES = 6
+    RUN_SOLVER = 6
+    CLEAN_TRASHES = 7
 
     def next(self):
         return WebUIRunningStage((self.value + 1) % len(WebUIRunningStage))
@@ -79,7 +79,7 @@ class WebUI:
             self._run_experiment_synthesize_template,
             self._run_experiment_generate_constraints,
             self._run_experiment_prepare_solver_inputs,
-            # self._run_experiment_run_solver,
+            self._run_experiment_run_solver,
             self._run_experiment_clean_trashes
         ]
         for func in sub_functions:
@@ -225,8 +225,9 @@ class WebUI:
 
     @ui_stage_logger
     def _run_experiment_prepare_solver_inputs(self):
+        constraints = self.policy.get_generated_constants() | self.template.get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
-            policy=self.policy,
+            generated_constants=constraints,
             **self.constraints,
         )
         polyhorn_config = CommunicationBridge.get_input_config(
@@ -239,9 +240,18 @@ class WebUI:
             temp_dir=self.temp_path
         )
 
-    # @ui_stage_logger
-    # def _run_experiment_run_solver(self):
-    #     pass
+    @ui_stage_logger
+    def _run_experiment_run_solver(self):
+        result = CommunicationBridge.feed_to_polyhorn(self.temp_path)
+        if result["is_sat"].lower() == "unsat":
+            st.error("The provided specification is unsatisfiable.")
+        elif result["is_sat"].lower() == "sat":
+            st.success("The provided specification is satisfied.")
+            st.json(result["model"], expanded=True)
+        else:
+            st.error("An error occurred while running the solver.")
+            raise ValueError(f"Solver error: {result}")
+
 
     @ui_stage_logger
     def _run_experiment_clean_trashes(self):

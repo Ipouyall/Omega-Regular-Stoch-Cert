@@ -224,9 +224,10 @@ class Configuration:
         self.specification.formula = st.text_input(
             label="LTL formula",
             value=self.specification.formula
-        )
+        ).replace("true", "TRUE").replace("false", "FALSE")
         col1, col2 = st.columns(2)
         detected_atomic_prepositions = set(self.specification.formula) & possible_atomic_propositions
+        self.specification.formula = self.specification.formula.replace("TRUE", "true").replace("FALSE", "false")
         self.specification.need_lookup_table = col1.checkbox(
             label="Lookup table",
             value=self.specification.need_lookup_table
