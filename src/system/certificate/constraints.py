@@ -47,10 +47,28 @@ class NonNegativityConstraint(Constraint):
             expr_1=_ineq,
             aggregation_type=ConstraintAggregationType.CONJUNCTION
         )
+
+
+        space = SubConstraint(
+            expr_1=[
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                ),
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("10 - S1"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                )
+            ],
+            aggregation_type=ConstraintAggregationType.CONJUNCTION
+        )
+
         return [
             ConstraintInequality(
                 variables=self.template_manager.variable_generators,
-                lhs=None,
+                lhs=space,
                 rhs=_sub,
             )
         ]
@@ -64,10 +82,27 @@ class NonNegativityConstraint(Constraint):
             ) for t in bt.templates.values()]
             for bt in self.template_manager.buchi_templates
         ]
+
+        space = SubConstraint(
+            expr_1=[
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                ),
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("10 - S1"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                )
+            ],
+            aggregation_type=ConstraintAggregationType.CONJUNCTION
+        )
+
         return [
             ConstraintInequality(
                 variables=self.template_manager.variable_generators,
-                lhs=None,
+                lhs=space,
                 rhs=SubConstraint(expr_1=_ineq, aggregation_type=ConstraintAggregationType.CONJUNCTION),
             )
             for _ineq in _inequalities
@@ -104,6 +139,19 @@ class StrictExpectedDecrease(Constraint):
         _s_control_action_accept = _s_control_policy_accept()
         _s_next_states_under_accept = self.system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
+        space = [
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                ),
+                Inequality(
+                    left_equation=Equation.extract_equation_from_string("10 - S1"),
+                    inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                    right_equation=Equation.extract_equation_from_string("0")
+                )
+            ]
+
         for _q_id in range(self.template_manager.abstraction_dimension):
             q = self.automata.get_state(str(_q_id))
             # q ∈ Q/Qt
@@ -112,11 +160,11 @@ class StrictExpectedDecrease(Constraint):
 
             #  V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
-            _left_land_side = Inequality(
+            _left_land_side =[ Inequality(
                 left_equation=_p.sub(current_v),
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=_eq_zero
-            )
+            )] + space
 
             #  V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
@@ -167,7 +215,7 @@ class StrictExpectedDecrease(Constraint):
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] − ϵ ≥ 0]
                     variables=self.template_manager.variable_generators,
-                    lhs=SubConstraint(expr_1=_left_land_side),
+                    lhs=SubConstraint(expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
             )
@@ -184,6 +232,19 @@ class StrictExpectedDecrease(Constraint):
         _eq_zero = Equation.extract_equation_from_string("0")
         buchi_counts = self.decomposed_control_policy.get_length()[PolicyType.BUCHI]
 
+        space = [
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            ),
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("10 - S1"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
+        ]
+
         for _buchi_id in range(buchi_counts):  # for each buchi i
             _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _buchi_id) # π^{buchi}_{i}
             _s_control_action_buchi = _buchi_control_policy()
@@ -199,11 +260,11 @@ class StrictExpectedDecrease(Constraint):
 
                 #  V^{reach-and-stay}(s,q) <= 1/(1-p) == 1/(1-p) - V^{reach-and-stay}(s,q) >= 0
                 current_v_reach_and_stay = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
-                _left_land_side = Inequality(
+                _left_land_side = [Inequality(
                     left_equation=_p.sub(current_v_reach_and_stay),
                     inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                     right_equation=_eq_zero
-                )
+                )] + space
 
                 #  V^{reach-and-stay}(s, q')
                 next_possible_q_ids = [t.destination_id for t in q.transitions]
@@ -303,7 +364,7 @@ class StrictExpectedDecrease(Constraint):
                 constraints.append(
                     ConstraintInequality(
                         variables=self.template_manager.variable_generators,
-                        lhs=SubConstraint(expr_1=_left_land_side),
+                        lhs=SubConstraint(expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )
                 )
@@ -340,6 +401,19 @@ class NonStrictExpectedDecrease(Constraint):
         _s_control_action_accept = _s_ra_control_policy_accept()
         _s_next_states_under_accept = self.system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
+        space = [
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            ),
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("10 - S1"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
+        ]
+
         for _q_id in range(self.template_manager.abstraction_dimension):
             q = self.automata.get_state(str(_q_id))
             # q ∈ Q_{accept}
@@ -348,11 +422,11 @@ class NonStrictExpectedDecrease(Constraint):
 
             # V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
-            _left_land_side = Inequality(
+            _left_land_side = [Inequality(
                 left_equation=_p.sub(current_v),
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=_eq_zero
-            )
+            )] + space
 
             # V(s, q')
             next_possible_q_ids = (t.destination_id for t in q.transitions)
@@ -400,7 +474,7 @@ class NonStrictExpectedDecrease(Constraint):
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] ≥ 0]
                     variables=self.template_manager.variable_generators,
-                    lhs=SubConstraint(expr_1=_left_land_side),
+                    lhs=SubConstraint(expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
             )
@@ -416,6 +490,19 @@ class NonStrictExpectedDecrease(Constraint):
         _eq_zero = Equation.extract_equation_from_string("0")
         buchi_counts = self.decomposed_control_policy.get_length()[PolicyType.BUCHI]
 
+        space = [
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("S1 + 10"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            ),
+            Inequality(
+                left_equation=Equation.extract_equation_from_string("10 - S1"),
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=Equation.extract_equation_from_string("0")
+            )
+        ]
+
         for _buchi_id in range(buchi_counts):  # for each buchi i
             _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _buchi_id)
             _s_control_action_buchi = _buchi_control_policy()
@@ -428,11 +515,11 @@ class NonStrictExpectedDecrease(Constraint):
                     continue
                 #  V^{reach-and-stay}(s,q) <= 1/(1-p) == 1/(1-p) - V^{reach-and-stay}(s,q) >= 0
                 current_v_reach_and_stay = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
-                _left_land_side = Inequality(
+                _left_land_side = [Inequality(
                     left_equation=_p.sub(current_v_reach_and_stay),
                     inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                     right_equation=_eq_zero
-                )
+                )] + space
 
                 #  V^{reach-and-stay}(s, q')
                 next_possible_q_ids = (t.destination_id for t in q.transitions)
@@ -484,7 +571,7 @@ class NonStrictExpectedDecrease(Constraint):
                 constraints.append(
                     ConstraintInequality(
                         variables=self.template_manager.variable_generators,
-                        lhs=SubConstraint(expr_1=_left_land_side),
+                        lhs=SubConstraint(expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )
                 )

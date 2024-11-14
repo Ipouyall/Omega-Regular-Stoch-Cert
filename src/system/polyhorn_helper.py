@@ -42,7 +42,7 @@ class CommunicationBridge:
             "max_d_of_strict": 0,
             "solver_name": synthesis_config["solver_name"],
             "output_path": os.path.abspath(os.path.join(synthesis_config["output_path"], "poly_horn_temp.txt")),
-            "unsat_core_heuristic": False,
+            "unsat_core_heuristic": True,
             "SAT_heuristic": True,
             "integer_arithmetic": False
         }

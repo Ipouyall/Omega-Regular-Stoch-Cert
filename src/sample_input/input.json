@@ -31,10 +31,10 @@
   },
 
   "specification": {
-    "ltl_formula": "F a",
+    "ltl_formula": "a U b",
     "preposition_lookup": {
-      "a": "0 <= S1 ** 2 <= 81",
-      "b": "0 <= S1 ** 2 <= 16"
+      "a": "S1 ** 2 <= 81",
+      "b": "S1 ** 2 <= 16"
     }
   }
 }
