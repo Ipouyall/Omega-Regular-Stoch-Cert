@@ -1,5 +1,7 @@
 from functools import lru_cache
 
+from dataclasses import dataclass
+
 from .polynomial.equation import Equation
 from .polynomial.inequality import Inequality, EquationConditionType
 
@@ -11,6 +13,7 @@ _find_first_comparator = lambda s: min(
     (s.find(op) for op in ["<=", ">="] if s.find(op) != -1),
     default=-1
 )
+_invalid_token_in_space = ["or", "OR", "|"]
 
 
 def _process_space_inequalities(inequality: str) -> list[Inequality]:
@@ -66,10 +69,21 @@ def _process_space_inequalities(inequality: str) -> list[Inequality]:
 
 @lru_cache(maxsize=32)
 def extract_space_inequalities(string: str) -> list[Inequality]:
-    string = (string.replace("OR", "or").replace("AND", "and").
-              replace("&", "and").replace("|", "or"))
+    for token in _invalid_token_in_space:
+        if token in string:
+            raise ValueError(f"Invalid token in space inequality: {token} in {string}")
+    string = string.replace("AND", "and").replace("&", "and")
     return [
         p_ineq
         for _ieq in string.split("and")
         for p_ineq in _process_space_inequalities(_ieq)
     ]
+
+@dataclass
+class SystemSpace:
+    space_inequalities: list[Inequality]
+
+    def __post_init__(self):
+        if isinstance(self.space_inequalities, str):
+            self.space_inequalities = extract_space_inequalities(self.space_inequalities)
+        print(self)

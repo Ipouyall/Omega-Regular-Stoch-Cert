@@ -19,6 +19,7 @@ class ToolInput:
     sds_pre: dict
     synthesis_config_pre: dict
     specification_pre: dict
+    system_space_pre: str
 
     # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
@@ -137,6 +138,7 @@ class IOParser:
             sds_pre=system_dynamic,
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
+            system_space_pre=data["stochastic_dynamical_system"]["system_space"]
         )
 
 

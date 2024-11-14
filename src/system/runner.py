@@ -19,6 +19,7 @@ from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
 from .polyhorn_helper import CommunicationBridge
+from .space import SystemSpace
 from .toolIO import IOParser
 
 
@@ -134,6 +135,9 @@ class Runner:
 
     @stage_logger
     def _run_stage_state_construction(self):
+        system_space = SystemSpace(space_inequalities=self.history["initiator"].system_space_pre)
+        self.pbar.write("+ Constructed 'System Space' successfully.")
+
         sds = SystemDynamics(**self.history["initiator"].sds_pre)
         self.pbar.write("+ Constructed 'Stochastic Dynamical System' successfully.")
 
@@ -152,6 +156,7 @@ class Runner:
         self.pbar.write("+ Constructed 'LDBA' successfully.")
         self.pbar.write(f"  + {ldba}")
 
+        self.history["space"] = system_space
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
         self.history["ldba"] = ldba
@@ -180,7 +185,10 @@ class Runner:
 
     @stage_logger
     def _run_stage_generate_constraints(self):
-        non_negativity_generator = NonNegativityConstraint(template_manager=self.history["template"])
+        non_negativity_generator = NonNegativityConstraint(
+            template_manager=self.history["template"],
+            system_space=self.history["space"],
+        )
         non_negativity_constraints = non_negativity_generator.extract()
         self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
         for t in non_negativity_constraints:
@@ -188,6 +196,7 @@ class Runner:
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
+            system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
             disturbance=self.history["disturbance"],
@@ -202,6 +211,7 @@ class Runner:
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
+            system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
             disturbance=self.history["disturbance"],
