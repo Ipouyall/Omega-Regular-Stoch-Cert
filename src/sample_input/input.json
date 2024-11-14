@@ -16,13 +16,14 @@
     "state_space_dimension": 1,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
+    "system_space": "-10 <= S1 <= 10",
     "dynamics": [
       "S1 * 0.1"
     ]
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 3,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.1,
     "theorem_name": "handelman",
