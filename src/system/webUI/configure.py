@@ -23,6 +23,7 @@ class HighLevelDescription:
     state_dim: int = 2
     control_dim: int = 1
     disturbance_dim: int = 1
+    system_space: str = ""
 
 
 @dataclass
@@ -104,6 +105,7 @@ class Configuration:
         self.high_level_description.state_dim = data.get("stochastic_dynamical_system", {}).get("state_space_dimension", self.high_level_description.state_dim)
         self.high_level_description.control_dim = data.get("stochastic_dynamical_system", {}).get("control_space_dimension", self.high_level_description.control_dim)
         self.high_level_description.disturbance_dim = data.get("stochastic_dynamical_system", {}).get("disturbance_space_dimension", self.high_level_description.disturbance_dim)
+        self.high_level_description.system_space = data.get("stochastic_dynamical_system", {}).get("system_space", self.high_level_description.system_space)
 
         if "maximal_polynomial_degree" in data.get("actions", {}):
             self.actions.max_degree = data["actions"]["maximal_polynomial_degree"]
@@ -146,6 +148,10 @@ class Configuration:
             label="Disturbance dimension",
             options=[0, 1],
             index=self.high_level_description.disturbance_dim
+        )
+        self.high_level_description.system_space = st.text_input(
+            label="System space",
+            value=self.high_level_description.system_space
         )
         if self.high_level_description.control_dim == 0:
             self.high_level_description.config_type = ConfigType.SYSTEM_VERIFICATION
@@ -345,6 +351,7 @@ class Configuration:
             sds_pre=system_dynamic,
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
+            system_space_pre=self.high_level_description.system_space
         )
 
 

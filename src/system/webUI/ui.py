@@ -20,6 +20,7 @@ from ..config import SynthesisConfig
 from ..dynamics import SystemDynamics
 from ..noise import SystemStochasticNoise
 from ..polyhorn_helper import CommunicationBridge
+from ..space import SystemSpace
 
 
 class WebUIRunningStage(Enum):
@@ -164,6 +165,7 @@ class WebUI:
     def _run_experiment_construct_system_states(self):
         self.disturbance = SystemStochasticNoise(**self.initiator.disturbance_pre)
         self.synthesis = SynthesisConfig(**self.initiator.synthesis_config_pre)
+        self.space = SystemSpace(self.initiator.system_space_pre)
 
         self.sds = SystemDynamics(**self.initiator.sds_pre)
 
@@ -197,10 +199,12 @@ class WebUI:
     @ui_stage_logger
     def _run_experiment_generate_constraints(self):
         non_negativity = NonNegativityConstraint(
-            template_manager=self.template
+            template_manager=self.template,
+            system_space=self.space,
         ).extract()
         strict_expected_decrease = StrictExpectedDecrease(
             template_manager=self.template,
+            system_space=self.space,
             decomposed_control_policy=self.policy,
             system_dynamics=self.sds,
             disturbance=self.disturbance,
@@ -210,6 +214,7 @@ class WebUI:
         ).extract()
         non_strict_expected_decrease = NonStrictExpectedDecrease(
             template_manager=self.template,
+            system_space=self.space,
             decomposed_control_policy=self.policy,
             system_dynamics=self.sds,
             disturbance=self.disturbance,

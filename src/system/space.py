@@ -86,4 +86,3 @@ class SystemSpace:
     def __post_init__(self):
         if isinstance(self.space_inequalities, str):
             self.space_inequalities = extract_space_inequalities(self.space_inequalities)
-        print(self)

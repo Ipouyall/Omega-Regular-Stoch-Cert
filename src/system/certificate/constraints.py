@@ -170,7 +170,7 @@ class StrictExpectedDecrease(Constraint):
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] − ϵ ≥ 0]
                     variables=self.template_manager.variable_generators,
-                    lhs=SubConstraint(expr_1=self.system_space.space_inequalities ,expr_2=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
+                    lhs=SubConstraint(expr_2=self.system_space.space_inequalities ,expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
             )
@@ -306,7 +306,7 @@ class StrictExpectedDecrease(Constraint):
                 constraints.append(
                     ConstraintInequality(
                         variables=self.template_manager.variable_generators,
-                        lhs=SubConstraint(expr_1=self.system_space.space_inequalities, expr_2=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
+                        lhs=SubConstraint(expr_2=self.system_space.space_inequalities, expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )
                 )
@@ -404,7 +404,7 @@ class NonStrictExpectedDecrease(Constraint):
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] ≥ 0]
                     variables=self.template_manager.variable_generators,
-                    lhs=SubConstraint(expr_1=self.system_space.space_inequalities, expr_2=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
+                    lhs=SubConstraint(expr_2=self.system_space.space_inequalities, expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
             )
@@ -488,7 +488,7 @@ class NonStrictExpectedDecrease(Constraint):
                 constraints.append(
                     ConstraintInequality(
                         variables=self.template_manager.variable_generators,
-                        lhs=SubConstraint(expr_1=self.system_space.space_inequalities, expr_2=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
+                        lhs=SubConstraint(expr_2=self.system_space.space_inequalities, expr_1=_left_land_side, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )
                 )

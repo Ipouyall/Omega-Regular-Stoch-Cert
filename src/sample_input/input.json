@@ -1,6 +1,6 @@
 {
   "actions": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 1,
     "control_policy": []
   },
 
@@ -13,17 +13,18 @@
   },
 
   "stochastic_dynamical_system": {
-    "state_space_dimension": 1,
+    "state_space_dimension": 2,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "-10 <= S1 <= 10",
+    "system_space": "S1 ** 2 + S2 ** 2 <= 100 and S1 ** 2 >= 0 and S2 ** 2 >= 0",
     "dynamics": [
-      "S1 * 0.1"
+      "S1 * 0.1",
+      "S2 * 0.1"
     ]
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 3,
+    "maximal_polynomial_degree": 2,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.1,
     "theorem_name": "handelman",
@@ -34,8 +35,8 @@
   "specification": {
     "ltl_formula": "a U b",
     "preposition_lookup": {
-      "a": "S1 ** 2 <= 81",
-      "b": "S1 ** 2 <= 16"
+      "a": "S1 ** 2 + S2 ** 2 <= 81",
+      "b": "S1 ** 2 + S2 ** 2 <= 16"
     }
   }
 }
