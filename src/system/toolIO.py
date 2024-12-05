@@ -3,7 +3,9 @@ import json
 import yaml
 
 from . import logger
+from .dynamics import ConditionalDynamics
 from .polynomial.equation import Equation
+from .space import extract_space_inequalities
 
 
 @dataclass
@@ -105,8 +107,11 @@ class IOParser:
         }
 
         _system_dynamic_equations = [
-            Equation.extract_equation_from_string(_eq)
-            for _eq in data["stochastic_dynamical_system"]["dynamics"]
+            ConditionalDynamics(
+                condition=extract_space_inequalities(item["condition"]),
+                dynamics=[Equation.extract_equation_from_string(eq) for eq in item["transforms"]]
+            )
+            for item in data["stochastic_dynamical_system"]["dynamics"]
         ]
         system_dynamic = {
             "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],

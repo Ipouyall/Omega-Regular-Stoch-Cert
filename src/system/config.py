@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-__valid_theorems__ = ["handelman", "putinar"]
+__valid_theorems__ = ["handelman", "putinar", "farkas"]
 __valid_solvers__ = ["z3", "mathsat"]
 
 

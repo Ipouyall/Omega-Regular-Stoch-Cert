@@ -13,7 +13,9 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
-from .certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease, NonStrictExpectedDecrease
+from .certificate.nn_constraint import NonNegativityConstraint
+from .certificate.nsed_constraints import NonStrictExpectedDecrease
+from .certificate.sed_constraints import StrictExpectedDecrease
 from .certificate.template import LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
@@ -96,7 +98,7 @@ class Runner:
             range(RunningStage.Done.value),
             file=sys.stdout,
             colour="cyan",
-            leave=False,
+            leave=True,
         )
 
     def run(self):
@@ -154,7 +156,7 @@ class Runner:
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba}")
+        self.pbar.write(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
         self.history["sds"] = sds
