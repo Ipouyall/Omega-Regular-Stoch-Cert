@@ -1,0 +1,47 @@
+{
+  "actions": {
+    "maximal_polynomial_degree": 1,
+    "control_policy": []
+  },
+
+  "disturbance": {
+    "distribution_name": "uniform",
+    "disturbance_parameters": {
+      "lower_bound": [0],
+      "upper_bound": [1]
+    }
+  },
+
+  "stochastic_dynamical_system": {
+    "state_space_dimension": 2,
+    "control_space_dimension": 0,
+    "disturbance_space_dimension": 1,
+    "system_space": "S1**2 + S2**2 <= 36 and S1 ** 2 >=0 and S2 ** 2 >=0",
+    "initial_space": "-1 <= S1 <= 0 and -1 <= S2 <= 0",
+    "dynamics": [
+      {
+        "condition": "0 <= 1",
+        "transforms": [
+          "S1 + 0.1 * S2",
+          "S2 + (-1 * S1 + (1 - S1 ** 2) * S2) * 0.1"
+        ]
+      }
+    ]
+  },
+
+  "synthesis_config": {
+    "maximal_polynomial_degree": 2,
+    "epsilon": 0.000000000000001,
+    "probability_threshold": 0.99,
+    "theorem_name": "farkas",
+    "solver_name": "mathsat",
+    "owl_path": "../playground/rabinizer/owl"
+  },
+
+  "specification": {
+    "ltl_formula": "GF a",
+    "preposition_lookup": {
+      "a": "S1**2 <= 4 and S2 ** 2 <= 0.25"
+    }
+  }
+}

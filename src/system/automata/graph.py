@@ -32,17 +32,18 @@ def _fast_dict_replacement(string, lookup: dict, safe=False):
     return string
 
 class AutomataTransitionType(Enum):
-    Any = "any"
     Epsilon = "epsilon"
     Propositional = "propositional"
 
     @classmethod
     def from_str(cls, value: str):
-        if value in ["any", "t"]:
-            return cls.Any
-        if value in ["epsilon", "e"] or len(value) == 0:
+        value = value.strip()
+        if value in ["epsilon", "e", "any", "t"] or len(value) == 0:
             return cls.Epsilon
         return cls.Propositional
+
+    def to_string(self):
+        return "ε" if self != AutomataTransitionType.Propositional else self.value
 
 
 class AutomataStateStat(Enum):
@@ -68,7 +69,7 @@ class AutomataTransition:
     predicate: str
 
     def __post_init__(self):
-        if self.type in [AutomataTransitionType.Any, AutomataTransitionType.Epsilon]:
+        if self.type == AutomataTransitionType.Epsilon:
             self.predicate = ""
         self.predicate = self.predicate.replace("&", " & ").replace("|", " | ")
 
@@ -177,7 +178,7 @@ class Automata:
 
 
                     new_tr = AutomataTransition(
-                        type=AutomataTransitionType.Propositional,
+                        type=AutomataTransitionType.from_str(tr.label),
                         destination_id=last_state_id,
                         predicate=tr.label
                     )

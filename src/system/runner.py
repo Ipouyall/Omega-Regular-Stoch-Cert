@@ -13,6 +13,8 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
+from .automata.visualize import visualize_automata
+from .certificate.init_constraints import InitialSpaceConstraint
 from .certificate.nn_constraint import NonNegativityConstraint
 from .certificate.nsed_constraints import NonStrictExpectedDecrease
 from .certificate.sed_constraints import StrictExpectedDecrease
@@ -140,6 +142,9 @@ class Runner:
         system_space = SystemSpace(space_inequalities=self.history["initiator"].system_space_pre)
         self.pbar.write("+ Constructed 'System Space' successfully.")
 
+        initial_space = SystemSpace(space_inequalities=self.history["initiator"].initial_space_pre)
+        self.pbar.write("+ Constructed 'Initial Space' successfully.")
+
         sds = SystemDynamics(**self.history["initiator"].sds_pre)
         self.pbar.write("+ Constructed 'Stochastic Dynamical System' successfully.")
 
@@ -159,6 +164,7 @@ class Runner:
         self.pbar.write(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
+        self.history["initial_space"] = initial_space
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
         self.history["ldba"] = ldba
@@ -187,6 +193,17 @@ class Runner:
 
     @stage_logger
     def _run_stage_generate_constraints(self):
+        initial_bound_generator = InitialSpaceConstraint(
+            template_manager=self.history["template"],
+            system_space=self.history["space"],
+            initial_space=self.history["initial_space"],
+            automata=self.history["ldba"],
+        )
+        initial_bound_constraints = initial_bound_generator.extract()
+        self.pbar.write("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
+        for t in initial_bound_constraints:
+            self.pbar.write(f"  + {t}")
+
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
             system_space=self.history["space"],
@@ -194,7 +211,7 @@ class Runner:
         non_negativity_constraints = non_negativity_generator.extract()
         self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
         for t in non_negativity_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+            self.pbar.write(f"  + {t}")
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -209,7 +226,7 @@ class Runner:
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
         for t in strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+            self.pbar.write(f"  + {t}")
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -224,9 +241,10 @@ class Runner:
         non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
         for t in non_strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+            self.pbar.write(f"  + {t}")
 
         self.history["constraints"] = {
+            "initial_bound": initial_bound_constraints,
             "non_negativity": non_negativity_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
@@ -234,9 +252,9 @@ class Runner:
 
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
-        constraints = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
+        constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
-            generated_constants=constraints,
+            generated_constants=constants,
             **self.history["constraints"]
         )
         polyhorn_config = CommunicationBridge.get_input_config(

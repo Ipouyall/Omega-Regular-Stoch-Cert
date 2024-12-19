@@ -22,6 +22,7 @@ class ToolInput:
     synthesis_config_pre: dict
     specification_pre: dict
     system_space_pre: str
+    initial_space_pre: str
 
     # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
@@ -41,7 +42,6 @@ class IOParser:
         "stochastic_dynamical_system": ["state_space_dimension","control_space_dimension","disturbance_space_dimension","dynamics"],
         "synthesis_config": ["maximal_polynomial_degree","epsilon","probability_threshold","theorem_name","solver_name"],
         "specification": ["ltl_formula","predicate_lookup"],
-
     }
 
     def __init__(self, *input_files: str):
@@ -143,7 +143,8 @@ class IOParser:
             sds_pre=system_dynamic,
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
-            system_space_pre=data["stochastic_dynamical_system"]["system_space"]
+            system_space_pre=data["stochastic_dynamical_system"]["system_space"],
+            initial_space_pre=data["stochastic_dynamical_system"]["initial_space"]
         )
 
 

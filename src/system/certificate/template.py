@@ -92,6 +92,7 @@ class LTLCertificateDecomposedTemplates:
             state_dimension=self.state_dimension,
             action_dimension=self.action_dimension,
             abstraction_dimension=self.abstraction_dimension,
+            # maximal_polynomial_degree=1,
             maximal_polynomial_degree=self.maximal_polynomial_degree,
             variable_generators=self.variable_generators,
             template_type=CertificateTemplateType.REACH_AND_STAY,
