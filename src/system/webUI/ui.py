@@ -7,10 +7,10 @@ import pandas as pd
 import streamlit as st
 from dataclasses import dataclass, field
 
-from pyarrow import duration
 from streamlit_option_menu import option_menu
 
 from .configure import Configuration
+from .plotter import plot_dynamics_from_conditional_eq
 from .upload import upload_file
 from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
@@ -175,6 +175,8 @@ class WebUI:
         self.initial = SystemSpace(space_inequalities=self.initiator.initial_space_pre)
 
         self.sds = SystemDynamics(**self.initiator.sds_pre)
+        with st.expander(f"Synthesized System Dynamics", expanded=False, icon="🔄"):
+            plot_dynamics_from_conditional_eq(self.initiator.sds_pre["system_transformations"])
 
         ltl_specification = LDBASpecification(**self.initiator.specification_pre)
         self.hoa = ltl_specification.get_HOA(os.path.join(self.temp_path, "ltl2ldba.hoa"))
@@ -186,7 +188,7 @@ class WebUI:
             lookup_table=self.initiator.specification_pre["predicate_lookup"]
         )
         v_graph = visualize_automata(self.ldba)
-        with st.expander(f"Synthesized Automata", expanded=True, icon="🔄"):
+        with st.expander(f"Synthesized Automata", expanded=False, icon="☁️"):
             st.graphviz_chart(v_graph)
             data = [{"Symbol": s, "Logic": p} for s, p in self.ldba.lookup_table.items()]
             data = pd.DataFrame(data)

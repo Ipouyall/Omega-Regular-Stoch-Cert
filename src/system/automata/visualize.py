@@ -9,7 +9,7 @@ def visualize_automata(automata: Automata, output_file: str = None):
 
     for state_id, state in automata.states.items():
         state_id = str(state_id)
-        shape = "doublecircle" if state.status == AutomataStateStat.Accepting else "circle"
+        shape = "doublecircle" if state.accepting_signature else "circle"
         dot.node(
             state_id,
             label=state_id,
