@@ -161,7 +161,7 @@ class Runner:
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba.to_detailed_string()}")
+        self.pbar.write(f"  + {ldba}")
 
         self.history["space"] = system_space
         self.history["initial_space"] = initial_space

@@ -1,7 +1,5 @@
 import json
 import os.path
-
-from .action import SystemDecomposedControlPolicy
 from .certificate.constraint_inequality import ConstraintInequality
 
 from polyhorn.main import execute
@@ -58,7 +56,7 @@ class CommunicationBridge:
             f.write(input_string)
 
     @staticmethod
-    def feed_to_polyhorn(temp_dir):
+    def feed_to_polyhorn(temp_dir, timeout=0.1*60):
         """
         https://github.com/ChatterjeeGroup-ISTA/PolyHorn
         """
@@ -70,7 +68,5 @@ class CommunicationBridge:
             config=config_path,
         )
 
-        return {
-            "is_sat": is_sat,
-            "model": model
-        }
+        print("Polyhorn failed to execute.")
+        return {"is_sat": is_sat,"model": model}

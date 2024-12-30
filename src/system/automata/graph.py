@@ -104,6 +104,7 @@ class AutomataState:
 
     def to_string(self, lookup_table):
         t = "\n" + 11 * " "
+        # acc_sig = f"{'{'+','.join(self.accepting_signature)+'}'}" if self.accepting_signature else " "
         return f"  - {self.status} {self.state_id:<3}" + t.join([tr.to_string(lookup_table) for tr in self.transitions])
 
     def __str__(self):

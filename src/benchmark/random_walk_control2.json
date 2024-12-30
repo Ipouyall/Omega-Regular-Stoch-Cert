@@ -44,7 +44,7 @@
   },
 
   "specification": {
-    "ltl_formula": "G F a",
+    "ltl_formula": "GF a",
     "preposition_lookup": {
       "a": "S1 <= 50"
     }

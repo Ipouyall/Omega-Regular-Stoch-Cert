@@ -175,14 +175,27 @@ def plot_system(dynamics_strings, boundary_min, boundary_max, grid_points=50, hi
 
 # Example usage
 dynamics_strings = [
-    "0.1 * S2",
-    "(-S1 + (1 - S1 ** 2) * S2) * 0.1",
+    # "-0.0167 * S1 + 0.333",
+    # "-0.0142 * S2"
+
+    "-0.0183*S1 -0.3317*S2 + 0.3333",
+    "0.0142*S1 - 0.0142*S2"
+
+    # "0.2*S1 - 0.3*S2 + 0.5",
+    # "0.5*S1 - 0.5*S2 + 0.5"
+    #
+    # "0.2*S1",
+    # "0.2*S2"
+
+    # "0.1 * S2",
+    # "(-S1 + (1 - S1 ** 2) * S2) * 0.1",
 ]
 
-plot_system(
-    dynamics_strings,
-    boundary_min=-6,
-    boundary_max=6,
-    grid_points=50,
-    # highlight_region=[[[-1.2, -0.9], [-2.9, -2]]]
-)
+if __name__ == "__main__":
+    plot_system(
+        dynamics_strings,
+        boundary_min=-10,
+        boundary_max=10,
+        grid_points=50,
+        # highlight_region=[[[-1.2, -0.9], [-2.9, -2]]]
+    )
