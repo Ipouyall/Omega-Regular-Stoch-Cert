@@ -68,5 +68,4 @@ class CommunicationBridge:
             config=config_path,
         )
 
-        print("Polyhorn failed to execute.")
         return {"is_sat": is_sat,"model": model}

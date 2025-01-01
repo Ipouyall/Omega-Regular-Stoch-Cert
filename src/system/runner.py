@@ -161,7 +161,7 @@ class Runner:
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba}")
+        self.pbar.write(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
         self.history["initial_space"] = initial_space
@@ -272,5 +272,7 @@ class Runner:
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
         self.pbar.write("+ Polyhorn solver completed.")
         self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
-        self.pbar.write(f"    Model: {result['model']}")
+        # self.pbar.write(f"    Model:")
+        # for k in sorted(result["model"].keys()):
+        #     self.pbar.write(f"           {k}: {result["model"][k]}")
         self.history["solver_result"] = result

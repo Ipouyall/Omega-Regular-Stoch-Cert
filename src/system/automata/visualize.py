@@ -1,6 +1,6 @@
 from graphviz import Digraph
 
-from .graph import AutomataTransitionType, AutomataStateStat, Automata
+from .graph import AutomataTransitionType, AcceptanceStatus, Automata
 
 
 def visualize_automata(automata: Automata, output_file: str = None):
@@ -15,7 +15,7 @@ def visualize_automata(automata: Automata, output_file: str = None):
             label=state_id,
             shape=shape,
             style="filled",
-            fillcolor="lightblue" if state.status == AutomataStateStat.Accepting else "white"
+            fillcolor="lightblue" if state.status == AcceptanceStatus.Accepting else "white"
         )
 
     for state_id, state in automata.states.items():

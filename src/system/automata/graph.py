@@ -36,9 +36,9 @@ class AutomataTransitionType(Enum):
     Propositional = "propositional"
 
     @classmethod
-    def from_str(cls, value: str):
-        value = value.strip()
-        if value in ["epsilon", "e", "any", "t"] or len(value) == 0:
+    def from_label(cls, from_label: str):
+        value = from_label.strip()
+        if value in ["epsilon", "e", "any", "t", True] or len(value) == 0:
             return cls.Epsilon
         return cls.Propositional
 
@@ -46,18 +46,18 @@ class AutomataTransitionType(Enum):
         return "ε" if self != AutomataTransitionType.Propositional else self.value
 
 
-class AutomataStateStat(Enum):
+class AcceptanceStatus(Enum):
     Accepting = "accepting"
     NonAccepting = "non-accepting"
 
     def __str__(self):
-        if self == AutomataStateStat.Accepting:
+        if self == AcceptanceStatus.Accepting:
             return "(●)"
         return "( )"
 
     @classmethod
     def from_str(cls, value: str):
-        if value in ["accepting"]:
+        if value in ["accepting", "acc"]:
             return cls.Accepting
         return cls.NonAccepting
 
@@ -84,7 +84,7 @@ class AutomataTransition:
 @dataclass
 class AutomataState:
     state_id: str
-    status: AutomataStateStat
+    status: AcceptanceStatus
     transitions: list[AutomataTransition]
     accepting_signature: list[str]
 
@@ -94,13 +94,13 @@ class AutomataState:
         for _as in self.accepting_signature:
             if not isinstance(_as, str):
                 raise ValueError("Accepting signature must be a string.")
-        if self.status == AutomataStateStat.Accepting and len(self.accepting_signature) == 0:
+        if self.status == AcceptanceStatus.Accepting and len(self.accepting_signature) == 0:
             raise ValueError("Accepting state must have an accepting signature.")
-        if self.status == AutomataStateStat.NonAccepting and len(self.accepting_signature) > 0:
+        if self.status == AcceptanceStatus.NonAccepting and len(self.accepting_signature) > 0:
             raise ValueError("Non-accepting state cannot have an accepting signature.")
 
     def is_accepting(self):
-        return self.status == AutomataStateStat.Accepting
+        return self.status == AcceptanceStatus.Accepting
 
     def to_string(self, lookup_table):
         t = "\n" + 11 * " "
@@ -138,7 +138,7 @@ class Automata:
         self.accepting_components = find_bottom_sccs_covering_accepting_sink_sets(self)
         accepting_nodes = {node for component in self.accepting_components for node in component}
         for node in accepting_nodes:
-            self.states[node].status = AutomataStateStat.Accepting
+            self.states[node].status = AcceptanceStatus.Accepting
 
     def get_state(self, state_id: str):
         return self.states[state_id]
@@ -171,7 +171,7 @@ class Automata:
                     )
                     new_state = AutomataState(
                         state_id=str(last_state_id),
-                        status=AutomataStateStat.Accepting,
+                        status=AcceptanceStatus.Accepting,
                         transitions=[epsilon_tr],
                         accepting_signature=tr.accepting_signature
                     )
@@ -179,20 +179,20 @@ class Automata:
 
 
                     new_tr = AutomataTransition(
-                        type=AutomataTransitionType.from_str(tr.label),
+                        type=AutomataTransitionType.from_label(tr.label),
                         destination_id=last_state_id,
                         predicate=tr.label
                     )
                 else:
                     new_tr = AutomataTransition(
-                        type=AutomataTransitionType.from_str(tr.label),
+                        type=AutomataTransitionType.from_label(tr.label),
                         destination_id=tr.destination,
                         predicate=tr.label,
                     )
                 trans.append(new_tr)
             new_st = AutomataState(
                 state_id=state.state_id,
-                status=AutomataStateStat.NonAccepting,
+                status=AcceptanceStatus.NonAccepting,
                 transitions=trans,
                 accepting_signature=[]
             )
