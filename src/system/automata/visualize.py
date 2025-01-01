@@ -1,6 +1,7 @@
 from graphviz import Digraph
 
-from .graph import AutomataTransitionType, AcceptanceStatus, Automata
+from .graph import Automata
+from .sub_graph import AcceptanceStatus, AutomataTransitionType
 
 
 def visualize_automata(automata: Automata, output_file: str = None):

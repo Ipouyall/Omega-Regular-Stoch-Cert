@@ -61,7 +61,7 @@ class StrictExpectedDecrease(Constraint):
         _s_next_states_under_accept = system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
-            q = self.automata.get_state(str(_q_id))
+            q = self.automata.get_state(_q_id)
             # q ∈ Q/Qt
             if q.is_accepting():
                 continue
@@ -160,15 +160,14 @@ class StrictExpectedDecrease(Constraint):
         """
         buchi_counts = self.decomposed_control_policy.get_length()[PolicyType.BUCHI]
         for _buchi_id in range(buchi_counts):  # for each buchi i
-            _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI,
-                                                                              _buchi_id)  # π^{buchi}_{i}
+            _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI,_buchi_id)  # π^{buchi}_{i}
             _s_control_action_buchi = _buchi_control_policy()
             _s_next_states_under_buchi = system_dynamics(_s_control_action_buchi)
 
             for _q_id in range(self.template_manager.abstraction_dimension):
-                q = self.automata.get_state(str(_q_id))
+                q = self.automata.get_state(_q_id)
                 # q ∈ Q_{accept}/F_{i}
-                if q.is_accepting() and str(_buchi_id) not in q.accepting_signature:
+                if q.is_accepting() and not q.is_in_accepting_signature(_buchi_id):
                     pass
                 else:
                     continue
@@ -182,8 +181,8 @@ class StrictExpectedDecrease(Constraint):
                 )
 
                 #  V^{reach-and-stay}(s, q')
-                next_possible_q_ids = [t.destination_id for t in q.transitions]
-                next_possible_v_guards = (t.predicate for t in q.transitions)
+                next_possible_q_ids = [t.destination for t in q.transitions]
+                next_possible_v_guards = (t.label for t in q.transitions)
                 next_possible_v_reach_and_stay = [
                     self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                     for _q_id in next_possible_q_ids

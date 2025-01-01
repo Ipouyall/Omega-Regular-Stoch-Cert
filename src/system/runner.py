@@ -157,7 +157,7 @@ class Runner:
 
         ldba = Automata.from_hoa(
             hoa_header=automata["header"],
-            hoa_states=automata["states"],
+            hoa_states=automata["body"],
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
