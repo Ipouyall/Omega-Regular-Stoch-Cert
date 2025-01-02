@@ -86,7 +86,7 @@ class AutomataState:
             acc_str = ",".join(map(str, self.acc_sig))
             parts.append(f" {{{acc_str}}}")
         header_str = "".join(parts)
-        sp = "\n\t\t"
+        sp = "\n\t  "
         transitions_str_list = [sp + tr.to_string(lookup_table) for tr in self.transitions]
         return header_str + "".join(transitions_str_list)
 

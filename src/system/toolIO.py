@@ -35,6 +35,7 @@ class ToolInput:
                     f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
                 )
 
+
 class IOParser:
     __organization = {
         "actions": ["control_policy"],
@@ -98,6 +99,10 @@ class IOParser:
             "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],
             "maximal_degree": action_max_deg,
             "policies": data["actions"].get("control_policy", None) if "actions" in data else None,
+            "limits": {
+                "min": data.get("actions", {}).get("minimum", None),
+                "max": data.get("actions", {}).get("maximum", None),
+            }
         }
 
         disturbance = {
@@ -135,7 +140,6 @@ class IOParser:
             "owl_binary_path": data["synthesis_config"].get("owl_path", None),
             "hoa_path": data["specification"].get("hoa_path", None),
         }
-
 
         return ToolInput(
             actions_pre=actions,

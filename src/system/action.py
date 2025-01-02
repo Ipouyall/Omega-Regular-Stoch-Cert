@@ -152,6 +152,7 @@ class SystemDecomposedControlPolicy:
     maximal_degree: int
     abstraction_dimension: int  # Number of states in the automata (q in LDBA)
     policies: Sequence[SystemControlPolicy] = None
+    limits: Dict[str, float] = field(default_factory=dict)
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
@@ -180,6 +181,12 @@ class SystemDecomposedControlPolicy:
                 type=ptype
             ) for prefix, ptype in zip(prefixes, types)
         ]
+
+    def get_limits(self) -> Dict[str, float]:
+        return {
+            "min": self.limits.get("min", None),
+            "max": self.limits.get("max", None)
+        }
 
     def get_policy(self, policy_type: PolicyType, policy_id: int = None) -> SystemControlPolicy:
         """Policy id is required for Buchi policies."""

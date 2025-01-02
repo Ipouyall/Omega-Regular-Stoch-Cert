@@ -1,7 +1,9 @@
 {
   "actions": {
     "maximal_polynomial_degree": 1,
-    "control_policy": []
+    "control_policy": [],
+    "minimum": -2,
+    "maximum": 2
   },
 
   "disturbance": {

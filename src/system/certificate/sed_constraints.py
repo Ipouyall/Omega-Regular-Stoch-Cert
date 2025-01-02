@@ -75,8 +75,8 @@ class StrictExpectedDecrease(Constraint):
             )
 
             #  V(s, q')
-            next_possible_q_ids = (t.destination_id for t in q.transitions)
-            next_possible_v_guards = (t.predicate for t in q.transitions)
+            next_possible_q_ids = (t.destination for t in q.transitions)
+            next_possible_v_guards = (t.label for t in q.transitions)
             next_possible_v = (
                 self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                 for _q_id in next_possible_q_ids

@@ -14,6 +14,7 @@ from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
 from .automata.visualize import visualize_automata
+from .certificate.cl_constraint import ControllerBounds
 from .certificate.init_constraints import InitialSpaceConstraint
 from .certificate.nn_constraint import NonNegativityConstraint
 from .certificate.nsed_constraints import NonStrictExpectedDecrease
@@ -243,11 +244,23 @@ class Runner:
         for t in non_strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t}")
 
+        controller_boundary_generator = ControllerBounds(
+            template_manager=self.history["template"],
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"]
+        )
+        controller_bound_constraints = controller_boundary_generator.extract()
+        if len(controller_bound_constraints) > 0:
+            self.pbar.write("+ Generated 'Controller Boundary Constraints' successfully.")
+            for t in controller_bound_constraints:
+                self.pbar.write(f"  + {t}")
+
         self.history["constraints"] = {
             "initial_bound": initial_bound_constraints,
             "non_negativity": non_negativity_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
+            "controller_bound": controller_bound_constraints,
         }
 
     @stage_logger
@@ -272,7 +285,7 @@ class Runner:
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
         self.pbar.write("+ Polyhorn solver completed.")
         self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
-        # self.pbar.write(f"    Model:")
-        # for k in sorted(result["model"].keys()):
-        #     self.pbar.write(f"           {k}: {result["model"][k]}")
+        self.pbar.write(f"    Model:")
+        for k in sorted(result["model"].keys()):
+            self.pbar.write(f"           {k}: {result["model"][k]}")
         self.history["solver_result"] = result
