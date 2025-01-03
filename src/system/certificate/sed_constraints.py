@@ -11,6 +11,7 @@ from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality
 from ..space import SystemSpace
 
+
 @dataclass
 class StrictExpectedDecrease(Constraint):
     template_manager: LTLCertificateDecomposedTemplates
@@ -24,6 +25,7 @@ class StrictExpectedDecrease(Constraint):
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
+        print()
         self.extraxt_reach_and_stay(constraints=constraints)
         self.extract_buchi(constraints=constraints)
         return constraints
@@ -35,7 +37,9 @@ class StrictExpectedDecrease(Constraint):
         _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
         _eq_zero = Equation.extract_equation_from_string("0")
 
+        print("extract SED (R&S)")
         for dynamical in self.system_dynamics.system_transformations:
+            print(f"\t-for {dynamical.condition_to_string()}")
             self.extraxt_reach_and_stay_helper(
                 constraints=constraints,
                 _p=_p,
@@ -44,14 +48,7 @@ class StrictExpectedDecrease(Constraint):
                 system_dynamics=dynamical,
             )
 
-    def extraxt_reach_and_stay_helper(
-            self,
-            constraints,
-            _p,
-            _eq_epsilon,
-            _eq_zero,
-            system_dynamics: ConditionalDynamics,
-    ) -> list[ConstraintInequality]:
+    def extraxt_reach_and_stay_helper(self,constraints,_p,_eq_epsilon,_eq_zero,system_dynamics: ConditionalDynamics) -> list[ConstraintInequality]:
         """
         forall S and q ∈ Q/Qt, [1/(1-p) - V^{reach-and-stay}(s,q) >= 0] → [V^{reach-and-stay}(s,q) − E[V^{reach-and-stay}(s',q')] − ϵ ≥ 0]
         """
@@ -61,10 +58,13 @@ class StrictExpectedDecrease(Constraint):
         _s_next_states_under_accept = system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
+            print(f"\t\t-state {_q_id}")
             q = self.automata.get_state(_q_id)
             # q ∈ Q/Qt
             if q.is_accepting():
+                print(f"\t\t\t-state {_q_id}: is accepting -> SKIPPING")
                 continue
+            print(f"\t\t\t-state {_q_id}: is NOT accepting -> EXTRACTING")
 
             #  V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
@@ -120,6 +120,7 @@ class StrictExpectedDecrease(Constraint):
                 )
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
+            print(f"\t\t\t\t-number of constraints: {len(_right_hand_sides)}")
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] − ϵ ≥ 0]
                     variables=self.template_manager.variable_generators,
@@ -136,8 +137,10 @@ class StrictExpectedDecrease(Constraint):
         _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
         _eq_epsilon = Equation.extract_equation_from_string(str(self.epsilon))
         _eq_zero = Equation.extract_equation_from_string("0")
+        print("extract SED (BUCHI)")
 
         for dynamical in self.system_dynamics.system_transformations:
+            print(f"\t-for {dynamical.condition_to_string()}")
             self.extract_buchi_helper(
                 constraints=constraints,
                 _p=_p,
@@ -160,7 +163,9 @@ class StrictExpectedDecrease(Constraint):
         """
         buchi_counts = self.decomposed_control_policy.get_length()[PolicyType.BUCHI]
         for _buchi_id in range(buchi_counts):  # for each buchi i
+            print(f"\t\t-for buchi {_buchi_id}")
             _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI,_buchi_id)  # π^{buchi}_{i}
+            print(f"\t\t\t-π^buchi_{_buchi_id}: {_buchi_control_policy}")
             _s_control_action_buchi = _buchi_control_policy()
             _s_next_states_under_buchi = system_dynamics(_s_control_action_buchi)
 
@@ -168,8 +173,10 @@ class StrictExpectedDecrease(Constraint):
                 q = self.automata.get_state(_q_id)
                 # q ∈ Q_{accept}/F_{i}
                 if q.is_accepting() and not q.is_in_accepting_signature(_buchi_id):
+                    print(f"\t\t\t\t-state {_q_id}: is in accepting signature and NOT buchi {_buchi_id} -> EXTRACTING")
                     pass
                 else:
+                    print(f"\t\t\t\t-state {_q_id} and buchi {_buchi_id} -> SKIPPING")
                     continue
 
                 #  V^{reach-and-stay}(s,q) <= 1/(1-p) == 1/(1-p) - V^{reach-and-stay}(s,q) >= 0
@@ -274,6 +281,7 @@ class StrictExpectedDecrease(Constraint):
                     )
                     for _buch, _reach in zip(_rhs_buchi, _rhs_reach_and_stay)
                 ]
+                print(f"\t\t\t\t\t-number of constraints: {len(_rhs)}")
 
                 constraints.append(
                     ConstraintInequality(

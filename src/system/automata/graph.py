@@ -60,8 +60,7 @@ class Automata:
             self.states[idx].acceptance_status = stat
 
     def get_state(self, state_id: int):
-        # return self.states[int(state_id)]
-        return self.states[(state_id)]
+        return self.states[int(state_id)]
 
     def to_detailed_string(self):
         start = f"  → {self.start_state_id}"

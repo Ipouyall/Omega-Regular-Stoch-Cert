@@ -10,6 +10,9 @@ class ConditionalDynamics:
     condition: List[Inequality]
     dynamics: List[Equation]
 
+    def condition_to_string(self):
+        return " and ".join([c.to_detailed_string() for c in self.condition])
+
     def __len__(self):
         return len(self.dynamics)
 

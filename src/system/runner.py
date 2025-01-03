@@ -203,7 +203,7 @@ class Runner:
         initial_bound_constraints = initial_bound_generator.extract()
         self.pbar.write("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
         for t in initial_bound_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
@@ -212,7 +212,7 @@ class Runner:
         non_negativity_constraints = non_negativity_generator.extract()
         self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
         for t in non_negativity_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -227,7 +227,7 @@ class Runner:
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
         for t in strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
@@ -242,7 +242,7 @@ class Runner:
         non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
         self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
         for t in non_strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t}")
+            self.pbar.write(f"  + {t.to_detail_string()}")
 
         controller_boundary_generator = ControllerBounds(
             template_manager=self.history["template"],
@@ -253,7 +253,7 @@ class Runner:
         if len(controller_bound_constraints) > 0:
             self.pbar.write("+ Generated 'Controller Boundary Constraints' successfully.")
             for t in controller_bound_constraints:
-                self.pbar.write(f"  + {t}")
+                self.pbar.write(f"  + {t.to_detail_string()}")
 
         self.history["constraints"] = {
             "initial_bound": initial_bound_constraints,

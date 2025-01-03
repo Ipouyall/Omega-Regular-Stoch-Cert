@@ -30,14 +30,14 @@
       {
         "condition": "S1 >= 100",
         "transforms": [
-          "S1 + A1 + 5"
+          "S1"
         ]
       }
     ]
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 1,
+    "maximal_polynomial_degree": 2,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.99,
     "theorem_name": "farkas",

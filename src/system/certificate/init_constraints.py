@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from fontTools.misc.cython import returns
+
 from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, GuardedInequality, SubConstraint
 from .constraints import Constraint, _replace_keys_with_values
 from .template import LTLCertificateDecomposedTemplates
@@ -42,15 +44,17 @@ class InitialSpaceConstraint(Constraint):
             aggregation_type=ConstraintAggregationType.CONJUNCTION
         )
 
-        return [
+        constraints.append(
             ConstraintInequality(
                 variables=self.template_manager.variable_generators,
                 lhs=SubConstraint(
-                    expr_1=self.system_space.space_inequalities+self.initial_space.space_inequalities,
+                    expr_1=self.system_space.space_inequalities + self.initial_space.space_inequalities,
                     aggregation_type=ConstraintAggregationType.CONJUNCTION),
                 rhs=template_rs_bound,
             )
-        ]
+        )
+
+        return constraints
 
     # def extract_buchi(self, constraints):
     #     return
