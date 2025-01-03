@@ -26,7 +26,6 @@ class NonStrictExpectedDecrease(Constraint):
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
-        print()
         self.extraxt_reach_and_stay(constraints=constraints)
         self.extract_buchi(constraints=constraints)
         return constraints
@@ -34,10 +33,8 @@ class NonStrictExpectedDecrease(Constraint):
     def extraxt_reach_and_stay(self, constraints):
         _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
         _eq_zero = Equation.extract_equation_from_string("0")
-        print("Extracting NSED (R&S)")
 
         for dynamical in self.system_dynamics.system_transformations:
-            print(f"\t-for {dynamical.condition_to_string()}")
             self.extraxt_reach_and_stay_helper(
                 constraints=constraints,
                 _p=_p,
@@ -62,13 +59,10 @@ class NonStrictExpectedDecrease(Constraint):
         _s_next_states_under_accept = system_dynamics(_s_control_action_accept)  # Dict: {state_id: StringEquation}
 
         for _q_id in range(self.template_manager.abstraction_dimension):
-            print(f"\t\t-state {_q_id}")
             q = self.automata.get_state(_q_id)
             # q ∈ Q_{accept}
             if not q.is_accepting():
-                print(f"\t\t\t-state {_q_id}: is not accepting -> SKIPPING")
                 continue
-            print(f"\t\t\t-state {_q_id}: is accepting -> EXTRACTING")
 
             # V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
             current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
@@ -121,7 +115,6 @@ class NonStrictExpectedDecrease(Constraint):
                 )
                 for _lhs, _guard in zip(_t_right_hand_sides, next_possible_v_guards)
             ]
-            print(f"\t\t\t\t-number of constraints: {len(_right_hand_sides)}")
             constraints.append(
                 ConstraintInequality(  # [1/(1-p) - V(s,q) >= 0] → [V(s,q) − E[V(s',q')] ≥ 0]
                     variables=self.template_manager.variable_generators,
@@ -137,10 +130,8 @@ class NonStrictExpectedDecrease(Constraint):
     def extract_buchi(self, constraints):
         _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
         _eq_zero = Equation.extract_equation_from_string("0")
-        print("Extracting NSED (BUCHI)")
 
         for dynamical in self.system_dynamics.system_transformations:
-            print(f"\t-for {dynamical.condition_to_string()}")
             self.extract_buchi_helper(
                 constraints=constraints,
                 _p=_p,
@@ -162,9 +153,7 @@ class NonStrictExpectedDecrease(Constraint):
         """
         buchi_counts = self.decomposed_control_policy.get_length()[PolicyType.BUCHI]
         for _buchi_id in range(buchi_counts):  # for each buchi i
-            print(f"\t\t-for buchi {_buchi_id}")
             _buchi_control_policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _buchi_id)
-            print(f"\t\t\t-π^buchi_{_buchi_id}: {_buchi_control_policy}")
             _s_control_action_buchi = _buchi_control_policy()
             _s_next_states_under_buchi = system_dynamics(_s_control_action_buchi)
 
@@ -172,9 +161,7 @@ class NonStrictExpectedDecrease(Constraint):
                 q = self.automata.get_state(_q_id)
                 # q ∈ Q_{accept} ∩ F_{i}
                 if not (q.is_accepting() and q.is_in_accepting_signature(_buchi_id)):
-                    print(f"\t\t\t\t-state {_q_id}: is not accepting or not in accepting signature -> SKIPPING")
                     continue
-                print(f"\t\t\t\t-state {_q_id}: is accepting and in accepting signature -> EXTRACTING")
                 #  V^{reach-and-stay}(s,q) <= 1/(1-p) == 1/(1-p) - V^{reach-and-stay}(s,q) >= 0
                 current_v_reach_and_stay = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
                 _left_land_side = Inequality(
@@ -229,7 +216,6 @@ class NonStrictExpectedDecrease(Constraint):
                     )
                     for _ineq, _guard in zip(_rhs_reach_and_stay, next_possible_v_guards)
                 ]
-                print(f"\t\t\t\t\t-number of constraints: {len(_rhs)}")
 
                 constraints.append(
                     ConstraintInequality(
