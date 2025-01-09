@@ -1,6 +1,6 @@
 {
   "actions": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 1,
     "control_policy": []
   },
 
@@ -35,7 +35,7 @@
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 1,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.99,
     "theorem_name": "farkas",

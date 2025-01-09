@@ -10,27 +10,33 @@
     "distribution_name": "uniform",
     "disturbance_parameters": {
       "lower_bound": [-1],
-      "upper_bound": [2]
+      "upper_bound": [1]
     }
   },
 
   "stochastic_dynamical_system": {
     "state_space_dimension": 1,
-    "control_space_dimension": 1,
+    "control_space_dimension": 2,
     "disturbance_space_dimension": 1,
-    "system_space": "-100 <= S1 <= 150",
-    "initial_space": "0 <= S1 <= 0",
+    "system_space": "-100 <= S1 <= 1000",
+    "initial_space": "4 <= S1 <= 7",
     "dynamics": [
       {
-        "condition": "-10 <= S1 <= 100",
+        "condition": "-10 <= S1 <= 800",
         "transforms": [
-          "S1 + D1 + A1"
+          "S1 + 1 + A1"
         ]
       },
       {
-        "condition": "S1 >= 100",
+        "condition": "800 <= S1",
         "transforms": [
           "S1"
+        ]
+      },
+      {
+        "condition": "S1 <= -10",
+        "transforms": [
+          "S1 + 1 + A2"
         ]
       }
     ]
@@ -39,16 +45,16 @@
   "synthesis_config": {
     "maximal_polynomial_degree": 1,
     "epsilon": 0.000000000000001,
-    "probability_threshold": 0.99,
+    "probability_threshold": 0.88,
     "theorem_name": "farkas",
     "solver_name": "z3",
     "owl_path": "../playground/rabinizer/owl"
   },
 
   "specification": {
-    "ltl_formula": "FG a",
+    "ltl_formula": "(F a)",
     "preposition_lookup": {
-      "a": "S1 <= 0"
+      "a": "S1 <= -2"
     }
   }
 }

@@ -121,7 +121,7 @@ class Inequality:
         return f"{self.left_equation} {self.inequality_type.value} {self.right_equation}"
 
     def __str__(self) -> str:
-        if len(self.left_equation.monomials) > 1:
+        if len(self.left_equation.monomials) > 1 and False:
             lhs = "LHS"
         else:
             lhs = str(self.left_equation)
