@@ -44,6 +44,7 @@ class Automata:
     lookup_table: dict[str, str] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
+        self.start_state_id = str(self.start_state_id)
         self._normalize_graph()
         self.lookup_table = {
             str(k): _fast_dict_replacement(str(v), self.atomic_preposition_lookup)
@@ -73,7 +74,10 @@ class Automata:
 
     @classmethod
     def from_hoa(cls, hoa_header, hoa_states: List[AutomataState], lookup_table: dict):
-        propositions_translation_dict = {i: ap for i, ap in enumerate(hoa_header['ap_decl']["propositions"], start=0)}
+        propositions_translation_dict = {
+            int(i): str(ap)
+            for i, ap in enumerate(hoa_header['ap_decl']["propositions"], start=0)
+        }
 
         return cls(
             start_state_id=hoa_header['start_state'],
