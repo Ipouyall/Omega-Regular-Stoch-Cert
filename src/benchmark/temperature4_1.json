@@ -1,28 +1,34 @@
 {
   "actions": {
-    "maximal_polynomial_degree": 1,
+    "maximal_polynomial_degree": 2,
     "control_policy": []
   },
 
   "disturbance": {
-    "distribution_name": "normal",
+    "distribution_name": "uniform",
     "disturbance_parameters": {
-      "mean": [0],
-      "std_dev": [1]
+      "lower_bound": [-1],
+      "upper_bound": [1]
     }
   },
 
   "stochastic_dynamical_system": {
-    "state_space_dimension": 2,
+    "state_space_dimension": 1,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "S1 ** 2 + S2 ** 2 <= 9 and S1 ** 2 >= 0 and S2 ** 2 >= 0",
+    "system_space": "(S1 - 295) ** 2 <= 121",
+    "initial_space": "295 <= S1 <= 295",
     "dynamics": [
       {
-        "condition": "0 < 1",
+        "condition": "S1 <= 305",
         "transforms": [
-          "0.9 * S1 - 0.4 * S2",
-          "0.4 * S1 + 0.9 * S2"
+          "0.99*S1 + 2.8 + 0.1 * D1 + 0.015625*S1 + 4.5"
+        ]
+      },
+      {
+        "condition": "S1 >= 305",
+        "transforms": [
+          "0.99*S1 + 2.8 + 0.1 * D1 - 3"
         ]
       }
     ]
@@ -38,10 +44,11 @@
   },
 
   "specification": {
-    "ltl_formula": "(GF a) & (GF b)",
+    "ltl_formula": "(G a) & F G(!b & !c)",
     "preposition_lookup": {
-      "a": "S1 >= -1 and S2 >= -1",
-      "b": "S1 <= 1 and S2 <= 1"
+      "a": "S1 <= 310",
+      "b": "S1 <= 292",
+      "c": "S1 >= 298"
     }
   }
 }

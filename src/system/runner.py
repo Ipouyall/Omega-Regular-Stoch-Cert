@@ -13,7 +13,12 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.specification import LDBASpecification
-from .certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease, NonStrictExpectedDecrease
+from .automata.visualize import visualize_automata
+from .certificate.cl_constraint import ControllerBounds
+from .certificate.init_constraints import InitialSpaceConstraint
+from .certificate.nn_constraint import NonNegativityConstraint
+from .certificate.nsed_constraints import NonStrictExpectedDecrease
+from .certificate.sed_constraints import StrictExpectedDecrease
 from .certificate.template import LTLCertificateDecomposedTemplates
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
@@ -96,7 +101,7 @@ class Runner:
             range(RunningStage.Done.value),
             file=sys.stdout,
             colour="cyan",
-            leave=False,
+            leave=True,
         )
 
     def run(self):
@@ -138,6 +143,9 @@ class Runner:
         system_space = SystemSpace(space_inequalities=self.history["initiator"].system_space_pre)
         self.pbar.write("+ Constructed 'System Space' successfully.")
 
+        initial_space = SystemSpace(space_inequalities=self.history["initiator"].initial_space_pre)
+        self.pbar.write("+ Constructed 'Initial Space' successfully.")
+
         sds = SystemDynamics(**self.history["initiator"].sds_pre)
         self.pbar.write("+ Constructed 'Stochastic Dynamical System' successfully.")
 
@@ -150,13 +158,14 @@ class Runner:
 
         ldba = Automata.from_hoa(
             hoa_header=automata["header"],
-            hoa_states=automata["states"],
+            hoa_states=automata["body"],
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba}")
+        self.pbar.write(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
+        self.history["initial_space"] = initial_space
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
         self.history["ldba"] = ldba
@@ -185,6 +194,17 @@ class Runner:
 
     @stage_logger
     def _run_stage_generate_constraints(self):
+        initial_bound_generator = InitialSpaceConstraint(
+            template_manager=self.history["template"],
+            system_space=self.history["space"],
+            initial_space=self.history["initial_space"],
+            automata=self.history["ldba"],
+        )
+        initial_bound_constraints = initial_bound_generator.extract()
+        self.pbar.write("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
+        for t in initial_bound_constraints:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
             system_space=self.history["space"],
@@ -224,17 +244,30 @@ class Runner:
         for t in non_strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
+        controller_boundary_generator = ControllerBounds(
+            template_manager=self.history["template"],
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"]
+        )
+        controller_bound_constraints = controller_boundary_generator.extract()
+        if len(controller_bound_constraints) > 0:
+            self.pbar.write("+ Generated 'Controller Boundary Constraints' successfully.")
+            for t in controller_bound_constraints:
+                self.pbar.write(f"  + {t.to_detail_string()}")
+
         self.history["constraints"] = {
+            "initial_bound": initial_bound_constraints,
             "non_negativity": non_negativity_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
+            "controller_bound": controller_bound_constraints,
         }
 
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
-        constraints = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
+        constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
-            generated_constants=constraints,
+            generated_constants=constants,
             **self.history["constraints"]
         )
         polyhorn_config = CommunicationBridge.get_input_config(
@@ -252,5 +285,7 @@ class Runner:
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
         self.pbar.write("+ Polyhorn solver completed.")
         self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
-        self.pbar.write(f"    Model: {result['model']}")
+        self.pbar.write(f"    Model:")
+        for k in sorted(result["model"].keys()):
+            self.pbar.write(f"           {k}: {result["model"][k]}")
         self.history["solver_result"] = result

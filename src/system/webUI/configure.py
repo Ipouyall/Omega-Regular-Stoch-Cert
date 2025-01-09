@@ -4,11 +4,14 @@ from enum import Enum
 import streamlit as st
 from dataclasses import dataclass, field
 
+from ..dynamics import ConditionalDynamics
 from ..polynomial.equation import Equation
+from ..space import extract_space_inequalities
 from ..toolIO import ToolInput
 
 possible_atomic_propositions = {chr(i) for i in range(97, 123)}
-possible_theorems = ["handelman", "putinar"]
+possible_theorems = ["farkas", "handelman", "putinar"]
+Possible_solvers = ["z3", "mathsat"]
 
 
 class ConfigType(Enum):
@@ -24,6 +27,7 @@ class HighLevelDescription:
     control_dim: int = 1
     disturbance_dim: int = 1
     system_space: str = ""
+    initial_space: str = ""
 
 
 @dataclass
@@ -38,16 +42,18 @@ class Disturbance:
     parameters: dict[str, float] = field(default_factory=dict)
 
     def get_valid_distributions(self):
-        return ['normal']
+        return ['normal', 'uniform']
 
     def get_special_parameters(self):
         if self.name == "normal":
             return "mean", "std_dev"
+        elif self.name == "uniform":
+            return "lower_bound", "upper_bound"
         return NotImplemented
 
 @dataclass
-class Dynamics:
-    transformations: list[str] = field(default_factory=list)
+class SystemDefinition:
+    dynamics: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -69,17 +75,27 @@ class Specification:
 class Synthesis:
     max_degree: int = 2
     epsilon: float = 1e-12
-    probability: float = 0.1
-    theorem: str = "handelman"
+    probability: float = 0.9
+    theorem: str = "farkas"
     solver: str = "z3"
     owl_path: str = "./owl"
 
 
-def transformation_helper(label, default, no_action=False, no_disturbance=False):
-    new = st.text_input(
-        label=label,
-        value=default
-    )
+def transformation_helper(label, default, key, no_action=False, no_disturbance=False, placeholder=None, help=""):
+    if placeholder is None:
+        new = st.text_input(
+            label=label,
+            value=default,
+            key=key,
+            help=help
+        )
+    else:
+        new = placeholder.text_input(
+            label=label,
+            value=default,
+            key=key,
+            help=help
+        )
     if no_action:
         if "A" in new:
             st.write(
@@ -97,7 +113,7 @@ class Configuration:
     high_level_description: HighLevelDescription = field(default_factory=HighLevelDescription)
     actions: Actions = field(default_factory=Actions)
     disturbance: Disturbance = field(default_factory=Disturbance)
-    dynamics: Dynamics = field(default_factory=Dynamics)
+    system_definition: SystemDefinition = field(default_factory=SystemDefinition)
     specification: Specification = field(default_factory=Specification)
     synthesis: Synthesis = field(default_factory=Synthesis)
 
@@ -106,6 +122,7 @@ class Configuration:
         self.high_level_description.control_dim = data.get("stochastic_dynamical_system", {}).get("control_space_dimension", self.high_level_description.control_dim)
         self.high_level_description.disturbance_dim = data.get("stochastic_dynamical_system", {}).get("disturbance_space_dimension", self.high_level_description.disturbance_dim)
         self.high_level_description.system_space = data.get("stochastic_dynamical_system", {}).get("system_space", self.high_level_description.system_space)
+        self.high_level_description.initial_space = data.get("stochastic_dynamical_system", {}).get("initial_space", self.high_level_description.initial_space)
 
         if "maximal_polynomial_degree" in data.get("actions", {}):
             self.actions.max_degree = data["actions"]["maximal_polynomial_degree"]
@@ -115,7 +132,7 @@ class Configuration:
         self.disturbance.name = data.get("disturbance", {}).get("distribution_name", self.disturbance.name)
         self.disturbance.parameters = data.get("disturbance", {}).get("disturbance_parameters", self.disturbance.parameters)
 
-        self.dynamics.transformations = data.get("stochastic_dynamical_system", {}).get("dynamics", self.dynamics.transformations)
+        self.system_definition.dynamics = data.get("stochastic_dynamical_system", {}).get("dynamics", self.system_definition.dynamics)
 
         self.specification.formula = data.get("specification", {}).get("ltl_formula", self.specification.formula)
         if "preposition_lookup" in data.get("specification", {}):
@@ -132,41 +149,50 @@ class Configuration:
 
 
     def _high_level_description(self):
-        st.subheader("High Level Description")
-        col1, col2, col3 = st.columns(3)
+        st.subheader("System Description")
+        col1, col2, col3 = st.columns(3, gap="medium")
         self.high_level_description.state_dim = col1.selectbox(
             label="State dimension",
-            options=list(range(1, 11)),
+            options=list(range(1, 5)),
             index=self.high_level_description.state_dim - 1
         )
         self.high_level_description.control_dim = col2.selectbox(
             label="Control policy dimension",
-            options=list(range(0, 11)),
-            index=self.high_level_description.control_dim
+            options=list(range(0, 4)),
+            index=self.high_level_description.control_dim,
+            help="Set this to zero if it is a system verification task"
         )
         self.high_level_description.disturbance_dim = col3.selectbox(
             label="Disturbance dimension",
             options=[0, 1],
             index=self.high_level_description.disturbance_dim
         )
-        self.high_level_description.system_space = st.text_input(
+        rcol1, rcol2 = st.columns(2, gap="medium")
+        self.high_level_description.system_space = rcol1.text_input(
             label="System space",
-            value=self.high_level_description.system_space
+            value=self.high_level_description.system_space,
+            help="You can only use {'<', '<=', '>', '>='} operators"
         )
+        self.high_level_description.initial_space = rcol2.text_input(
+            label="Initial space",
+            value=self.high_level_description.initial_space,
+            help="You can only use {'<', '<=', '>', '>='} operators"
+        )
+
         if self.high_level_description.control_dim == 0:
             self.high_level_description.config_type = ConfigType.SYSTEM_VERIFICATION
 
     def _actions(self):
-        st.subheader("Actions")
+        st.subheader("Control Actions")
         if self.high_level_description.control_dim == 0:
             st.write('<span style="color: gray;">No control policy in system verification mode!</span>', unsafe_allow_html=True)
             return
         st.write('<span style="color: gray;">Available state variables: ' + ", ".join(f"S{i+1}" for i in range(self.high_level_description.state_dim))+"</span>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2, gap="medium")
         self.actions.max_degree = col1.selectbox(
             label="Max degree",
-            options=list(range(1, 6)),
-            index=self.actions.max_degree - 1
+            options=list(range(0, 6)),
+            index=self.actions.max_degree
         )
         extended_policy = (self.actions.control_policy + [""] * self.actions.max_degree)[:self.actions.max_degree]
         self.actions.control_policy = [
@@ -186,11 +212,11 @@ class Configuration:
 
     def _disturbance(self):
         st.subheader("Disturbance")
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2, gap="medium")
         self.disturbance.name = col1.selectbox(
-            label="name",
+            label="Distribution",
             options=self.disturbance.get_valid_distributions(),
-            index=0
+            index=self.disturbance.get_valid_distributions().index(self.disturbance.name)
         )
         special_parameters = self.disturbance.get_special_parameters()
         if special_parameters:
@@ -204,26 +230,52 @@ class Configuration:
 
     def _dynamics(self):
         st.subheader("Dynamics")
-        st.write(
-            '<span style="color: gray;">Available variables: ' +
-            ", ".join(f"S{i+1}" for i in range(self.high_level_description.state_dim)) + ", " +
-            ", ".join(f"A{i+1}" for i in range(self.high_level_description.control_dim)) + ", " +
-            ", ".join(f"D{i+1}" for i in range(self.high_level_description.disturbance_dim)) +
-            "</span>",
-            unsafe_allow_html=True
-        )
-        pre_transformations = (self.dynamics.transformations + [""] * self.high_level_description.state_dim)[:self.high_level_description.state_dim]
+        available_variables = f"Available state variables: {'{'+", ".join(f"S{i+1}" for i in range(self.high_level_description.state_dim))+'}'} " + \
+                            f"Available control variables: {'{'+", ".join(f"A{i+1}" for i in range(self.high_level_description.control_dim))+'}'} " + \
+                            f"Available disturbance variables: {'{'+", ".join(f"D{i+1}" for i in range(self.high_level_description.disturbance_dim))+'}'}"
         no_action = self.high_level_description.control_dim == 0
         no_disturbance = self.high_level_description.disturbance_dim == 0
-        self.dynamics.transformations = [
-            transformation_helper(
-                label=f"S{i + 1}",
-                default=pre_transformations[i],
-                no_action=no_action,
-                no_disturbance=no_disturbance
-            )
-            for i in range(self.high_level_description.state_dim)
-        ]
+        for idx in range(len(self.system_definition.dynamics)):
+            with st.expander(f"Dynamic {idx + 1}", expanded=True):
+                rcol1, rcol2 = st.columns(2, gap="medium")
+                self.system_definition.dynamics[idx]["condition"] = rcol1.text_input(
+                    label="Condition",
+                    value=self.system_definition.dynamics[idx].get("condition", "0 <= 1"),
+                    key=f"condition_{idx}",
+                    help="If you dont need piecewise dynamics, you can use '0 <= 1' as your condition. Available operators: {<, <=, >, >=}"
+                )
+                transformations = (self.system_definition.dynamics[idx].get("transforms", []) +
+                                   [""] * self.high_level_description.state_dim
+                                   )[:self.high_level_description.state_dim]
+                self.system_definition.dynamics[idx]["transforms"] = [
+                    transformation_helper(
+                        label=f"S{i + 1}'",
+                        default=transformations[i],
+                        no_action=no_action,
+                        no_disturbance=no_disturbance,
+                        placeholder=rcol2,
+                        key=f"transform_{idx}_{i}",
+                        help=available_variables
+                    )
+                    for i in range(self.high_level_description.state_dim)
+                ]
+
+        def add_transformation():
+            self.system_definition.dynamics.append({
+                "condition": "0 <= 1",
+                "transforms": [""] * self.high_level_description.state_dim
+            })
+            st.session_state["add_new_transformation"] = False
+
+        if "add_new_transformation" not in st.session_state:
+            st.session_state["add_new_transformation"] = False
+
+        st.checkbox(
+            "Add new transformation",
+            value=st.session_state["add_new_transformation"],
+            key="add_new_transformation",
+            on_change=add_transformation
+        )
 
     def _specification(self):
         st.subheader("Specification")
@@ -231,7 +283,7 @@ class Configuration:
             label="LTL formula",
             value=self.specification.formula
         ).replace("true", "TRUE").replace("false", "FALSE")
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2, gap="medium")
         detected_atomic_prepositions = set(self.specification.formula) & possible_atomic_propositions
         self.specification.formula = self.specification.formula.replace("TRUE", "true").replace("FALSE", "false")
         self.specification.need_lookup_table = col1.checkbox(
@@ -256,17 +308,17 @@ class Configuration:
 
     def _synthesis(self):
         st.subheader("Synthesis")
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2, gap="medium")
         self.synthesis.max_degree = col1.selectbox(
             label="Max degree",
-            options=list(range(1, 11)),
+            options=list(range(1, 6)),
             index=self.synthesis.max_degree - 1
         )
         self.synthesis.epsilon = col1.number_input(
-            label="Epsilon (x1e-12)",
-            step=0.1,
-            value=self.synthesis.epsilon * 1e12
-        ) * 1e-12
+            label="Epsilon (x1e-15)",
+            step=1.0,
+            value=self.synthesis.epsilon * 1e15
+        ) * 1e-15
         self.synthesis.probability = col1.number_input(
             label="Probability threshold (x100)",
             step=1.0,
@@ -281,8 +333,8 @@ class Configuration:
         )
         self.synthesis.solver = col2.selectbox(
             label="Solver",
-            options=["z3", "mathsat"],
-            index=0
+            options=Possible_solvers,
+            index=Possible_solvers.index(self.synthesis.solver)
         )
         self.synthesis.owl_path = col2.text_input(
             label="Path to OWL executable",
@@ -290,6 +342,8 @@ class Configuration:
         )
         if not os.path.exists(self.synthesis.owl_path):
             col2.write('<span style="color: #b16a6a;">Executable not found</span>', unsafe_allow_html=True)
+        else: # write with some suitable green
+            col2.write('<span style="color: #6ab16a;">Executable found</span>', unsafe_allow_html=True)
 
     def view(self):
         st.title("Configuration")
@@ -336,8 +390,11 @@ class Configuration:
             "hoa_path": None,
         }
         _system_dynamic_equations = [
-            Equation.extract_equation_from_string(_eq)
-            for _eq in self.dynamics.transformations
+            ConditionalDynamics(
+                condition=extract_space_inequalities(item["condition"]),
+                dynamics=[Equation.extract_equation_from_string(eq) for eq in item["transforms"]]
+            )
+            for item in self.system_definition.dynamics
         ]
         system_dynamic = {
             "state_dimension": self.high_level_description.state_dim,
@@ -351,7 +408,8 @@ class Configuration:
             sds_pre=system_dynamic,
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
-            system_space_pre=self.high_level_description.system_space
+            system_space_pre=self.high_level_description.system_space,
+            initial_space_pre=self.high_level_description.initial_space
         )
 
 

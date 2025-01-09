@@ -17,19 +17,20 @@
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
     "system_space": "S1 ** 2 + S2 ** 2 <= 9 and S1 ** 2 >= 0 and S2 ** 2 >= 0",
+    "initial_space": "16 <= S1 ** 2 <= 25",
     "dynamics": [
       {
         "condition": "0 < 1",
         "transforms": [
-          "0.9 * S1 - 0.4 * S2",
-          "0.4 * S1 + 0.9 * S2"
+          "1.05 * S1 - 0.1 * S2",
+          "0.05 * S1 + 0.95 * S2"
         ]
       }
     ]
   },
 
   "synthesis_config": {
-    "maximal_polynomial_degree": 2,
+    "maximal_polynomial_degree": 3,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.1,
     "theorem_name": "farkas",

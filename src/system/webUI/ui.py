@@ -3,18 +3,24 @@ import time
 from enum import Enum
 from functools import wraps
 
+import pandas as pd
 import streamlit as st
 from dataclasses import dataclass, field
 
 from streamlit_option_menu import option_menu
 
 from .configure import Configuration
+from .plotter import plot_dynamics_from_conditional_eq
 from .upload import upload_file
 from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
 from ..automata.hoaParser import HOAParser
 from ..automata.specification import LDBASpecification
-from ..certificate.constraints import NonNegativityConstraint, StrictExpectedDecrease, NonStrictExpectedDecrease
+from ..automata.visualize import visualize_automata
+from ..certificate.init_constraints import InitialSpaceConstraint
+from ..certificate.nn_constraint import NonNegativityConstraint
+from ..certificate.nsed_constraints import NonStrictExpectedDecrease
+from ..certificate.sed_constraints import StrictExpectedDecrease
 from ..certificate.template import LTLCertificateDecomposedTemplates
 from ..config import SynthesisConfig
 from ..dynamics import SystemDynamics
@@ -165,9 +171,12 @@ class WebUI:
     def _run_experiment_construct_system_states(self):
         self.disturbance = SystemStochasticNoise(**self.initiator.disturbance_pre)
         self.synthesis = SynthesisConfig(**self.initiator.synthesis_config_pre)
-        self.space = SystemSpace(self.initiator.system_space_pre)
+        self.space = SystemSpace(space_inequalities=self.initiator.system_space_pre)
+        self.initial = SystemSpace(space_inequalities=self.initiator.initial_space_pre)
 
         self.sds = SystemDynamics(**self.initiator.sds_pre)
+        with st.expander(f"Synthesized System Dynamics", expanded=False, icon="🔄"):
+            plot_dynamics_from_conditional_eq(self.initiator.sds_pre["system_transformations"])
 
         ltl_specification = LDBASpecification(**self.initiator.specification_pre)
         self.hoa = ltl_specification.get_HOA(os.path.join(self.temp_path, "ltl2ldba.hoa"))
@@ -178,6 +187,12 @@ class WebUI:
             hoa_states=automata["states"],
             lookup_table=self.initiator.specification_pre["predicate_lookup"]
         )
+        v_graph = visualize_automata(self.ldba)
+        with st.expander(f"Synthesized Automata", expanded=False, icon="☁️"):
+            st.graphviz_chart(v_graph)
+            data = [{"Symbol": s, "Logic": p} for s, p in self.ldba.lookup_table.items()]
+            data = pd.DataFrame(data)
+            st.table(data)
 
     @ui_stage_logger
     def _run_experiment_policy_preparation(self):
@@ -198,6 +213,12 @@ class WebUI:
 
     @ui_stage_logger
     def _run_experiment_generate_constraints(self):
+        initial_bound = InitialSpaceConstraint(
+            template_manager=self.template,
+            system_space=self.space,
+            initial_space=self.initial,
+            automata=self.ldba,
+        ).extract()
         non_negativity = NonNegativityConstraint(
             template_manager=self.template,
             system_space=self.space,
@@ -223,6 +244,7 @@ class WebUI:
             probability_threshold=self.synthesis.probability_threshold
         ).extract()
         self.constraints = {
+            "initial_bound": initial_bound,
             "non_negativity": non_negativity,
             "strict_expected_decrease": strict_expected_decrease,
             "non_strict_expected_decrease": non_strict_expected_decrease,
@@ -247,12 +269,14 @@ class WebUI:
 
     @ui_stage_logger
     def _run_experiment_run_solver(self):
+        start_time = time.perf_counter()
         result = CommunicationBridge.feed_to_polyhorn(self.temp_path)
+        duration = time.perf_counter() - start_time
         if result["is_sat"].lower() == "unsat":
             st.error("The provided specification is unsatisfiable.")
         elif result["is_sat"].lower() == "sat":
-            st.success("The provided specification is satisfied.")
-            st.json(result["model"], expanded=True)
+            st.success(f"The provided specification is satisfied in {duration:.3f} seconds.")
+            st.json(result["model"], expanded=False)
         else:
             st.error("An error occurred while running the solver.")
             raise ValueError(f"Solver error: {result}")

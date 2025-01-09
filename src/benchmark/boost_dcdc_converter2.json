@@ -5,10 +5,10 @@
   },
 
   "disturbance": {
-    "distribution_name": "normal",
+    "distribution_name": "uniform",
     "disturbance_parameters": {
-      "mean": [0],
-      "std_dev": [1]
+      "lower_bound": [0],
+      "upper_bound": [1]
     }
   },
 
@@ -16,13 +16,14 @@
     "state_space_dimension": 2,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "S1 ** 2 + S2 ** 2 <= 9 and S1 ** 2 >= 0 and S2 ** 2 >= 0",
+    "system_space": "S1**2 + S2**2 <= 900",
+    "initial_space": "5<=S1<=7 and 5<=S2<=7",
     "dynamics": [
       {
-        "condition": "0 < 1",
+        "condition": "0 <= 1",
         "transforms": [
-          "0.9 * S1 - 0.4 * S2",
-          "0.4 * S1 + 0.9 * S2"
+          "-0.0183*S1 -0.3317*S2 + 0.3333",
+          "0.0142*S1 - 0.0142*S2"
         ]
       }
     ]
@@ -38,10 +39,9 @@
   },
 
   "specification": {
-    "ltl_formula": "(GF a) & (GF b)",
+    "ltl_formula": "F a",
     "preposition_lookup": {
-      "a": "S1 >= -1 and S2 >= -1",
-      "b": "S1 <= 1 and S2 <= 1"
+      "a": "S1 >= 0"
     }
   }
 }

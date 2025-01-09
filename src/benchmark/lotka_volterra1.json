@@ -5,10 +5,10 @@
   },
 
   "disturbance": {
-    "distribution_name": "normal",
+    "distribution_name": "uniform",
     "disturbance_parameters": {
-      "mean": [0],
-      "std_dev": [1]
+      "lower_bound": [-1],
+      "upper_bound": [2]
     }
   },
 
@@ -16,13 +16,14 @@
     "state_space_dimension": 2,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "S1 ** 2 + S2 ** 2 <= 9 and S1 ** 2 >= 0 and S2 ** 2 >= 0",
+    "system_space": "0 <= S1 <= 200 and 0 <= S2 <= 200",
+    "initial_space": "100<=S1<=100 and 15<=S2<=15",
     "dynamics": [
       {
         "condition": "0 < 1",
         "transforms": [
-          "0.9 * S1 - 0.4 * S2",
-          "0.4 * S1 + 0.9 * S2"
+          "1.2 * S1 - 0.004 * S1 * S2",
+          "0.894*S2 + 0.002*S1*S2"
         ]
       }
     ]
@@ -31,17 +32,16 @@
   "synthesis_config": {
     "maximal_polynomial_degree": 2,
     "epsilon": 0.000000000000001,
-    "probability_threshold": 0.1,
+    "probability_threshold": 0.99,
     "theorem_name": "farkas",
     "solver_name": "z3",
     "owl_path": "../playground/rabinizer/owl"
   },
 
   "specification": {
-    "ltl_formula": "(GF a) & (GF b)",
+    "ltl_formula": "(F a)",
     "preposition_lookup": {
-      "a": "S1 >= -1 and S2 >= -1",
-      "b": "S1 <= 1 and S2 <= 1"
+      "a": "0 <= S1 <= 75 and 0 <= S2 <= 75"
     }
   }
 }

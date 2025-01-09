@@ -3,7 +3,9 @@ import json
 import yaml
 
 from . import logger
+from .dynamics import ConditionalDynamics
 from .polynomial.equation import Equation
+from .space import extract_space_inequalities
 
 
 @dataclass
@@ -20,6 +22,7 @@ class ToolInput:
     synthesis_config_pre: dict
     specification_pre: dict
     system_space_pre: str
+    initial_space_pre: str
 
     # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
@@ -32,6 +35,7 @@ class ToolInput:
                     f"Attribute '{attr_name}' is expected to be of type {attr_type}, but got {type(attr_value)} instead."
                 )
 
+
 class IOParser:
     __organization = {
         "actions": ["control_policy"],
@@ -39,7 +43,6 @@ class IOParser:
         "stochastic_dynamical_system": ["state_space_dimension","control_space_dimension","disturbance_space_dimension","dynamics"],
         "synthesis_config": ["maximal_polynomial_degree","epsilon","probability_threshold","theorem_name","solver_name"],
         "specification": ["ltl_formula","predicate_lookup"],
-
     }
 
     def __init__(self, *input_files: str):
@@ -96,6 +99,10 @@ class IOParser:
             "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],
             "maximal_degree": action_max_deg,
             "policies": data["actions"].get("control_policy", None) if "actions" in data else None,
+            "limits": {
+                "min": data.get("actions", {}).get("minimum", None),
+                "max": data.get("actions", {}).get("maximum", None),
+            }
         }
 
         disturbance = {
@@ -105,8 +112,11 @@ class IOParser:
         }
 
         _system_dynamic_equations = [
-            Equation.extract_equation_from_string(_eq)
-            for _eq in data["stochastic_dynamical_system"]["dynamics"]
+            ConditionalDynamics(
+                condition=extract_space_inequalities(item["condition"]),
+                dynamics=[Equation.extract_equation_from_string(eq) for eq in item["transforms"]]
+            )
+            for item in data["stochastic_dynamical_system"]["dynamics"]
         ]
         system_dynamic = {
             "state_dimension": data["stochastic_dynamical_system"]["state_space_dimension"],
@@ -131,14 +141,14 @@ class IOParser:
             "hoa_path": data["specification"].get("hoa_path", None),
         }
 
-
         return ToolInput(
             actions_pre=actions,
             disturbance_pre=disturbance,
             sds_pre=system_dynamic,
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
-            system_space_pre=data["stochastic_dynamical_system"]["system_space"]
+            system_space_pre=data["stochastic_dynamical_system"]["system_space"],
+            initial_space_pre=data["stochastic_dynamical_system"]["initial_space"]
         )
 
 

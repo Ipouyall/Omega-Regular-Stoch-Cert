@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-__valid__distributions__ = ["normal"]
-__max__expectation__order__ = 10
+__valid__distributions__ = ["normal", "uniform"]
 
 
 class NoiseGenerator(ABC):
@@ -47,10 +46,13 @@ class NormalNoiseGenerator(NoiseGenerator):
         if len(self.std_dev) != self.dimension:
             raise ValueError(f"Dimension of standard deviation vector ({len(self.std_dev)}) does not match the specified dimension ({self.dimension}).")
 
-    def get_expectations(self, order=__max__expectation__order__) -> dict[str, str]:
+    def get_expectations(self, order=10) -> dict[str, str]:
         """
         Returns the expected values of the noise distribution.
         """
+        if order > 10:
+            raise ValueError("Expectations higher than order 10 are not supported for the normal distribution.")
+
         _exp = [
             [self.__expectation_table__[i](self.mean[j], self.std_dev[j])
             for i in range(order)]
@@ -64,6 +66,63 @@ class NormalNoiseGenerator(NoiseGenerator):
         for dim in range(len(_exp)):
             refined_disturbance_expectations[f"D{dim + 1}"] = str(_exp[dim][0])
         return refined_disturbance_expectations
+
+
+@dataclass
+class UniformNoiseGenerator(NoiseGenerator):
+    """
+    A class to generate noise based on the uniform distribution, with state preservation.
+
+    Attributes:
+        lower_bound (list[float]): Lower bounds of the uniform distribution for each dimension.
+        upper_bound (list[float]): Upper bounds of the uniform distribution for each dimension.
+        dimension (int): Dimension of the noise to generate.
+    """
+    lower_bound: list[float]
+    upper_bound: list[float]
+    dimension: int
+
+    def __post_init__(self):
+        """
+        Validates the bounds and initializes the random number generator after the dataclass has been created.
+        """
+        if len(self.lower_bound) != self.dimension:
+            raise ValueError(
+                f"Dimension of lower_bound vector ({len(self.lower_bound)}) does not match the specified dimension ({self.dimension}).")
+        if len(self.upper_bound) != self.dimension:
+            raise ValueError(
+                f"Dimension of upper_bound vector ({len(self.upper_bound)}) does not match the specified dimension ({self.dimension}).")
+        if any(lb >= ub for lb, ub in zip(self.lower_bound, self.upper_bound)):
+            raise ValueError("Each lower bound must be less than the corresponding upper bound.")
+
+    def get_expectations(self, order=2) -> dict[str, str]:
+        """
+        Returns the expected values of the noise distribution for the uniform distribution.
+
+        Args:
+            order (int): The highest order of expectations to compute (currently supports up to order 2).
+
+        Returns:
+            dict[str, str]: A dictionary containing the expectations for each dimension.
+        """
+        if order > 2:
+            raise ValueError("Expectations higher than order 2 are not supported for the uniform distribution.")
+
+        expectations = {}
+        for dim in range(self.dimension):
+            a = self.lower_bound[dim]
+            b = self.upper_bound[dim]
+
+            mean = (a + b) / 2
+            expectations[f"D{dim + 1}"] = str(mean)
+            expectations[f"D{dim + 1}**1"] = str(mean)
+
+            if order >= 2:
+                # Second moment (2nd-order expectation)
+                second_moment = (a ** 2 + a * b + b ** 2) / 3
+                expectations[f"D{dim + 1}**2"] = str(second_moment)
+
+        return expectations
 
 
 @dataclass
@@ -84,8 +143,8 @@ class SystemStochasticNoise:
 
         if self.distribution_name == "normal":
             self.noise_generators = NormalNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
+        elif self.distribution_name == "uniform":
+            self.noise_generators = UniformNoiseGenerator(dimension=self.dimension, **self.distribution_generator_parameters)
 
-    def get_expectations(self, max_deg=__max__expectation__order__) -> dict[str, str]:
-        if max_deg > __max__expectation__order__:
-            raise ValueError(f"Maximal degree of expectation is {__max__expectation__order__}.")
+    def get_expectations(self, max_deg=2) -> dict[str, str]:
         return self.noise_generators.get_expectations(max_deg)
