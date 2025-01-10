@@ -252,6 +252,7 @@ class Runner:
 
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
         )
         non_negativity_constraints = non_negativity_generator.extract()

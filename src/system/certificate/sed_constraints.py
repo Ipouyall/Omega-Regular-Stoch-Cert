@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, GuardedInequality, SubConstraint
 from .constraints import Constraint, _replace_keys_with_values
+from .invariant_template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy, PolicyType
 from ..automata.graph import Automata
@@ -15,6 +16,7 @@ from ..space import SystemSpace
 @dataclass
 class StrictExpectedDecrease(Constraint):
     template_manager: LTLCertificateDecomposedTemplates
+    invariant: InvariantTemplate
     system_space: SystemSpace
     decomposed_control_policy: SystemDecomposedControlPolicy
     disturbance: SystemStochasticNoise
@@ -29,7 +31,10 @@ class StrictExpectedDecrease(Constraint):
         self.extract_buchi(constraints=constraints)
         return constraints
 
-    __slots__ = ["template_manager", "decomposed_control_policy", "automata", "epsilon", "probability_threshold"]
+    __slots__ = [
+        "template_manager", "system_space", "invariant", "decomposed_control_policy",
+        "disturbance", "system_dynamics", "automata", "epsilon", "probability_threshold"
+    ]
 
     def extraxt_reach_and_stay(self, constraints):
         _p = Equation.extract_equation_from_string(f"1/(1-{self.probability_threshold})")
