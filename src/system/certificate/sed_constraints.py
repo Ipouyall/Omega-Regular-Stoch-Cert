@@ -124,7 +124,7 @@ class StrictExpectedDecrease(Constraint):
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(
                         expr_2=self.system_space.space_inequalities+system_dynamics.condition,
-                        expr_1=_left_land_side,
+                        expr_1=[_left_land_side, self.invariant.get_lhs_invariant(str(_q_id))],
                         aggregation_type=ConstraintAggregationType.CONJUNCTION),
                     rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                 )
@@ -279,7 +279,7 @@ class StrictExpectedDecrease(Constraint):
                         variables=self.template_manager.variable_generators,
                         lhs=SubConstraint(
                             expr_2=self.system_space.space_inequalities+system_dynamics.condition,
-                            expr_1=_left_land_side,
+                            expr_1=[_left_land_side, self.invariant.get_lhs_invariant(str(_q_id))],
                             aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )

@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import List
 
-from .sub_graph import AcceptanceStatus, \
-    AutomataTransitionType, AutomataTransition, AutomataState
-from .utils import _rapid_reversed_dict_replacement, _fast_dict_replacement
+from .sub_graph import AcceptanceStatus, AutomataTransition, AutomataState
+from .utils import _fast_dict_replacement
 from .algorithm import find_bottom_sccs_covering_accepting_sink_sets
 
 _a_to_z_string = "abcdefghijklmnopqrstuvwxyz"

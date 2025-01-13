@@ -18,17 +18,17 @@
     "state_space_dimension": 1,
     "control_space_dimension": 1,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "-150 <= S1 <= 15000",
     "initial_space": "4 <= S1 <= 7",
     "dynamics": [
       {
-        "condition": "S1 <= 100",
+        "condition": "S1 <= 14900",
         "transforms": [
           "S1 + 1 + A1"
         ]
       },
       {
-        "condition": "100 <= S1",
+        "condition": "14900 <= S1",
         "transforms": [
           "S1"
         ]
@@ -48,7 +48,8 @@
   "specification": {
     "ltl_formula": "(GF a)",
     "preposition_lookup": {
-      "a": "S1 <= 2"
+      "a": "S1 <=  2",
+      "b": "-150 <= S1"
     }
   }
 }

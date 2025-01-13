@@ -262,6 +262,7 @@ class Runner:
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
@@ -277,6 +278,7 @@ class Runner:
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
