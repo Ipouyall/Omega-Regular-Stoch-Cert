@@ -9,6 +9,10 @@ class NoiseGenerator(ABC):
     def get_expectations(self, order) -> dict[str, str]:
         pass
 
+    @abstractmethod
+    def get_bounds(self) -> dict[str, dict[str, str]]:
+        pass
+
 
 @dataclass
 class NormalNoiseGenerator(NoiseGenerator):
@@ -67,6 +71,9 @@ class NormalNoiseGenerator(NoiseGenerator):
             refined_disturbance_expectations[f"D{dim + 1}"] = str(_exp[dim][0])
         return refined_disturbance_expectations
 
+    def get_bounds(self) -> dict[str, dict[str, str]]:
+        return {}
+
 
 @dataclass
 class UniformNoiseGenerator(NoiseGenerator):
@@ -124,6 +131,21 @@ class UniformNoiseGenerator(NoiseGenerator):
 
         return expectations
 
+    def get_bounds(self) -> dict[str, dict[str, str]]:
+        """
+        Returns the bounds of the uniform distribution for each dimension.
+
+        Returns:
+            dict[str, dict[str, str]]: A dictionary containing the bounds for each dimension.
+        """
+        return {
+            f"D{dim + 1}": {
+                "min": str(self.lower_bound[dim]),
+                "max": str(self.upper_bound[dim])
+            }
+            for dim in range(self.dimension)
+        }
+
 
 @dataclass
 class SystemStochasticNoise:
@@ -148,3 +170,6 @@ class SystemStochasticNoise:
 
     def get_expectations(self, max_deg=2) -> dict[str, str]:
         return self.noise_generators.get_expectations(max_deg)
+
+    def get_bounds(self) -> dict[str, dict[str, str]]:
+        return self.noise_generators.get_bounds()

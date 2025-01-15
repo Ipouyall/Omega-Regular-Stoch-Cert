@@ -16,6 +16,8 @@ from .automata.specification import LDBASpecification
 from .automata.visualize import visualize_automata
 from .certificate.cl_constraint import ControllerBounds
 from .certificate.init_constraints import InitialSpaceConstraint
+from .certificate.inv_constraint import InvariantInitialConstraint, InvariantInductiveConstraint
+from .certificate.invariant_template import InvariantTemplate, InvariantFakeTemplate
 from .certificate.nn_constraint import NonNegativityConstraint
 from .certificate.nsed_constraints import NonStrictExpectedDecrease
 from .certificate.sed_constraints import StrictExpectedDecrease
@@ -57,11 +59,12 @@ class RunningStage(Enum):
     PREPARE_REQUIREMENTS = 1
     CONSTRUCT_SYSTEM_STATES = 2
     POLICY_PREPARATION = 3
-    SYNTHESIZE_TEMPLATE = 4
-    GENERATE_CONSTRAINTS = 5
-    PREPARE_SOLVER_INPUTS = 6
-    RUN_SOLVER = 7
-    Done = 8
+    SYNTHESIZE_INVARIANTS = 4
+    SYNTHESIZE_TEMPLATE = 5
+    GENERATE_CONSTRAINTS = 6
+    PREPARE_SOLVER_INPUTS = 7
+    RUN_SOLVER = 8
+    Done = 9
 
     def next(self):
         return RunningStage((self.value + 1) % len(RunningStage))
@@ -92,6 +95,7 @@ class Runner:
             RunningStage.PREPARE_REQUIREMENTS: self._run_stage_prepare_req,
             RunningStage.CONSTRUCT_SYSTEM_STATES: self._run_stage_state_construction,
             RunningStage.POLICY_PREPARATION: self._run_stage_policy_preparation,
+            RunningStage.SYNTHESIZE_INVARIANTS: self._run_stage_synthesize_invariants,
             RunningStage.SYNTHESIZE_TEMPLATE: self._run_template_synthesis,
             RunningStage.GENERATE_CONSTRAINTS: self._run_stage_generate_constraints,
             RunningStage.PREPARE_SOLVER_INPUTS: self._run_stage_prepare_solver_inputs,
@@ -162,7 +166,7 @@ class Runner:
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba.to_detailed_string()}")
+        self.pbar.write(f"  + {ldba}")
 
         self.history["space"] = system_space
         self.history["initial_space"] = initial_space
@@ -178,6 +182,53 @@ class Runner:
         )
         self.history["control policy"] = policy
         self.pbar.write(f"  + {policy}")
+
+    @stage_logger
+    def _run_stage_synthesize_invariants(self):
+        if not self.history["initiator"].enable_linear_invariants:
+            inv_template = InvariantFakeTemplate()
+            self.pbar.write("+ Synthesizing 'Invariant Template' skipped.")
+            self.history["invariant template"] = inv_template
+            return
+
+        inv_template = InvariantTemplate(
+            state_dimension=self.history["initiator"].sds_pre["state_dimension"],
+            action_dimension=self.history["initiator"].sds_pre["action_dimension"],
+            abstraction_dimension=len(self.history["ldba"].states),
+            maximal_polynomial_degree=1,
+        )
+        self.pbar.write("+ Synthesized 'Invariant Template' successfully.")
+        self.pbar.write(f"  + {inv_template}")
+        self.history["invariant template"] = inv_template
+
+        inv_init_constraint_gen = InvariantInitialConstraint(
+            template=inv_template,
+            system_space=self.history["space"],
+            initial_space=self.history["initial_space"],
+            automata=self.history["ldba"],
+        )
+        inv_init_constraint = inv_init_constraint_gen.extract()
+        self.pbar.write("+ Generated Invariant's 'Initial Constraint' successfully.")
+        for t in inv_init_constraint:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
+        inv_inductive_constraint_gen = InvariantInductiveConstraint(
+            template=inv_template,
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"],
+            disturbance=self.history["disturbance"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+        )
+        inv_inductive_constraint = inv_inductive_constraint_gen.extract()
+        self.pbar.write("+ Generated Invariant's 'Inductive Constraint' successfully.")
+        for t in inv_inductive_constraint:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
+        self.history["invariant_constraints"] = {
+            "invariant_initial": inv_init_constraint,
+            "invariant_inductive": inv_inductive_constraint,
+        }
 
     @stage_logger
     def _run_template_synthesis(self):
@@ -207,6 +258,7 @@ class Runner:
 
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
         )
         non_negativity_constraints = non_negativity_generator.extract()
@@ -216,6 +268,7 @@ class Runner:
 
         strict_expected_decrease_generator = StrictExpectedDecrease(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
@@ -231,6 +284,7 @@ class Runner:
 
         non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
             template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
             system_space=self.history["space"],
             decomposed_control_policy=self.history["control policy"],
             system_dynamics=self.history["sds"],
@@ -265,10 +319,11 @@ class Runner:
 
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
-        constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants()
+        constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants() | self.history["invariant template"].get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
-            **self.history["constraints"]
+            **self.history.get("invariant_constraints", {}),
+            **self.history["constraints"],
         )
         polyhorn_config = CommunicationBridge.get_input_config(
             **self.history["initiator"].synthesis_config_pre,

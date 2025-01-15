@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, GuardedInequality, SubConstraint
 from .constraints import Constraint, _replace_keys_with_values
+from .invariant_template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy, PolicyType
 from ..automata.graph import Automata
@@ -14,6 +15,7 @@ from ..space import SystemSpace
 @dataclass
 class NonStrictExpectedDecrease(Constraint):
     template_manager: LTLCertificateDecomposedTemplates
+    invariant: InvariantTemplate
     system_space: SystemSpace
     decomposed_control_policy: SystemDecomposedControlPolicy
     disturbance: SystemStochasticNoise
@@ -22,7 +24,10 @@ class NonStrictExpectedDecrease(Constraint):
     epsilon: float
     probability_threshold: float
 
-    __slots__ = ["template_manager", "decomposed_control_policy", "automata", "epsilon", "probability_threshold"]
+    __slots__ = [
+        "template_manager", "system_space", "invariant", "decomposed_control_policy",
+        "disturbance", "system_dynamics", "automata", "epsilon", "probability_threshold"
+    ]
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
@@ -120,9 +125,13 @@ class NonStrictExpectedDecrease(Constraint):
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(
                         expr_2=self.system_space.space_inequalities+system_dynamics.condition,
-                        expr_1=_left_land_side,
-                        aggregation_type=ConstraintAggregationType.CONJUNCTION),
-                    rhs=SubConstraint(expr_1=_right_hand_sides, aggregation_type=ConstraintAggregationType.DISJUNCTION),
+                        expr_1=[_left_land_side, self.invariant.get_lhs_invariant(str(_q_id))],
+                        aggregation_type=ConstraintAggregationType.CONJUNCTION
+                    ),
+                    rhs=SubConstraint(
+                        expr_1=_right_hand_sides,
+                        aggregation_type=ConstraintAggregationType.DISJUNCTION
+                    ),
                 )
             )
         return constraints
@@ -222,7 +231,7 @@ class NonStrictExpectedDecrease(Constraint):
                         variables=self.template_manager.variable_generators,
                         lhs=SubConstraint(
                             expr_2=self.system_space.space_inequalities+system_dynamics.condition,
-                            expr_1=_left_land_side,
+                            expr_1=[_left_land_side, self.invariant.get_lhs_invariant(str(_q_id))],
                             aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_rhs, aggregation_type=ConstraintAggregationType.DISJUNCTION),
                     )
