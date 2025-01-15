@@ -1,6 +1,6 @@
 import json
 import os.path
-from .certificate.constraint_inequality import ConstraintInequality
+from .certificate.constraint import ConstraintInequality
 
 from polyhorn.main import execute
 

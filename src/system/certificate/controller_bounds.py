@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, SubConstraint
-from .constraints import Constraint
+from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraintI import Constraint
 from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy
 from ..polynomial.equation import Equation

@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 
-from ..polynomial.equation import Equation
-from ..polynomial.inequality import Inequality, EquationConditionType
-from ..polynomial.polynomial import Monomial
-from ..utils import power_generator
+from ...polynomial.equation import Equation
+from ...polynomial.inequality import Inequality, EquationConditionType
+from ...polynomial.polynomial import Monomial
+from ...utils import power_generator
 
 
 @dataclass

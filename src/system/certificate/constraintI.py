@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import re
 
-from .constraint_inequality import ConstraintInequality
+from .constraint import ConstraintInequality
 
 
 class Constraint(ABC):

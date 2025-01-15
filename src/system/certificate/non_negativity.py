@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, SubConstraint
-from .constraints import Constraint
-from .invariant_template import InvariantTemplate
+from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraintI import Constraint
+from .invariant.template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
 from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality

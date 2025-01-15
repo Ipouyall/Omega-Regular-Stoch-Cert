@@ -1,48 +1,16 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
-from .constraint_inequality import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
-from .constraints import Constraint
-from .invariant_template import InvariantTemplate
-from ..action import SystemDecomposedControlPolicy, SystemControlPolicy, PolicyType
-from ..automata.graph import Automata
-from ..dynamics import SystemDynamics, ConditionalDynamics
-from ..noise import SystemStochasticNoise
-from ..polynomial.equation import Equation
-from ..polynomial.inequality import EquationConditionType, Inequality
-from ..space import SystemSpace
-
-
-@dataclass
-class InvariantInitialConstraint(Constraint):
-    template: InvariantTemplate
-    system_space: SystemSpace
-    initial_space: SystemSpace
-    automata: Automata
-
-    __slots__ = ["template", "system_space", "initial_space", "automata"]
-
-    def extract(self) -> list[ConstraintInequality]:
-        _eq_zero = Equation.extract_equation_from_string("0")
-        _initial_state = self.automata.start_state_id
-        _ineq = Inequality(
-            left_equation=self.template.templates[_initial_state],
-            inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-            right_equation=_eq_zero
-        )
-        template_rhs = SubConstraint(
-            expr_1=_ineq,
-            aggregation_type=ConstraintAggregationType.CONJUNCTION
-        )
-        return [
-            ConstraintInequality(
-                variables=self.template.variable_generators,
-                lhs=SubConstraint(
-                    expr_1=self.system_space.space_inequalities + self.initial_space.space_inequalities,
-                    aggregation_type=ConstraintAggregationType.CONJUNCTION),
-                rhs=template_rhs,
-            )
-        ]
+from ..constraint_inequality import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
+from ..constraints import Constraint
+from .template import InvariantTemplate
+from ...action import SystemDecomposedControlPolicy, SystemControlPolicy, PolicyType
+from ...automata.graph import Automata
+from ...dynamics import SystemDynamics, ConditionalDynamics
+from ...noise import SystemStochasticNoise
+from ...polynomial.equation import Equation
+from ...polynomial.inequality import EquationConditionType, Inequality
+from ...space import SystemSpace
 
 
 @dataclass
@@ -191,4 +159,3 @@ class InvariantInductiveConstraint(Constraint):
     def _next_sds_state_helper(dynamical: ConditionalDynamics, policies: List[SystemControlPolicy]) -> [List[Inequality], List[Dict[str, str]]]:
         _actions = [_policy() for _policy in policies]
         return dynamical.condition, [dynamical(_action) for _action in _actions]
-
