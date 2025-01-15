@@ -17,7 +17,7 @@ from .automata.visualize import visualize_automata
 from .certificate.cl_constraint import ControllerBounds
 from .certificate.init_constraints import InitialSpaceConstraint
 from .certificate.inv_constraint import InvariantInitialConstraint, InvariantInductiveConstraint
-from .certificate.invariant_template import InvariantTemplate
+from .certificate.invariant_template import InvariantTemplate, InvariantFakeTemplate
 from .certificate.nn_constraint import NonNegativityConstraint
 from .certificate.nsed_constraints import NonStrictExpectedDecrease
 from .certificate.sed_constraints import StrictExpectedDecrease
@@ -185,6 +185,12 @@ class Runner:
 
     @stage_logger
     def _run_stage_synthesize_invariants(self):
+        if not self.history["initiator"].enable_linear_invariants:
+            inv_template = InvariantFakeTemplate()
+            self.pbar.write("+ Synthesizing 'Invariant Template' skipped.")
+            self.history["invariant template"] = inv_template
+            return
+
         inv_template = InvariantTemplate(
             state_dimension=self.history["initiator"].sds_pre["state_dimension"],
             action_dimension=self.history["initiator"].sds_pre["action_dimension"],
@@ -316,7 +322,7 @@ class Runner:
         constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants() | self.history["invariant template"].get_generated_constants()
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
-            **self.history["invariant_constraints"],
+            **self.history.get("invariant_constraints", {}),
             **self.history["constraints"],
         )
         polyhorn_config = CommunicationBridge.get_input_config(

@@ -56,3 +56,21 @@ class InvariantTemplate:
 
     def __str__(self):
         return f"Invariant(|S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, degree={self.maximal_polynomial_degree})"
+
+
+@dataclass
+class InvariantFakeTemplate:
+
+    def __post_init__(self):
+        self.fake_lhs_invariant = Inequality(
+            left_equation=Equation.extract_equation_from_string("1"),
+            inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+            right_equation=Equation.extract_equation_from_string("0"),
+        )
+
+    @staticmethod
+    def get_generated_constants():
+        return set()
+
+    def get_lhs_invariant(self, q: str) -> Inequality:
+        return self.fake_lhs_invariant

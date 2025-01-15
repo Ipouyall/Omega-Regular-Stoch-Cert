@@ -23,6 +23,7 @@ class ToolInput:
     specification_pre: dict
     system_space_pre: str
     initial_space_pre: str
+    enable_linear_invariants: bool
 
     # in input file: Omit `action_policy` field or use empty string if you want to learn the policy, for verification, provide your policy
 
@@ -148,7 +149,8 @@ class IOParser:
             synthesis_config_pre=synthesis_config,
             specification_pre=specification,
             system_space_pre=data["stochastic_dynamical_system"]["system_space"],
-            initial_space_pre=data["stochastic_dynamical_system"]["initial_space"]
+            initial_space_pre=data["stochastic_dynamical_system"]["initial_space"],
+            enable_linear_invariants=data["synthesis_config"].get("use_linear_invariant", False)
         )
 
 

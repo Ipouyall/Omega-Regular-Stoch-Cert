@@ -1,0 +1,48 @@
+{
+  "actions": {
+    "maximal_polynomial_degree": 1,
+    "control_policy": []
+  },
+
+  "disturbance": {
+    "distribution_name": "normal",
+    "disturbance_parameters": {
+      "mean": [0],
+      "std_dev": [1]
+    }
+  },
+
+  "stochastic_dynamical_system": {
+    "state_space_dimension": 2,
+    "control_space_dimension": 0,
+    "disturbance_space_dimension": 1,
+    "system_space": "S1 ** 2 + S2 ** 2 <= 16 and S1 ** 2 >=0 and S2 ** 2 >=0",
+    "initial_space": "3 <= S1 <= 3 and 3 <= S2 <= 3",
+    "dynamics": [
+      {
+        "condition": "0 < 1",
+        "transforms": [
+          "0.1 * S1",
+          "0.1 * S2"
+        ]
+      }
+    ]
+  },
+
+  "synthesis_config": {
+    "use_linear_invariant": false,
+    "maximal_polynomial_degree": 2,
+    "epsilon": 0.000000000000001,
+    "probability_threshold": 0.99,
+    "theorem_name": "handelman",
+    "solver_name": "z3",
+    "owl_path": "../playground/rabinizer/owl"
+  },
+
+  "specification": {
+    "ltl_formula": "(F a)",
+    "preposition_lookup": {
+      "a": "S1 ** 2 + S2 ** 2 <= 4"
+    }
+  }
+}
