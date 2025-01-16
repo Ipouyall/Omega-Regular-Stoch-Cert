@@ -79,6 +79,8 @@ class SystemControlPolicy:
     constants_founded: bool = field(init=False, default=False)
 
     def __post_init__(self):
+        if self.action_dimension == 0 and self.type != PolicyType.STATIC:
+            raise ValueError("Control policy with no action space must be of type STATIC.")
         if self.transitions is not None and len(self.transitions) != self.action_dimension:
             logger.error(f"No valid control policy provided. Ignoring the provided policy.")
             self.transitions = None
@@ -156,6 +158,9 @@ class SystemDecomposedControlPolicy:
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
+        if self.action_dimension == 0:
+            self.policies = []
+            return
         self.policies = [
             policy for policy in self.policies if policy
         ]
@@ -216,4 +221,4 @@ class SystemDecomposedControlPolicy:
 
     def __str__(self):
         return (f"Decomposed control policy: {self.state_dimension} -> {self.action_dimension} (x{len(self.policies)})\n" +
-                "\n".join(f"    - {policy}" for policy in self.policies))
+                "\n".join(f"\t- {policy}" for policy in self.policies))

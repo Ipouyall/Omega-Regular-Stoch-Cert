@@ -74,7 +74,9 @@ class InvariantInductiveConstraint(Constraint):
 
         for state in self.automata.states:
             current_i = self.template.templates[str(state.state_id)]
-            if state.is_accepting():
+            if self.decomposed_control_policy.action_dimension == 0:
+                policies = []
+            elif state.is_accepting():
                 policies = [self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _id) for _id in acceptance_signatures]
             else:
                 policies = [self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)]
@@ -157,5 +159,7 @@ class InvariantInductiveConstraint(Constraint):
 
     @staticmethod
     def _next_sds_state_helper(dynamical: ConditionalDynamics, policies: List[SystemControlPolicy]) -> [List[Inequality], List[Dict[str, str]]]:
+        if len(policies) == 0:
+            return dynamical.condition, [dynamical({})]
         _actions = [_policy() for _policy in policies]
         return dynamical.condition, [dynamical(_action) for _action in _actions]
