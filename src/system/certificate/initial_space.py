@@ -31,7 +31,7 @@ class InitialSpaceConstraint(Constraint):
         _eq_one = Equation.extract_equation_from_string("1")
         _initial_state = self.automata.start_state_id
         _ineq = Inequality(
-            left_equation=self.template_manager.reach_and_stay_template.templates[str(_initial_state)],
+            left_equation=self.template_manager.reach_template.decomposed_sub_templates[str(_initial_state)],
             inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
             right_equation=_eq_one
         )

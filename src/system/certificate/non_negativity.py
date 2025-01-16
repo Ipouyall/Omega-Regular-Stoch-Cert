@@ -23,7 +23,7 @@ class NonNegativityConstraint(Constraint):
     def _extraxt_reach_and_stay_inequalities(self, q: str) -> list[Inequality]:
         return [
             Inequality(
-                left_equation=self.template_manager.reach_and_stay_template.templates[q],
+                left_equation=self.template_manager.reach_template.decomposed_sub_templates[q],
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=Equation.extract_equation_from_string("0")
             )
@@ -32,7 +32,7 @@ class NonNegativityConstraint(Constraint):
     def _extract_buchi_inequalities(self, q: str) -> list[Inequality]:
         return [
             Inequality(
-                left_equation=bt.templates[q],
+                left_equation=bt.decomposed_sub_templates[q],
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                 right_equation=Equation.extract_equation_from_string("0")
             )
@@ -41,7 +41,7 @@ class NonNegativityConstraint(Constraint):
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
-        for q in self.template_manager.reach_and_stay_template.templates.keys():
+        for q in self.template_manager.reach_template.decomposed_sub_templates.keys():
             constraints.append(
                 ConstraintInequality(
                     variables=self.template_manager.variable_generators,

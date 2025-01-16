@@ -12,7 +12,7 @@ from . import logger
 from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
-from .automata.specification import LDBASpecification
+from .automata.synthesis import LDBASpecification
 from .certificate.controller_bounds import ControllerBounds
 from .certificate.initial_space import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint

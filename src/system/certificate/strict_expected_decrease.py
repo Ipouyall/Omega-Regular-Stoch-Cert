@@ -66,7 +66,7 @@ class StrictExpectedDecrease(Constraint):
                 continue
 
             #  V(s,q) <= 1/(1-p) == 1/(1-p) - V(s,q) >= 0
-            current_v = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+            current_v = self.template_manager.reach_template.decomposed_sub_templates[str(_q_id)]
             _left_land_side = Inequality(
                 left_equation=_p.sub(current_v),
                 inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
@@ -77,7 +77,7 @@ class StrictExpectedDecrease(Constraint):
             next_possible_q_ids = (t.destination for t in q.transitions)
             next_possible_v_guards = (t.label for t in q.transitions)
             next_possible_v = (
-                self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+                self.template_manager.reach_template.decomposed_sub_templates[str(_q_id)]
                 for _q_id in next_possible_q_ids
             )
 
@@ -172,7 +172,7 @@ class StrictExpectedDecrease(Constraint):
                     continue
 
                 #  V^{reach-and-stay}(s,q) <= 1/(1-p) == 1/(1-p) - V^{reach-and-stay}(s,q) >= 0
-                current_v_reach_and_stay = self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+                current_v_reach_and_stay = self.template_manager.reach_template.decomposed_sub_templates[str(_q_id)]
                 _left_land_side = Inequality(
                     left_equation=_p.sub(current_v_reach_and_stay),
                     inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
@@ -183,7 +183,7 @@ class StrictExpectedDecrease(Constraint):
                 next_possible_q_ids = [t.destination for t in q.transitions]
                 next_possible_v_guards = (t.label for t in q.transitions)
                 next_possible_v_reach_and_stay = [
-                    self.template_manager.reach_and_stay_template.templates[str(_q_id)]
+                    self.template_manager.reach_template.decomposed_sub_templates[str(_q_id)]
                     for _q_id in next_possible_q_ids
                 ]
                 #  V^{reach-and-stay}(s', q')
@@ -217,10 +217,10 @@ class StrictExpectedDecrease(Constraint):
                 )
 
                 #  V^{buchi i}(s,q)
-                current_v_buchi = self.template_manager.buchi_templates[_buchi_id].templates[str(_q_id)]
+                current_v_buchi = self.template_manager.buchi_templates[_buchi_id].decomposed_sub_templates[str(_q_id)]
                 # V^{buchi i}(s, q')
                 next_possible_v_buchi = (
-                    self.template_manager.buchi_templates[_buchi_id].templates[str(_q_id)]
+                    self.template_manager.buchi_templates[_buchi_id].decomposed_sub_templates[str(_q_id)]
                     for _q_id in next_possible_q_ids
                 )
                 #  V^{buchi i}(s', q')

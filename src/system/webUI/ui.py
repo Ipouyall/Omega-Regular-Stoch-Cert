@@ -15,7 +15,7 @@ from .upload import upload_file
 from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
 from ..automata.hoaParser import HOAParser
-from ..automata.specification import LDBASpecification
+from ..automata.synthesis import LDBASpecification
 from ..automata.visualize import visualize_automata
 from ..certificate.init_constraints import InitialSpaceConstraint
 from ..certificate.nn_constraint import NonNegativityConstraint

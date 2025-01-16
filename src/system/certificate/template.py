@@ -8,8 +8,12 @@ from ..utils import power_generator
 
 
 class CertificateTemplateType(Enum):
-    REACH_AND_STAY = "reach_and_stay"
+    REACH = "reach"
+    SAFE = "safe"
     BUCHI = "buchi"
+
+    def get_signature(self) -> str:
+        return f"V_{self.value.lower()}"
 
     @classmethod
     def from_string(cls, template_type: str):
@@ -18,7 +22,7 @@ class CertificateTemplateType(Enum):
         return cls[template_type.upper()]
 
     def __str__(self):
-        return f"{self.value.replace('_', ' ').replace('and','&').title():<12}"
+        return f"{self.value.title():<5}"
 
 
 @dataclass
@@ -29,17 +33,17 @@ class CertificateTemplate:
     maximal_polynomial_degree: int
     variable_generators: list[str]
     template_type: CertificateTemplateType
-    buchi_id: Optional[int] = None  # only for Buchi templates
-    templates: dict[str, Equation] = field(init=False, default_factory=dict)
+    instance_id: Optional[int] = None  # only for Buchi templates in LDGBA mode
+    decomposed_sub_templates: dict[str, Equation] = field(init=False, default_factory=dict)
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
-        if self.template_type == CertificateTemplateType.BUCHI and self.buchi_id is None:
-            raise ValueError("Buchi templates must have a Buchi ID.")
+        if self.template_type in [CertificateTemplateType.BUCHI] and self.instance_id is None:
+            raise ValueError(f"{self.template_type} template requires an instance_id.")
         self._initialize_templates()
 
     def _initialize_templates(self):
-        constant_signature = f"Vb{self.buchi_id}" if self.template_type == CertificateTemplateType.BUCHI else "Vrs"
+        constant_signature = self.template_type.get_signature() + (str(self.instance_id) if self.instance_id is not None else "")
         cp_generator = power_generator(
             poly_max_degree=self.maximal_polynomial_degree,
             variable_generators=self.state_dimension,
@@ -55,20 +59,17 @@ class CertificateTemplate:
                 ) for (const_postfix, powers) in cp_generator
             ]
             _equation = Equation(monomials=_monomials)
-            self.templates[str(i)] = _equation
-
-            _new_consts = {f"{_pre}_{const_postfix}" for const_postfix, _ in cp_generator}  # TODO: This can be more optimized
-            self.generated_constants.update(_new_consts)
+            self.decomposed_sub_templates[str(i)] = _equation
+            self.generated_constants.update({f"{_pre}_{const_postfix}" for const_postfix, _ in cp_generator})
 
     def get_generated_constants(self):
         return self.generated_constants
 
     def to_detailed_string(self):
-        return f"{self.template_type} template (|S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, degree={self.maximal_polynomial_degree})\n" + \
-                "\n".join([f"  - {'(q'+key+')':<5}: {value}" for key, value in self.templates.items()])
+        return str(self) + "\n" + "\n".join([f"  - (q{key:<2}): {value}" for key, value in self.decomposed_sub_templates.items()])
 
     def __str__(self):
-        return f"{self.template_type} template (|S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, degree={self.maximal_polynomial_degree})"
+        return f"Template(V={self.template_type}, |S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, |C|={len(self.generated_constants):<3}, deg={self.maximal_polynomial_degree})"
 
 
 @dataclass
@@ -78,8 +79,9 @@ class LTLCertificateDecomposedTemplates:
     abstraction_dimension: int
     maximal_polynomial_degree: int
     accepting_components_count: int
-    buchi_templates: list[CertificateTemplate] = field(init=False, default_factory=list)
-    reach_and_stay_template: CertificateTemplate = field(init=False, default_factory=list)
+    buchi_template: CertificateTemplate = field(init=False)
+    reach_template: CertificateTemplate = field(init=False)
+    safe_template: CertificateTemplate = field(init=False)
     variable_generators: list[str] = field(init=False, default_factory=list)
     generated_constants: set[str] = field(init=False, default_factory=set)
 
@@ -88,33 +90,40 @@ class LTLCertificateDecomposedTemplates:
         self._initialize_templates()
 
     def _initialize_templates(self):
-        self.reach_and_stay_template = CertificateTemplate(
+        self.reach_template = CertificateTemplate(
             state_dimension=self.state_dimension,
             action_dimension=self.action_dimension,
             abstraction_dimension=self.abstraction_dimension,
-            # maximal_polynomial_degree=1,
             maximal_polynomial_degree=self.maximal_polynomial_degree,
             variable_generators=self.variable_generators,
-            template_type=CertificateTemplateType.REACH_AND_STAY,
+            template_type=CertificateTemplateType.REACH,
         )
-        self.buchi_templates = [
-            CertificateTemplate(
-                state_dimension=self.state_dimension,
-                action_dimension=self.action_dimension,
-                abstraction_dimension=self.abstraction_dimension,
-                maximal_polynomial_degree=self.maximal_polynomial_degree,
-                variable_generators=self.variable_generators,
-                template_type=CertificateTemplateType.BUCHI,
-                buchi_id=i
-            ) for i in range(self.accepting_components_count)
-        ]
-        self.generated_constants.update(self.reach_and_stay_template.get_generated_constants())
-        for bt in self.buchi_templates:
-            self.generated_constants.update(bt.get_generated_constants())
+        self.buchi_template = CertificateTemplate(
+            state_dimension=self.state_dimension,
+            action_dimension=self.action_dimension,
+            abstraction_dimension=self.abstraction_dimension,
+            maximal_polynomial_degree=self.maximal_polynomial_degree,
+            variable_generators=self.variable_generators,
+            template_type=CertificateTemplateType.BUCHI,
+            instance_id=0
+        )
+        self.safe_template = CertificateTemplate(
+            state_dimension=self.state_dimension,
+            action_dimension=self.action_dimension,
+            abstraction_dimension=self.abstraction_dimension,
+            maximal_polynomial_degree=self.maximal_polynomial_degree,
+            variable_generators=self.variable_generators,
+            template_type=CertificateTemplateType.SAFE,
+        )
+        self.generated_constants.update(self.reach_template.get_generated_constants())
+        self.generated_constants.update(self.safe_template.get_generated_constants())
+        self.generated_constants.update(self.buchi_template.get_generated_constants())
 
     def get_generated_constants(self):
         return self.generated_constants
 
     def __str__(self):
-        return f"LTLCertificateDecomposedTemplates(Reach-and-Stay, {', '.join('Büchi-'+str(b.buchi_id) for b in self.buchi_templates)})\n" +\
-            '\n'.join([f"    - {self.reach_and_stay_template}"]+ [f"    - {template}" for template in self.buchi_templates])
+        return (f"Certificate(|S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, |F|={self.accepting_components_count}, |C|={len(self.generated_constants):<3}, deg={self.maximal_polynomial_degree})\n" +
+                f"\t-{self.reach_template}\n" +
+                f"\t-{self.safe_template}\n" +
+                f"\t-{self.buchi_template}")
