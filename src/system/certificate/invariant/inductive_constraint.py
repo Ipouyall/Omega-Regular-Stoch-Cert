@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
-from ..constraint_inequality import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
-from ..constraints import Constraint
+from ..constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
+from ..constraintI import Constraint
 from .template import InvariantTemplate
 from ...action import SystemDecomposedControlPolicy, SystemControlPolicy, PolicyType
 from ...automata.graph import Automata
@@ -30,7 +30,7 @@ class InvariantInductiveConstraint(Constraint):
         disturbance_dim = self.disturbance.dimension
         disturbance_var_gens = [f"D{i + 1}" for i in range(disturbance_dim)]
         all_available_variables = self.template.variable_generators + disturbance_var_gens
-        acceptance_signatures = [int(_id) for _id in self.automata.accepting_sink_sets_id]
+        acceptance_signatures = [int(_id) for _id in self.automata.accepting_component_ids]
         disturbance_bounds_inequalities = []
         disturbance_ranges = self.disturbance.get_bounds()
         for sym, ranges in disturbance_ranges.items():

@@ -3,7 +3,7 @@ from typing import List
 
 from .sub_graph import AcceptanceStatus, AutomataTransition, AutomataState
 from .utils import _fast_dict_replacement
-from .algorithm import find_bottom_sccs_covering_accepting_sink_sets
+from .algorithm import find_bottom_sccs_covering_accepting_sink_sets, find_rejecting_states
 
 _a_to_z_string = "abcdefghijklmnopqrstuvwxyz"
 
@@ -37,9 +37,10 @@ def convert_to_state_acceptance(states: List[AutomataState]):
 class Automata:
     start_state_id: str
     states: List[AutomataState]
-    accepting_sink_sets_id: list[str]
+    accepting_component_ids: list[str]
     symbol_to_atomic_propositions: dict[int, str]
     atomic_preposition_lookup: dict[str, str]
+    rejecting_states_ids: list[int] = field(init=False, default_factory=list)
     lookup_table: dict[str, str] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
@@ -52,12 +53,23 @@ class Automata:
 
     def _normalize_graph(self):
         convert_to_state_acceptance(self.states)
-        bottom = find_bottom_sccs_covering_accepting_sink_sets(self.states, self.accepting_sink_sets_id)
-        accepting_nodes = {int(node) for component in bottom for node in component}
+        rejecting_states = find_rejecting_states(self.states)
+        self.rejecting_states_ids = rejecting_states
+        accepting_component_ids = set(map(int, self.accepting_component_ids))
+        bottom_strongly_connected_components = find_bottom_sccs_covering_accepting_sink_sets(
+            automata_states=self.states,
+            accepting_component_ids=accepting_component_ids,
+            rejecting_states=rejecting_states
+        )
+        accepting_nodes = {
+            int(node)
+            for component in bottom_strongly_connected_components
+            for node in component
+        }
         for idx in range(len(self.states)):
-            is_in_bottom_scc = self.states[idx].state_id in accepting_nodes
-            stat = AcceptanceStatus.Accepting if is_in_bottom_scc else AcceptanceStatus.NonAccepting
-            self.states[idx].acceptance_status = stat
+            self.states[idx].acceptance_status = AcceptanceStatus.Rejecting if idx in rejecting_states else \
+                AcceptanceStatus.Accepting if idx in accepting_nodes else \
+                AcceptanceStatus.NonAccepting
 
     def get_state(self, state_id: int):
         return self.states[int(state_id)]
@@ -69,7 +81,7 @@ class Automata:
         return f"{self}\n{start}\n{sp}{states}"
 
     def __str__(self):
-        return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, |Σ|={len(self.symbol_to_atomic_propositions.keys())}, F={'{'}{','.join(self.accepting_sink_sets_id)}{'}'})"
+        return f"Automata(|Q|={len(self.states)}, q0={'{'}{self.start_state_id}{'}'}, |Σ|={len(self.symbol_to_atomic_propositions.keys())}, F={'{'}{','.join(self.accepting_component_ids)}{'}'})"
 
     @classmethod
     def from_hoa(cls, hoa_header, hoa_states: List[AutomataState], lookup_table: dict):
@@ -81,7 +93,7 @@ class Automata:
         return cls(
             start_state_id=hoa_header['start_state'],
             states=hoa_states,
-            accepting_sink_sets_id=list(map(str, hoa_header['acceptance']['buchi_sets'])),
+            accepting_component_ids=list(map(str, hoa_header['acceptance']['buchi_sets'])),
             symbol_to_atomic_propositions=propositions_translation_dict,
             atomic_preposition_lookup=lookup_table
         )

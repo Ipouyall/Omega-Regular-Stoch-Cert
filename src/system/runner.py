@@ -166,7 +166,7 @@ class Runner:
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
         self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba}")
+        self.pbar.write(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
         self.history["initial_space"] = initial_space
@@ -178,7 +178,7 @@ class Runner:
     def _run_stage_policy_preparation(self):
         policy = SystemDecomposedControlPolicy(
             **self.history["initiator"].actions_pre,
-            abstraction_dimension=len(self.history["ldba"].accepting_sink_sets_id)
+            abstraction_dimension=len(self.history["ldba"].accepting_component_ids)
         )
         self.history["control policy"] = policy
         self.pbar.write(f"  + {policy}")
@@ -236,7 +236,7 @@ class Runner:
             state_dimension=self.history["initiator"].sds_pre["state_dimension"],
             action_dimension=self.history["initiator"].sds_pre["action_dimension"],
             abstraction_dimension=len(self.history["ldba"].states),
-            accepting_components_count=len(self.history["ldba"].accepting_sink_sets_id),
+            accepting_components_count=len(self.history["ldba"].accepting_component_ids),
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
         )
         self.pbar.write("+ Synthesized 'Certificate Templates' successfully.")

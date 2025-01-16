@@ -198,7 +198,7 @@ class WebUI:
     def _run_experiment_policy_preparation(self):
         self.policy = SystemDecomposedControlPolicy(
             **self.initiator.actions_pre,
-            abstraction_dimension=len(self.ldba.accepting_sink_sets_id)
+            abstraction_dimension=len(self.ldba.accepting_component_ids)
         )
 
     @ui_stage_logger
@@ -207,7 +207,7 @@ class WebUI:
             state_dimension=self.initiator.sds_pre["state_dimension"],
             action_dimension=self.initiator.sds_pre["action_dimension"],
             abstraction_dimension=len(self.ldba.states),
-            accepting_components_count=len(self.ldba.accepting_sink_sets_id),
+            accepting_components_count=len(self.ldba.accepting_component_ids),
             maximal_polynomial_degree=self.initiator.synthesis_config_pre["maximal_polynomial_degree"],
         )
 
