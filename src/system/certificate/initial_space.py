@@ -4,7 +4,6 @@ from .constraint import ConstraintInequality, ConstraintAggregationType, SubCons
 from .constraintI import Constraint
 from .template import LTLCertificateDecomposedTemplates
 from ..automata.graph import Automata
-from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality
 from ..space import SystemSpace
 
@@ -18,26 +17,20 @@ class InitialSpaceConstraint(Constraint):
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
-        self.extraxt_reach_and_stay(constraints=constraints)
+        self.extraxt_safe(constraints=constraints)
         return constraints
 
     __slots__ = ["template_manager", "system_space", "automata"]
 
-    def extraxt_reach_and_stay(self, constraints):
+    def extraxt_safe(self, constraints):
         """
-        forall s in system_space.  s in InitRegion => V^{reach-and-stay}(s,q_init) <= 1
-        Here, q_init is the initial state of the automaton
+        \forall X \in \Init -> V_{safe}(X, q_{init}) <= -\eta^S
         """
-        _eq_one = Equation.extract_equation_from_string("1")
         _initial_state = self.automata.start_state_id
         _ineq = Inequality(
-            left_equation=self.template_manager.reach_template.decomposed_sub_templates[str(_initial_state)],
+            left_equation=self.template_manager.safe_template.decomposed_sub_templates[_initial_state],
             inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
-            right_equation=_eq_one
-        )
-        template_rs_bound = SubConstraint(
-            expr_1=_ineq,
-            aggregation_type=ConstraintAggregationType.CONJUNCTION
+            right_equation=self.template_manager.variables.neg_eta_safe_eq
         )
 
         constraints.append(
@@ -45,12 +38,10 @@ class InitialSpaceConstraint(Constraint):
                 variables=self.template_manager.variable_generators,
                 lhs=SubConstraint(
                     expr_1=self.system_space.space_inequalities + self.initial_space.space_inequalities,
-                    aggregation_type=ConstraintAggregationType.CONJUNCTION),
-                rhs=template_rs_bound,
+                    aggregation_type=ConstraintAggregationType.CONJUNCTION
+                ),
+                rhs=SubConstraint(expr_1=_ineq, aggregation_type=ConstraintAggregationType.CONJUNCTION)
             )
         )
 
         return constraints
-
-    # def extract_buchi(self, constraints):
-    #     return
