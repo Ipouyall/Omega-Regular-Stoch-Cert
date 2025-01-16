@@ -14,21 +14,18 @@ from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
 from .certificate.controller_bounds import ControllerBounds
-from .certificate.initial_space import InitialSpaceConstraint
+from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
 from src.system.certificate.invariant.inductive_constraint import InvariantInductiveConstraint
 from src.system.certificate.invariant.template import InvariantTemplate, InvariantFakeTemplate
-from .certificate.non_negativity import NonNegativityConstraint
-from .certificate.non_strict_expected_decrease import NonStrictExpectedDecrease
-from .certificate.strict_expected_decrease import StrictExpectedDecrease
-from .certificate.template import LTLCertificateDecomposedTemplates
+from .certificate.safeC import SafetyConstraint
+from .certificate.template import LTLCertificateDecomposedTemplates, CertificateVariables
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
 from .polyhorn_helper import CommunicationBridge
 from .space import SystemSpace
 from .toolIO import IOParser
-
 
 BOLD = "\033[1m"
 WARNING = "\033[33m"
@@ -232,12 +229,18 @@ class Runner:
 
     @stage_logger
     def _run_template_synthesis(self):
+        certificate_variables = CertificateVariables(
+            probability_threshold=0.5,
+            epsilon_safe=0.1,
+            delta_safe=1,
+        )
         template = LTLCertificateDecomposedTemplates(
             state_dimension=self.history["initiator"].sds_pre["state_dimension"],
             action_dimension=self.history["initiator"].sds_pre["action_dimension"],
             abstraction_dimension=len(self.history["ldba"].states),
             accepting_components_count=len(self.history["ldba"].accepting_component_ids),
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
+            variables=certificate_variables
         )
         self.pbar.write("+ Synthesized 'Certificate Templates' successfully.")
         self.pbar.write(f"  + {template}")
@@ -245,59 +248,70 @@ class Runner:
 
     @stage_logger
     def _run_stage_generate_constraints(self):
-        initial_bound_generator = InitialSpaceConstraint(
+        initial_space_generator = InitialSpaceConstraint(
             template_manager=self.history["template"],
             system_space=self.history["space"],
             initial_space=self.history["initial_space"],
             automata=self.history["ldba"],
         )
-        initial_bound_constraints = initial_bound_generator.extract()
+        initial_space_constraints = initial_space_generator.extract()
         self.pbar.write("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
-        for t in initial_bound_constraints:
+        for t in initial_space_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        non_negativity_generator = NonNegativityConstraint(
+        safety_generator = SafetyConstraint(
             template_manager=self.history["template"],
             invariant=self.history["invariant template"],
             system_space=self.history["space"],
-        )
-        non_negativity_constraints = non_negativity_generator.extract()
-        self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
-        for t in non_negativity_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
-
-        strict_expected_decrease_generator = StrictExpectedDecrease(
-            template_manager=self.history["template"],
-            invariant=self.history["invariant template"],
-            system_space=self.history["space"],
-            decomposed_control_policy=self.history["control policy"],
-            system_dynamics=self.history["sds"],
-            disturbance=self.history["disturbance"],
             automata=self.history["ldba"],
-            epsilon=self.history["synthesis"].epsilon,
-            probability_threshold=self.history["synthesis"].probability_threshold
         )
-        strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
-        self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
-        for t in strict_expected_decrease_constraints:
+        safety_constraints = safety_generator.extract()
+        self.pbar.write("+ Generated 'Safety Constraints' successfully.")
+        for t in safety_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
-            template_manager=self.history["template"],
-            invariant=self.history["invariant template"],
-            system_space=self.history["space"],
-            decomposed_control_policy=self.history["control policy"],
-            system_dynamics=self.history["sds"],
-            disturbance=self.history["disturbance"],
-            automata=self.history["ldba"],
-            epsilon=self.history["synthesis"].epsilon,
-            probability_threshold=self.history["synthesis"].probability_threshold
-        )
-        non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
-        self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
-        for t in non_strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
-
+        # non_negativity_generator = NonNegativityConstraint(
+        #     template_manager=self.history["template"],
+        #     invariant=self.history["invariant template"],
+        #     system_space=self.history["space"],
+        # )
+        # non_negativity_constraints = non_negativity_generator.extract()
+        # self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
+        # for t in non_negativity_constraints:
+        #     self.pbar.write(f"  + {t.to_detail_string()}")
+        #
+        # strict_expected_decrease_generator = StrictExpectedDecrease(
+        #     template_manager=self.history["template"],
+        #     invariant=self.history["invariant template"],
+        #     system_space=self.history["space"],
+        #     decomposed_control_policy=self.history["control policy"],
+        #     system_dynamics=self.history["sds"],
+        #     disturbance=self.history["disturbance"],
+        #     automata=self.history["ldba"],
+        #     epsilon=self.history["synthesis"].epsilon,
+        #     probability_threshold=self.history["synthesis"].probability_threshold
+        # )
+        # strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
+        # self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
+        # for t in strict_expected_decrease_constraints:
+        #     self.pbar.write(f"  + {t.to_detail_string()}")
+        #
+        # non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
+        #     template_manager=self.history["template"],
+        #     invariant=self.history["invariant template"],
+        #     system_space=self.history["space"],
+        #     decomposed_control_policy=self.history["control policy"],
+        #     system_dynamics=self.history["sds"],
+        #     disturbance=self.history["disturbance"],
+        #     automata=self.history["ldba"],
+        #     epsilon=self.history["synthesis"].epsilon,
+        #     probability_threshold=self.history["synthesis"].probability_threshold
+        # )
+        # non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
+        # self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
+        # for t in non_strict_expected_decrease_constraints:
+        #     self.pbar.write(f"  + {t.to_detail_string()}")
+        #
         controller_boundary_generator = ControllerBounds(
             template_manager=self.history["template"],
             system_space=self.history["space"],
@@ -310,10 +324,10 @@ class Runner:
                 self.pbar.write(f"  + {t.to_detail_string()}")
 
         self.history["constraints"] = {
-            "initial_bound": initial_bound_constraints,
-            "non_negativity": non_negativity_constraints,
-            "strict_expected_decrease": strict_expected_decrease_constraints,
-            "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
+            "initial_space": initial_space_constraints,
+            # "non_negativity": non_negativity_constraints,
+            # "strict_expected_decrease": strict_expected_decrease_constraints,
+            # "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
             "controller_bound": controller_bound_constraints,
         }
 

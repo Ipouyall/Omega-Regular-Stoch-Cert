@@ -35,7 +35,7 @@ class CertificateTemplate:
     variable_generators: list[str]
     template_type: CertificateTemplateType
     instance_id: Optional[int] = None  # only for Buchi templates in LDGBA mode
-    decomposed_sub_templates: dict[str, Equation] = field(init=False, default_factory=dict)
+    sub_templates: dict[str, Equation] = field(init=False, default_factory=dict)
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
@@ -60,14 +60,14 @@ class CertificateTemplate:
                 ) for (const_postfix, powers) in cp_generator
             ]
             _equation = Equation(monomials=_monomials)
-            self.decomposed_sub_templates[str(i)] = _equation
+            self.sub_templates[str(i)] = _equation
             self.generated_constants.update({f"{_pre}_{const_postfix}" for const_postfix, _ in cp_generator})
 
     def get_generated_constants(self):
         return self.generated_constants
 
     def to_detailed_string(self):
-        return str(self) + "\n" + "\n".join([f"  - (q{key:<2}): {value}" for key, value in self.decomposed_sub_templates.items()])
+        return str(self) + "\n" + "\n".join([f"  - (q{key:<2}): {value}" for key, value in self.sub_templates.items()])
 
     def __str__(self):
         return f"Template(V={self.template_type}, |S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, |C|={len(self.generated_constants):<3}, deg={self.maximal_polynomial_degree})"
@@ -84,17 +84,18 @@ class CertificateVariables:
     delta_buchi: float = field(init=False, default=1e-15)
 
 
-    neg_eta_safe_eq: Equation = field(init=False)
+    eta_safe_eq: Equation = field(init=False)
+    Beta_safe_eq: Equation = field(init=False)
+    zero_eq: Equation = field(init=False)
+
+    generated_constants: set[str] = field(init=False, default_factory=set)
+
 
     epsilon_safe_eq: Equation = field(init=False)
     delta_safe_eq: Equation = field(init=False)
     epsilon_reach_eq: Equation = field(init=False)
     epsilon_buchi_eq: Equation = field(init=False)
     delta_buchi_eq: Equation = field(init=False)
-    Beta_safe_eq: Equation = field(init=False)
-    zero_eq: Equation = field(init=False)
-
-    generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
         assert self.epsilon_reach > 0, "Epsilon for reachability should be greater than 0."
@@ -105,11 +106,11 @@ class CertificateVariables:
         assert 1 > self.probability_threshold >= 0, "Probability threshold should be in the range [0, 1)."
         min_eta = 1e-10 + Pow(self.delta_safe,2)*log(1-self.probability_threshold)/(8*self.epsilon_safe)*(self.delta_safe**2)
         self.eta_safe = min_eta.evalf(n=10)
-        assert self.eta_safe >= 0, f"Eta for safety should be greater than or equal to 0. Got {self.eta_safe}."
+        assert self.eta_safe <= 0, f"Eta for safety should be less than or equal to 0. Got {self.eta_safe}."
 
         self.epsilon_safe_eq = Equation.extract_equation_from_string(f"{self.epsilon_safe}")
         self.delta_safe_eq = Equation.extract_equation_from_string(f"{self.delta_safe}")
-        self.neg_eta_safe_eq = Equation.extract_equation_from_string(f"-{self.eta_safe}")
+        self.eta_safe_eq = Equation.extract_equation_from_string(f"{self.eta_safe}")
         self.epsilon_reach_eq = Equation.extract_equation_from_string(f"{self.epsilon_reach}")
         self.epsilon_buchi_eq = Equation.extract_equation_from_string(f"{self.epsilon_buchi}")
         self.delta_buchi_eq = Equation.extract_equation_from_string(f"{self.delta_buchi}")

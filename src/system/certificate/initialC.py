@@ -28,9 +28,9 @@ class InitialSpaceConstraint(Constraint):
         """
         _initial_state = self.automata.start_state_id
         _ineq = Inequality(
-            left_equation=self.template_manager.safe_template.decomposed_sub_templates[_initial_state],
+            left_equation=self.template_manager.safe_template.sub_templates[_initial_state],
             inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
-            right_equation=self.template_manager.variables.neg_eta_safe_eq
+            right_equation=self.template_manager.variables.eta_safe_eq
         )
 
         constraints.append(
