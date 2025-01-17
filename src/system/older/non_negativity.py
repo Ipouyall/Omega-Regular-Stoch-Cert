@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
-from .constraintI import Constraint
-from .invariant.template import InvariantTemplate
-from .template import LTLCertificateDecomposedTemplates
-from ..polynomial.equation import Equation
-from ..polynomial.inequality import EquationConditionType, Inequality
-from ..space import SystemSpace
+from src.system.certificate.constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from src.system.certificate.constraintI import Constraint
+from src.system.certificate.invariant.template import InvariantTemplate
+from src.system.certificate.template import LTLCertificateDecomposedTemplates
+from src.system.polynomial.equation import Equation
+from src.system.polynomial.inequality import EquationConditionType, Inequality
+from src.system.space import SystemSpace
 
 
 # @dataclass
@@ -56,3 +56,13 @@ from ..space import SystemSpace
 #                 )
 #             )
 #         return constraints
+
+
+
+
+
+
+
+
+
+

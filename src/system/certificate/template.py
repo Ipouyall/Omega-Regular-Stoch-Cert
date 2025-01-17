@@ -79,7 +79,6 @@ class CertificateVariables:
     epsilon_safe: float  # Recommended as 0.1
     delta_safe: float  # Recommended as 1
     eta_safe: float = field(init=False)  # Recommended as [1/(8*epsilon_safe)*(delta_safe^2)*ceil(log(p))]
-    epsilon_reach: float = field(init=False, default=1e-15)
     epsilon_buchi: float = field(init=False, default=1e-15)
     delta_buchi: float = field(init=False, default=1e-15)
 
@@ -91,12 +90,10 @@ class CertificateVariables:
 
     generated_constants: set[str] = field(init=False, default_factory=set)
 
-    epsilon_reach_eq: Equation = field(init=False)
     epsilon_buchi_eq: Equation = field(init=False)
     delta_buchi_eq: Equation = field(init=False)
 
     def __post_init__(self):
-        assert self.epsilon_reach > 0, "Epsilon for reachability should be greater than 0."
         assert self.epsilon_buchi > 0, "Epsilon for Buchi should be greater than 0."
         assert self.epsilon_safe > 0, "Epsilon for safety should be greater than 0."
         assert self.delta_safe > 0, "Delta for safety should be greater than 0."
@@ -109,7 +106,6 @@ class CertificateVariables:
         self.epsilon_safe_eq = Equation.extract_equation_from_string(f"{self.epsilon_safe}")
         self.delta_safe_eq = Equation.extract_equation_from_string(f"{self.delta_safe}")
         self.eta_safe_eq = Equation.extract_equation_from_string(f"{self.eta_safe}")
-        self.epsilon_reach_eq = Equation.extract_equation_from_string(f"{self.epsilon_reach}")
         self.epsilon_buchi_eq = Equation.extract_equation_from_string(f"{self.epsilon_buchi}")
         self.delta_buchi_eq = Equation.extract_equation_from_string(f"{self.delta_buchi}")
         self.zero_eq = Equation.extract_equation_from_string("0")

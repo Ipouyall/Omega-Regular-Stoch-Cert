@@ -74,7 +74,7 @@ class InvariantInductiveConstraint(Constraint):
 
         for state in self.automata.states:
             current_i = self.template.templates[str(state.state_id)]
-            if self.decomposed_control_policy.action_dimension == 0:
+            if self.decomposed_control_policy.action_dimension == 0: # TODO: Later fix this using utils for extracting policy
                 policies = []
             elif state.is_accepting():
                 policies = [self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _id) for _id in acceptance_signatures]

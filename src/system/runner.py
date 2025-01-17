@@ -13,13 +13,15 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
-from .certificate.controller_bounds import ControllerBounds
+from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
 from src.system.certificate.invariant.inductive_constraint import InvariantInductiveConstraint
 from src.system.certificate.invariant.template import InvariantTemplate, InvariantFakeTemplate
-from .certificate.non_negativityC import NonNegativityConstraint
+from .certificate.nnC import NonNegativityConstraint
 from .certificate.safeC import SafetyConstraint
+from .certificate.safety_condition import SafetyConditionHandler
+from .certificate.sedC import StrictExpectedDecreaseConstraint
 from .certificate.template import LTLCertificateDecomposedTemplates, CertificateVariables
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
@@ -69,7 +71,6 @@ class RunningStage(Enum):
 
     def __str__(self):
         return f"[{self.value:<1}-{self.name.replace('_', ' ').title()}]"
-
 
 
 @dataclass
@@ -281,22 +282,29 @@ class Runner:
         for t in non_negativity_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        # strict_expected_decrease_generator = StrictExpectedDecrease(
-        #     template_manager=self.history["template"],
-        #     invariant=self.history["invariant template"],
-        #     system_space=self.history["space"],
-        #     decomposed_control_policy=self.history["control policy"],
-        #     system_dynamics=self.history["sds"],
-        #     disturbance=self.history["disturbance"],
-        #     automata=self.history["ldba"],
-        #     epsilon=self.history["synthesis"].epsilon,
-        #     probability_threshold=self.history["synthesis"].probability_threshold
-        # )
-        # strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
-        # self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
-        # for t in strict_expected_decrease_constraints:
-        #     self.pbar.write(f"  + {t.to_detail_string()}")
-        #
+        safety_condition_handler = SafetyConditionHandler(
+            template_manager=self.history["template"],
+            decomposed_control_policy=self.history["control policy"],
+            disturbance=self.history["disturbance"],
+            automata=self.history["ldba"],
+        )
+
+        strict_expected_decrease_generator = StrictExpectedDecreaseConstraint(
+            template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"],
+            disturbance=self.history["disturbance"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+            safety_condition_handler=safety_condition_handler
+        )
+        strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
+        self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
+        for t in strict_expected_decrease_constraints:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
+
         # non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
         #     template_manager=self.history["template"],
         #     invariant=self.history["invariant template"],
@@ -327,7 +335,7 @@ class Runner:
         self.history["constraints"] = {
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
-            # "strict_expected_decrease": strict_expected_decrease_constraints,
+            "strict_expected_decrease": strict_expected_decrease_constraints,
             # "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
             "controller_bound": controller_bound_constraints,
         }

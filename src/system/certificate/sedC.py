@@ -1,0 +1,119 @@
+from dataclasses import dataclass
+
+from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraintI import Constraint
+from .safety_condition import SafetyConditionHandler
+from .utils import _replace_keys_with_values, get_policy_action_given_current_abstract_state
+from .invariant.template import InvariantTemplate
+from .template import LTLCertificateDecomposedTemplates
+from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..automata.graph import Automata
+from ..automata.sub_graph import AutomataState
+from ..dynamics import SystemDynamics, ConditionalDynamics
+from ..noise import SystemStochasticNoise
+from ..polynomial.equation import Equation
+from ..polynomial.inequality import EquationConditionType, Inequality
+from ..space import SystemSpace
+
+
+@dataclass
+class StrictExpectedDecreaseConstraint(Constraint):
+    template_manager: LTLCertificateDecomposedTemplates
+    invariant: InvariantTemplate
+    system_space: SystemSpace
+    decomposed_control_policy: SystemDecomposedControlPolicy
+    disturbance: SystemStochasticNoise
+    system_dynamics: SystemDynamics
+    automata: Automata
+    safety_condition_handler: SafetyConditionHandler
+
+    __slots__ = [
+        "template_manager", "system_space", "invariant", "decomposed_control_policy",
+        "disturbance", "automata", "system_dynamics", "safety_condition_handler"
+    ]
+
+    def extract(self) -> list[ConstraintInequality]:
+        constraints = []
+        for dynamics in self.system_dynamics.system_transformations:
+            self._extract_sed_given_dynamics(constraints=constraints, system_dynamics=dynamics)
+        return constraints
+
+    def _extract_sed_given_dynamics(self, constraints: list[ConstraintInequality], system_dynamics: ConditionalDynamics) -> list[ConstraintInequality]:
+        for state in self.automata.states:
+            if state.is_in_accepting_signature(acc_sig=None) or state.is_rejecting():
+                continue
+            rhs = self._extract_sed_rhs_given_state_and_dynamics(current_state=state, system_dynamics=system_dynamics)
+            left_land_side = Inequality(
+                left_equation=self.template_manager.safe_template.sub_templates[str(state.state_id)],
+                inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
+                right_equation=self.template_manager.variables.zero_eq,
+            )
+            constraints.append(
+                ConstraintInequality(
+                    variables=self.template_manager.variable_generators,
+                    lhs=SubConstraint(
+                        expr_1=self.system_space.space_inequalities + system_dynamics.condition,
+                        expr_2=[left_land_side, self.invariant.get_lhs_invariant(str(state.state_id))],
+                        aggregation_type=ConstraintAggregationType.CONJUNCTION
+                    ),
+                    rhs=rhs,
+                )
+            )
+
+    def _extract_sed_rhs_given_state_and_dynamics(self, current_state: AutomataState, system_dynamics: ConditionalDynamics) -> SubConstraint:
+        safety_constraints = self.safety_condition_handler.get_safety_condition(
+            current_state=current_state,
+            system_dynamics=system_dynamics
+        )
+        control_action = get_policy_action_given_current_abstract_state(
+            current_state=current_state,
+            decomposed_control_policy=self.decomposed_control_policy
+        )
+        next_state_under_policy = system_dynamics(control_action)  # Dict: {state_id: StringEquation}
+
+        current_v_reach = self.template_manager.reach_template.sub_templates[str(current_state.state_id)]
+        _next_possible_v_reaches = (
+            self.template_manager.reach_template.sub_templates[str(tr.destination)]
+            for tr in current_state.transitions
+        )  # V_{reach}(s, q')
+        _next_possible_v_reaches_str = [
+            _v(**next_state_under_policy).replace(" ", "")
+            for _v in _next_possible_v_reaches
+        ]  # STRING: V_{reach}(s', q')
+
+        disturbance_expectations = self.disturbance.get_expectations()
+        _expected_next_possible_v_reaches_str = (
+            _replace_keys_with_values(_v, disturbance_expectations)
+            for _v in _next_possible_v_reaches_str
+        )  # STRING: E[V_{reach}(s', q')]
+        _expected_next_possible_v_reaches = (
+            Equation.extract_equation_from_string(_v)
+            for _v in _expected_next_possible_v_reaches_str
+        )  # E[V_{reach}(s', q')]
+        current_v_sub_reaches_epsilon = current_v_reach.sub(self.template_manager.variables.epsilon_buchi_eq)  # V_{reach}(s, q) - \epsilon_{Reach}
+        _current_v_sub_reaches_epsilon_sub_expected_next_possible_v = (
+            current_v_sub_reaches_epsilon.sub(_v)
+            for _v in _expected_next_possible_v_reaches
+        )  # V_{reach}(s, q) - \epsilon_{Reach} - E[V_{reach}(s', q')]
+        strict_expected_decrease_inequalities = [
+            Inequality(
+                left_equation=_sed,
+                inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+                right_equation=self.template_manager.variables.zero_eq,
+            )
+            for _sed in _current_v_sub_reaches_epsilon_sub_expected_next_possible_v
+        ] # V_{reach}(s, q) - \epsilon_{Reach} - E[V_{reach}(s', q')] >= 0
+        assert len(safety_constraints) == len(strict_expected_decrease_inequalities), "Safety constraints and strict expected decrease inequalities should have the same length."
+
+        rhs_term_wise = [
+            SubConstraint(
+                expr_1=_safe,
+                expr_2=_sed,
+                aggregation_type=ConstraintAggregationType.CONJUNCTION,
+            )
+            for _safe, _sed in zip(safety_constraints, strict_expected_decrease_inequalities)
+        ]
+        return SubConstraint(
+            expr_1=rhs_term_wise,
+            aggregation_type=ConstraintAggregationType.DISJUNCTION,
+        )

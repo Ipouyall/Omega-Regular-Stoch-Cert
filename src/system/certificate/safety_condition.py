@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 from .constraint import ConstraintAggregationType, GuardedInequality, SubConstraint
-from .utils import _replace_keys_with_values
+from .utils import _replace_keys_with_values, get_policy_action_given_current_abstract_state
 from .template import LTLCertificateDecomposedTemplates
-from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
 from ..automata.sub_graph import AutomataState
-from ..dynamics import SystemDynamics, ConditionalDynamics
+from ..dynamics import ConditionalDynamics
 from ..noise import SystemStochasticNoise
 from ..polynomial.equation import Equation
 from ..polynomial.inequality import EquationConditionType, Inequality
@@ -19,15 +19,18 @@ class SafetyConditionHandler:
     disturbance: SystemStochasticNoise
     automata: Automata
 
-    def get_safety_condition(self) -> SubConstraint:
+    def get_safety_condition(self, current_state: AutomataState, system_dynamics: ConditionalDynamics) -> list[SubConstraint]:
         return self._extraxt_safe_condition_helper(
-            current_state="",
-            system_dynamics=""
+            current_state=current_state,
+            system_dynamics=system_dynamics,
         )
 
-    def _extraxt_safe_condition_helper(self, current_state: AutomataState, system_dynamics: ConditionalDynamics) -> SubConstraint:
-        control_action = self._next_policy_state_helper(current_state)
-        next_state_under_policy = system_dynamics(control_action)  # Dict: {state_id: StringEquation}
+    def _extraxt_safe_condition_helper(self, current_state: AutomataState, system_dynamics: ConditionalDynamics) -> list[SubConstraint]:
+        control_action = get_policy_action_given_current_abstract_state(
+            current_state=current_state,
+            decomposed_control_policy=self.decomposed_control_policy,
+        )   ### TODO: This part can be passed for optimization
+        next_state_under_policy = system_dynamics(control_action)  # Dict: {state_id: StringEquation}   ### TODO: This part can be passed for optimization
 
         current_v_safety = self.template_manager.safe_template.sub_templates[str(current_state.state_id)]
         _next_possible_v_safeties = (
@@ -52,9 +55,9 @@ class SafetyConditionHandler:
             Equation.extract_equation_from_string(_v)
             for _v in _expected_next_possible_v_safeties_str
         ) # E[V_{safety}(s', q')]
-        _current_v_sub_safeties_epsilon = current_v_safety.sub(self.template_manager.variables.epsilon_safe_eq) # V_{safety}(s, q) - \epsilon_{Safety}
+        current_v_sub_safeties_epsilon = current_v_safety.sub(self.template_manager.variables.epsilon_safe_eq) # V_{safety}(s, q) - \epsilon_{Safety}
         _current_v_sub_safeties_epsilon_sub_expected_next_possible_v = (
-            _current_v_sub_safeties_epsilon.sub(_v)
+            current_v_sub_safeties_epsilon.sub(_v)
             for _v in _expected_next_possible_v_safeties
         ) # V_{safety}(s, q) - \epsilon_{Safety} - E[V_{safety}(s', q')]
         _strict_expected_decrease_inequalities = (
@@ -129,7 +132,7 @@ class SafetyConditionHandler:
             for _v_e_b_lower, _v_e_b_upper in _inequalities_itr
         )
 
-        sub_constraints_for_each_transition = [
+        return [
             SubConstraint(
                 expr_1=_sed,
                 expr_2=_safety,
@@ -138,16 +141,4 @@ class SafetyConditionHandler:
             for _sed, _safety in zip(_guarded_sed, _safety_inequalities)
         ]
 
-        return SubConstraint(
-            expr_1=sub_constraints_for_each_transition,
-            aggregation_type=ConstraintAggregationType.DISJUNCTION
-        )
 
-    def _next_policy_state_helper(self, current_state: AutomataState) -> dict:
-        if self.decomposed_control_policy.action_dimension == 0:
-            return {}
-        if current_state.is_accepting():
-            policy = self.decomposed_control_policy.get_policy(PolicyType.BUCHI)
-        else:
-            policy = self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
-        return policy()

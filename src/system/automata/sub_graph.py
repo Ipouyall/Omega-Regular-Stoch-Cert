@@ -76,12 +76,17 @@ class AutomataState:
         self.acceptance_status = AcceptanceStatus.Accepting if self.acc_sig else AcceptanceStatus.NonAccepting
 
     def is_accepting(self) -> bool:
+        """Whether the state is in accepting component"""
         return self.acceptance_status == AcceptanceStatus.Accepting
 
     def is_rejecting(self) -> bool:
+        """Whether the state is in rejecting component"""
         return self.acceptance_status == AcceptanceStatus.Rejecting
 
-    def is_in_accepting_signature(self, acc_sig: Union[int,str]):
+    def is_in_accepting_signature(self, acc_sig: Union[int,str,None]) -> bool:
+        """To check whether the state is in a accepting signature by asking for signature or has any accepting signature by providing None as the argument"""
+        if acc_sig is None:
+            return len(self.acc_sig) > 0
         return int(acc_sig) in self.acc_sig
 
     def to_string(self, lookup_table) -> str:

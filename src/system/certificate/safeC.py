@@ -18,12 +18,12 @@ class SafetyConstraint(Constraint):
 
     def extract(self) -> list[ConstraintInequality]:
         constraints = []
-        self.extraxt_safe(constraints=constraints)
+        self._extract_safety_on_rejecting_set(constraints=constraints)
         return constraints
 
-    def extraxt_safe(self, constraints):
+    def _extract_safety_on_rejecting_set(self, constraints):
         """
-        \forall X \in \SystemSpace and Q \in \Q_{reject} => V{safe}(X, Q) >= 0
+        forall X in SystemSpace and Q in Q_{reject} => V{safe}(X, Q) >= 0
         """
 
         for rej_state_id in self.automata.rejecting_states_ids:

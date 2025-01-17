@@ -1,4 +1,9 @@
 import re
+from typing import Dict
+
+from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..automata.sub_graph import AutomataState
+from ..polynomial.equation import Equation
 
 
 def infix_to_prefix(expression: str) -> str:
@@ -54,6 +59,16 @@ def infix_to_prefix(expression: str) -> str:
                 prefix_stack.append(expression)
 
     return prefix_stack[0]
+
+
+def get_policy_action_given_current_abstract_state(current_state: AutomataState, decomposed_control_policy: SystemDecomposedControlPolicy) -> Dict[str, Equation]:
+    if decomposed_control_policy.action_dimension == 0:
+        return {}
+    if current_state.is_accepting():
+        policy = decomposed_control_policy.get_policy(PolicyType.BUCHI)
+    else:
+        policy = decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
+    return policy()
 
 
 def _replace_keys_with_values(s, dictionary):
