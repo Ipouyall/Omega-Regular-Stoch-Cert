@@ -1,3 +1,6 @@
+import re
+
+
 def infix_to_prefix(expression: str) -> str:
     """
     Convert infix expression to prefix expression with explicit parentheses. Steps of the algorithm:
@@ -51,3 +54,9 @@ def infix_to_prefix(expression: str) -> str:
                 prefix_stack.append(expression)
 
     return prefix_stack[0]
+
+
+def _replace_keys_with_values(s, dictionary):
+    pattern = re.compile("|".join(re.escape(key) for key in dictionary.keys()))
+    result = pattern.sub(lambda match: dictionary[match.group(0)], s)
+    return result

@@ -83,16 +83,14 @@ class CertificateVariables:
     epsilon_buchi: float = field(init=False, default=1e-15)
     delta_buchi: float = field(init=False, default=1e-15)
 
-
     eta_safe_eq: Equation = field(init=False)
     Beta_safe_eq: Equation = field(init=False)
     zero_eq: Equation = field(init=False)
+    epsilon_safe_eq: Equation = field(init=False)
+    delta_safe_eq: Equation = field(init=False)
 
     generated_constants: set[str] = field(init=False, default_factory=set)
 
-
-    epsilon_safe_eq: Equation = field(init=False)
-    delta_safe_eq: Equation = field(init=False)
     epsilon_reach_eq: Equation = field(init=False)
     epsilon_buchi_eq: Equation = field(init=False)
     delta_buchi_eq: Equation = field(init=False)
@@ -104,7 +102,7 @@ class CertificateVariables:
         assert self.delta_safe > 0, "Delta for safety should be greater than 0."
         assert self.delta_buchi > 0, "Delta for Buchi should be greater than 0."
         assert 1 > self.probability_threshold >= 0, "Probability threshold should be in the range [0, 1)."
-        min_eta = 1e-10 + Pow(self.delta_safe,2)*log(1-self.probability_threshold)/(8*self.epsilon_safe)*(self.delta_safe**2)
+        min_eta = 1e-5 + Pow(self.delta_safe,2)*log(1-self.probability_threshold)/(8*self.epsilon_safe)*(self.delta_safe**2)
         self.eta_safe = min_eta.evalf(n=10)
         assert self.eta_safe <= 0, f"Eta for safety should be less than or equal to 0. Got {self.eta_safe}."
 
@@ -114,11 +112,11 @@ class CertificateVariables:
         self.epsilon_reach_eq = Equation.extract_equation_from_string(f"{self.epsilon_reach}")
         self.epsilon_buchi_eq = Equation.extract_equation_from_string(f"{self.epsilon_buchi}")
         self.delta_buchi_eq = Equation.extract_equation_from_string(f"{self.delta_buchi}")
+        self.zero_eq = Equation.extract_equation_from_string("0")
 
         beta_safe_symbol = "Beta_safe"
         self.Beta_safe_eq = Equation.extract_equation_from_string(beta_safe_symbol)
         self.generated_constants.add(beta_safe_symbol)
-        self.zero_eq = Equation.extract_equation_from_string("0")
 
 
 @dataclass

@@ -20,7 +20,7 @@ from ..automata.visualize import visualize_automata
 from ..certificate.init_constraints import InitialSpaceConstraint
 from ..certificate.nn_constraint import NonNegativityConstraint
 from ..certificate.nsed_constraints import NonStrictExpectedDecrease
-from ..certificate.strict_expected_decrease import StrictExpectedDecrease
+from src.system.older.SED import StrictExpectedDecrease
 from ..certificate.template import LTLCertificateDecomposedTemplates
 from ..config import SynthesisConfig
 from ..dynamics import SystemDynamics

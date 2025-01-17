@@ -18,6 +18,7 @@ from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
 from src.system.certificate.invariant.inductive_constraint import InvariantInductiveConstraint
 from src.system.certificate.invariant.template import InvariantTemplate, InvariantFakeTemplate
+from .certificate.non_negativityC import NonNegativityConstraint
 from .certificate.safeC import SafetyConstraint
 from .certificate.template import LTLCertificateDecomposedTemplates, CertificateVariables
 from .config import SynthesisConfig
@@ -270,16 +271,16 @@ class Runner:
         for t in safety_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        # non_negativity_generator = NonNegativityConstraint(
-        #     template_manager=self.history["template"],
-        #     invariant=self.history["invariant template"],
-        #     system_space=self.history["space"],
-        # )
-        # non_negativity_constraints = non_negativity_generator.extract()
-        # self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
-        # for t in non_negativity_constraints:
-        #     self.pbar.write(f"  + {t.to_detail_string()}")
-        #
+        non_negativity_generator = NonNegativityConstraint(
+            template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
+            system_space=self.history["space"],
+        )
+        non_negativity_constraints = non_negativity_generator.extract()
+        self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
+        for t in non_negativity_constraints:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
         # strict_expected_decrease_generator = StrictExpectedDecrease(
         #     template_manager=self.history["template"],
         #     invariant=self.history["invariant template"],
@@ -325,7 +326,7 @@ class Runner:
 
         self.history["constraints"] = {
             "initial_space": initial_space_constraints,
-            # "non_negativity": non_negativity_constraints,
+            "non_negativity": non_negativity_constraints,
             # "strict_expected_decrease": strict_expected_decrease_constraints,
             # "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
             "controller_bound": controller_bound_constraints,
