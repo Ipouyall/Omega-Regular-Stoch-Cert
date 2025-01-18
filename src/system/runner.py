@@ -13,6 +13,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
+from .certificate.bei import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
@@ -304,23 +305,20 @@ class Runner:
         for t in strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-
-        # non_strict_expected_decrease_generator = NonStrictExpectedDecrease(
-        #     template_manager=self.history["template"],
-        #     invariant=self.history["invariant template"],
-        #     system_space=self.history["space"],
-        #     decomposed_control_policy=self.history["control policy"],
-        #     system_dynamics=self.history["sds"],
-        #     disturbance=self.history["disturbance"],
-        #     automata=self.history["ldba"],
-        #     epsilon=self.history["synthesis"].epsilon,
-        #     probability_threshold=self.history["synthesis"].probability_threshold
-        # )
-        # non_strict_expected_decrease_constraints = non_strict_expected_decrease_generator.extract()
-        # self.pbar.write("+ Generated 'Non-Strict Expected Decrease Constraints' successfully.")
-        # for t in non_strict_expected_decrease_constraints:
-        #     self.pbar.write(f"  + {t.to_detail_string()}")
-        #
+        bounded_expected_increase_generator = BoundedExpectedIncreaseConstraint(
+            template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"],
+            disturbance=self.history["disturbance"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+            safety_condition_handler=safety_condition_handler
+        )
+        bounded_expected_increase_constraints = bounded_expected_increase_generator.extract()
+        self.pbar.write("+ Generated 'Bounded Expected Increase Constraints' successfully.")
+        for t in bounded_expected_increase_constraints:
+            self.pbar.write(f"  + {t.to_detail_string()}")
         controller_boundary_generator = ControllerBounds(
             template_manager=self.history["template"],
             system_space=self.history["space"],
@@ -336,7 +334,7 @@ class Runner:
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
-            # "non_strict_expected_decrease": non_strict_expected_decrease_constraints,
+            "bounded_expected_increase": bounded_expected_increase_constraints,
             "controller_bound": controller_bound_constraints,
         }
 
