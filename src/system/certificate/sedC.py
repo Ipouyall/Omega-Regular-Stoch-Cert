@@ -38,7 +38,7 @@ class StrictExpectedDecreaseConstraint(Constraint):
             self._extract_sed_given_dynamics(constraints=constraints, system_dynamics=dynamics)
         return constraints
 
-    def _extract_sed_given_dynamics(self, constraints: list[ConstraintInequality], system_dynamics: ConditionalDynamics) -> list[ConstraintInequality]:
+    def _extract_sed_given_dynamics(self, constraints: list[ConstraintInequality], system_dynamics: ConditionalDynamics):
         for state in self.automata.states:
             if state.is_in_accepting_signature(acc_sig=None) or state.is_rejecting():
                 continue
@@ -71,30 +71,30 @@ class StrictExpectedDecreaseConstraint(Constraint):
         )
         next_state_under_policy = system_dynamics(control_action)  # Dict: {state_id: StringEquation}
 
-        current_v_reach = self.template_manager.reach_template.sub_templates[str(current_state.state_id)]
+        current_v_reach = self.template_manager.buchi_template.sub_templates[str(current_state.state_id)]
         _next_possible_v_reaches = (
-            self.template_manager.reach_template.sub_templates[str(tr.destination)]
+            self.template_manager.buchi_template.sub_templates[str(tr.destination)]
             for tr in current_state.transitions
-        )  # V_{reach}(s, q')
+        )  # V_{buchi}(s, q')
         _next_possible_v_reaches_str = [
             _v(**next_state_under_policy).replace(" ", "")
             for _v in _next_possible_v_reaches
-        ]  # STRING: V_{reach}(s', q')
+        ]  # STRING: V_{buchi}(s', q')
 
         disturbance_expectations = self.disturbance.get_expectations()
         _expected_next_possible_v_reaches_str = (
             _replace_keys_with_values(_v, disturbance_expectations)
             for _v in _next_possible_v_reaches_str
-        )  # STRING: E[V_{reach}(s', q')]
+        )  # STRING: E[V_{buchi}(s', q')]
         _expected_next_possible_v_reaches = (
             Equation.extract_equation_from_string(_v)
             for _v in _expected_next_possible_v_reaches_str
-        )  # E[V_{reach}(s', q')]
-        current_v_sub_reaches_epsilon = current_v_reach.sub(self.template_manager.variables.epsilon_buchi_eq)  # V_{reach}(s, q) - \epsilon_{Reach}
+        )  # E[V_{buchi}(s', q')]
+        current_v_sub_reaches_epsilon = current_v_reach.sub(self.template_manager.variables.epsilon_buchi_eq)  # V_{buchi}(s, q) - \epsilon_{buchi}
         _current_v_sub_reaches_epsilon_sub_expected_next_possible_v = (
             current_v_sub_reaches_epsilon.sub(_v)
             for _v in _expected_next_possible_v_reaches
-        )  # V_{reach}(s, q) - \epsilon_{Reach} - E[V_{reach}(s', q')]
+        )  # V_{buchi}(s, q) - \epsilon_{buchi} - E[V_{buchi}(s', q')]
         strict_expected_decrease_inequalities = [
             Inequality(
                 left_equation=_sed,
@@ -102,7 +102,7 @@ class StrictExpectedDecreaseConstraint(Constraint):
                 right_equation=self.template_manager.variables.zero_eq,
             )
             for _sed in _current_v_sub_reaches_epsilon_sub_expected_next_possible_v
-        ] # V_{reach}(s, q) - \epsilon_{Reach} - E[V_{reach}(s', q')] >= 0
+        ] # V_{buchi}(s, q) - \epsilon_{buchi} - E[V_{buchi}(s', q')] >= 0
         assert len(safety_constraints) == len(strict_expected_decrease_inequalities), "Safety constraints and strict expected decrease inequalities should have the same length."
 
         rhs_term_wise = [

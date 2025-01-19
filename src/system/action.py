@@ -25,7 +25,7 @@ class PolicyMode(Enum):
 
 
 class PolicyType(Enum):
-    ACCEPTANCE = "acceptance"
+    REACH = "reach"
     BUCHI = "buchi"
     UNKOWN = "unknown"
 
@@ -36,7 +36,7 @@ class PolicyType(Enum):
         return cls[policy_type.upper()]
 
     def __str__(self):
-        return f"{self.value:<10}"
+        return f"{self.value:<7}"
 
 
 @dataclass
@@ -175,7 +175,7 @@ class SystemDecomposedControlPolicy:
     def _initialize_synthesized_policies(self) -> None:
         logger.info("Initializing control policy for policy synthesis.")
         prefixes = ["Pa"] + [f"Pb{i}" for i in range(self.abstraction_dimension)]
-        types = [PolicyType.ACCEPTANCE] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
+        types = [PolicyType.REACH] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
         self.policies = [
             SystemControlPolicy(
                 action_dimension=self.action_dimension,
@@ -195,21 +195,21 @@ class SystemDecomposedControlPolicy:
 
     def get_policy(self, policy_type: PolicyType, policy_id: int = None) -> SystemControlPolicy:
         """Policy id is required for Buchi policies."""
-        if policy_type == PolicyType.ACCEPTANCE:
-            return self.policies[0]
+        if policy_type == PolicyType.UNKOWN:
+            raise ValueError("Policy type is not provided.")
         if policy_type == PolicyType.BUCHI:
-            if policy_id is None and len(self.policies) > 1:
+            if policy_id is None and len(self.policies) > 2:
                 raise ValueError("Policy ID is required for Buchi policies.")
             if policy_id >= len(self.policies) - 1 or policy_id < 0:
                 raise ValueError(f"Invalid policy ID: {policy_id}.")
             if policy_id is not None:
                 return self.policies[policy_id+1]
             return self.policies[1]
-        raise ValueError(f"Invalid policy type: {policy_type}.")
+        return self.policies[0]
 
     def get_length(self) -> dict[PolicyType, int]:
         return {
-            PolicyType.ACCEPTANCE: 1,
+            PolicyType.REACH: 1,
             PolicyType.BUCHI: len(self.policies) - 1
         }
 

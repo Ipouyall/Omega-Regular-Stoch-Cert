@@ -77,9 +77,9 @@ class InvariantInductiveConstraint(Constraint):
             if self.decomposed_control_policy.action_dimension == 0: # TODO: Later fix this using utils for extracting policy
                 policies = []
             elif state.is_accepting():
-                policies = [self.decomposed_control_policy.get_policy(PolicyType.BUCHI, _id) for _id in acceptance_signatures]
+                policies = [self.decomposed_control_policy.get_policy(policy_type=PolicyType.BUCHI, policy_id=_id) for _id in acceptance_signatures]
             else:
-                policies = [self.decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)]
+                policies = [self.decomposed_control_policy.get_policy(policy_type=PolicyType.REACH)]
             next_state_condition, next_states_under_policies = self._next_sds_state_helper(
                 dynamical=system_dynamics,
                 policies=policies,

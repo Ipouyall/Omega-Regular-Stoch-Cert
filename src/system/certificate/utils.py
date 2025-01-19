@@ -65,9 +65,9 @@ def get_policy_action_given_current_abstract_state(current_state: AutomataState,
     if decomposed_control_policy.action_dimension == 0:
         return {}
     if current_state.is_accepting():
-        policy = decomposed_control_policy.get_policy(PolicyType.BUCHI)
+        policy = decomposed_control_policy.get_policy(PolicyType.BUCHI, 0)
     else:
-        policy = decomposed_control_policy.get_policy(PolicyType.ACCEPTANCE)
+        policy = decomposed_control_policy.get_policy(PolicyType.REACH)
     return policy()
 
 

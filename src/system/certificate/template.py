@@ -124,10 +124,10 @@ class LTLCertificateDecomposedTemplates:
     accepting_components_count: int
     variables: CertificateVariables
     buchi_template: CertificateTemplate = field(init=False)
-    reach_template: CertificateTemplate = field(init=False)
     safe_template: CertificateTemplate = field(init=False)
     variable_generators: list[str] = field(init=False, default_factory=list)
     generated_constants: set[str] = field(init=False, default_factory=set)
+
 
     def __post_init__(self):
         self.variable_generators = [f"S{i}" for i in range(1, self.state_dimension + 1)]
@@ -135,14 +135,6 @@ class LTLCertificateDecomposedTemplates:
         self.generated_constants.update(self.variables.generated_constants)
 
     def _initialize_templates(self):
-        self.reach_template = CertificateTemplate(
-            state_dimension=self.state_dimension,
-            action_dimension=self.action_dimension,
-            abstraction_dimension=self.abstraction_dimension,
-            maximal_polynomial_degree=self.maximal_polynomial_degree,
-            variable_generators=self.variable_generators,
-            template_type=CertificateTemplateType.REACH,
-        )
         self.buchi_template = CertificateTemplate(
             state_dimension=self.state_dimension,
             action_dimension=self.action_dimension,
@@ -160,7 +152,6 @@ class LTLCertificateDecomposedTemplates:
             variable_generators=self.variable_generators,
             template_type=CertificateTemplateType.SAFE,
         )
-        self.generated_constants.update(self.reach_template.get_generated_constants())
         self.generated_constants.update(self.safe_template.get_generated_constants())
         self.generated_constants.update(self.buchi_template.get_generated_constants())
 
@@ -172,6 +163,5 @@ class LTLCertificateDecomposedTemplates:
 
     def __str__(self):
         return (f"Certificate(|S|={self.state_dimension}, |A|={self.action_dimension}, |Q|={self.abstraction_dimension}, |F|={self.accepting_components_count}, |C|={len(self.generated_constants):<3}, deg={self.maximal_polynomial_degree})\n" +
-                f"\t-{self.reach_template}\n" +
                 f"\t-{self.safe_template}\n" +
                 f"\t-{self.buchi_template}")

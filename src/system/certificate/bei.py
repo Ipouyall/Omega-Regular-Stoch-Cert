@@ -73,31 +73,31 @@ class BoundedExpectedIncreaseConstraint(Constraint):
         current_v_buchi = self.template_manager.buchi_template.sub_templates[str(current_state.state_id)]
 
         _next_possible_v_reaches = (
-            self.template_manager.reach_template.sub_templates[str(tr.destination)]
+            self.template_manager.buchi_template.sub_templates[str(tr.destination)]
             for tr in current_state.transitions
-        )  # V_{reach}(s, q')
+        )  # V_{buchi}(s, q')
         _next_possible_v_reaches_str = [
             _v(**next_state_under_policy).replace(" ", "")
             for _v in _next_possible_v_reaches
-        ]  # STRING: V_{reach}(s', q')
+        ]  # STRING: V_{buchi}(s', q')
 
         disturbance_expectations = self.disturbance.get_expectations()
         _expected_next_possible_v_reaches_str = (
             _replace_keys_with_values(_v, disturbance_expectations)
             for _v in _next_possible_v_reaches_str
-        )  # STRING: E[V_{reach}(s', q')]
+        )  # STRING: E[V_{buchi}(s', q')]
         _expected_next_possible_v_reaches = (
             Equation.extract_equation_from_string(_v)
             for _v in _expected_next_possible_v_reaches_str
-        )  # E[V_{reach}(s', q')]
+        )  # E[V_{buchi}(s', q')]
         _expected_next_possible_v_reaches_add_delta = (
             self.template_manager.variables.delta_buchi_eq.add(_v)
             for _v in _expected_next_possible_v_reaches
-        )  # \delta_{Buchi} + E[V_{reach}(s', q')]
+        )  # \delta_{Buchi} + E[V_{buchi}(s', q')]
         _expected_next_possible_v_reaches_add_delta_sub_buchi = (
             _v.sub(current_v_buchi)
             for _v in _expected_next_possible_v_reaches_add_delta
-        )  # \delta_{Buchi} + E[V_{reach}(s', q')] - V_{Buchi}(s, q)
+        )  # \delta_{Buchi} + E[V_{buchi}(s', q')] - V_{Buchi}(s, q)
         bounded_expected_increase_inequalities = [
             Inequality(
                 left_equation=_bei,
@@ -105,7 +105,7 @@ class BoundedExpectedIncreaseConstraint(Constraint):
                 right_equation=self.template_manager.variables.zero_eq,
             )
             for _bei in _expected_next_possible_v_reaches_add_delta_sub_buchi
-        ]  # \delta_{Buchi} + E[V_{reach}(s', q')] - V_{Buchi}(s, q) >= 0
+        ]  # \delta_{Buchi} + E[V_{buchi}(s', q')] - V_{Buchi}(s, q) >= 0
         assert len(safety_constraints) == len(bounded_expected_increase_inequalities), "Safety constraints and bounded expected increase inequalities should have the same length."
 
         rhs_term_wise = [
