@@ -80,7 +80,7 @@ def benchmark_runner(path, iterations=10):
 
 
 if __name__ == "__main__":
-    config_file = "./benchmark/random_walk_control_1.json"
+    config_file = "./benchmark/random_walk_verification_1.json"
 
     v = find_highest_possible_parameter(
         parameter_group="synthesis_config",
