@@ -10,7 +10,7 @@
     "distribution_name": "uniform",
     "disturbance_parameters": {
       "lower_bound": [-1],
-      "upper_bound": [1]
+      "upper_bound": [2]
     }
   },
 
@@ -18,13 +18,13 @@
     "state_space_dimension": 1,
     "control_space_dimension": 1,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
     "dynamics": [
       {
         "condition": "S1 <= 100",
         "transforms": [
-          "S1 + 1 + A1"
+          "S1 + D1 + A1"
         ]
       },
       {

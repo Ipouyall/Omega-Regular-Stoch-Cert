@@ -10,7 +10,7 @@
     "distribution_name": "uniform",
     "disturbance_parameters": {
       "lower_bound": [-1],
-      "upper_bound": [1]
+      "upper_bound": [2]
     }
   },
 
@@ -24,7 +24,7 @@
       {
         "condition": "S1 <= 100",
         "transforms": [
-          "S1 + 1 + A1"
+          "S1 + D1 + A1"
         ]
       },
       {

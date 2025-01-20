@@ -5,10 +5,10 @@
   },
 
   "disturbance": {
-    "distribution_name": "normal",
+    "distribution_name": "uniform",
     "disturbance_parameters": {
-      "mean": [0],
-      "std_dev": [1]
+      "lower_bound": [-1],
+      "upper_bound": [1]
     }
   },
 
