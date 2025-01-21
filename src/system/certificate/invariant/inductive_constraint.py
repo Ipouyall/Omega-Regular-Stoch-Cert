@@ -4,6 +4,7 @@ from typing import List, Dict
 from ..constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
 from ..constraintI import Constraint
 from .template import InvariantTemplate
+from ..utils import _replace_keys_with_values
 from ...action import SystemDecomposedControlPolicy, SystemControlPolicy, PolicyType
 from ...automata.graph import Automata
 from ...dynamics import SystemDynamics, ConditionalDynamics
@@ -163,3 +164,42 @@ class InvariantInductiveConstraint(Constraint):
             return dynamical.condition, [dynamical({})]
         _actions = [_policy() for _policy in policies]
         return dynamical.condition, [dynamical(_action) for _action in _actions]
+
+
+def invariant_inductive_inequality_give_transition(
+        next_state_under_policy: Dict[str, str],
+        zero_equation: Equation,
+        invariant_template_manager: InvariantTemplate = None,
+        next_state_id: str = None,
+        next_invariant: Equation = None,
+        noise_bounds: Dict[str, Dict[str, str]] = None
+) -> List[Inequality]:
+
+    if next_invariant is None and next_state_id is not None and invariant_template_manager is not None:
+        next_invariant = invariant_template_manager.templates[next_state_id] # INV(s, q')
+    elif next_invariant is None or invariant_template_manager is None:
+        raise ValueError("Next Invariant is not provided. You should provide `next_invariant` or `next_state + template_manager`")
+
+    next_invariant_state_str = next_invariant(**next_state_under_policy).replace(" ", "")  # INV(s', q')
+    if noise_bounds is None:
+        next_invariant_states = [Equation.extract_equation_from_string(next_invariant_state_str)]
+    else:
+        next_invariant_states = [
+            Equation.extract_equation_from_string(_replace_keys_with_values(next_invariant_state_str, noise_bounds["lower"])),
+            Equation.extract_equation_from_string(_replace_keys_with_values(next_invariant_state_str, noise_bounds["upper"]))
+        ]
+
+    return [
+        Inequality(
+            left_equation=next_invariant_state,
+            inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
+            right_equation=zero_equation
+        )
+        for next_invariant_state in next_invariant_states
+    ]
+
+
+
+
+
+

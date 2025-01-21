@@ -18,7 +18,7 @@
     "state_space_dimension": 1,
     "control_space_dimension": 1,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
     "dynamics": [
       {
@@ -42,7 +42,7 @@
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.99,
     "theorem_name": "farkas",
-    "solver_name": "z3",
+    "solver_name": "mathsat",
     "owl_path": "../playground/rabinizer/owl"
   },
 

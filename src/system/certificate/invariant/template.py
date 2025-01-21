@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
 
 from ...polynomial.equation import Equation
 from ...polynomial.inequality import Inequality, EquationConditionType
@@ -6,8 +7,24 @@ from ...polynomial.polynomial import Monomial
 from ...utils import power_generator
 
 
+class InvariantTemplateInterface(ABC):
+
+    @abstractmethod
+    def get_generated_constants(self):
+        pass
+
+    @abstractmethod
+    def get_lhs_invariant(self, q: str) -> Inequality:
+        pass
+
+    @abstractmethod
+    def get_template_for_state(self, state: str) -> Equation:
+        pass
+
+
+
 @dataclass
-class InvariantTemplate:
+class InvariantTemplate(InvariantTemplateInterface):
     state_dimension: int
     action_dimension: int
     abstraction_dimension: int
@@ -51,6 +68,9 @@ class InvariantTemplate:
             right_equation=Equation.extract_equation_from_string("0"),
         )
 
+    def get_template_for_state(self, state: str) -> Equation:
+        return self.templates[state]
+
     def to_detailed_string(self):
         return f"{str(self)}\n" + "\n".join([f"  - {'(q'+key+')':<5}: {value}" for key, value in self.templates.items()])
 
@@ -59,7 +79,7 @@ class InvariantTemplate:
 
 
 @dataclass
-class InvariantFakeTemplate:
+class InvariantFakeTemplate(InvariantTemplateInterface):
 
     def __post_init__(self):
         self.fake_lhs_invariant = Inequality(
@@ -68,9 +88,11 @@ class InvariantFakeTemplate:
             right_equation=Equation.extract_equation_from_string("0"),
         )
 
-    @staticmethod
-    def get_generated_constants():
+    def get_generated_constants(self):
         return set()
+
+    def get_template_for_state(self, state: str) -> Equation:
+        return NotImplemented
 
     def get_lhs_invariant(self, q: str) -> Inequality:
         return self.fake_lhs_invariant

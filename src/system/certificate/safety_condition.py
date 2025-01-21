@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 from .constraint import ConstraintAggregationType, GuardedInequality, SubConstraint
+from .invariant.inductive_constraint import invariant_inductive_inequality_give_transition
+from .invariant.template import InvariantTemplate
 from .utils import _replace_keys_with_values, get_policy_action_given_current_abstract_state
 from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy
@@ -15,6 +17,7 @@ from ..polynomial.inequality import EquationConditionType, Inequality
 @dataclass
 class SafetyConditionHandler:
     template_manager: LTLCertificateDecomposedTemplates
+    invariant: InvariantTemplate
     decomposed_control_policy: SystemDecomposedControlPolicy
     disturbance: SystemStochasticNoise
     automata: Automata
@@ -83,6 +86,10 @@ class SafetyConditionHandler:
         noise_bounds = self.disturbance.get_bounds()
         lower_bounds = {var: bounds["min"] for var, bounds in noise_bounds.items()}
         upper_bounds = {var: bounds["max"] for var, bounds in noise_bounds.items()}
+        inv_noise_bound = {
+            "lower": lower_bounds,
+            "upper": upper_bounds,
+        }
 
         _next_possible_v_safeties_bounded = {
             "lower": (_replace_keys_with_values(_v, lower_bounds) for _v in next_possible_v_safeties_str),
@@ -103,7 +110,8 @@ class SafetyConditionHandler:
 
         _inequalities_itr = zip(
             _current_v_sub_beta_sub_next_possible_v["lower"],
-            _current_v_sub_beta_sub_next_possible_v["upper"]
+            _current_v_sub_beta_sub_next_possible_v["upper"],
+            (tr.destination for tr in current_state.transitions)
         )
         _safety_inequalities = (
             [
@@ -128,8 +136,16 @@ class SafetyConditionHandler:
                     inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
                     right_equation=self.template_manager.variables.delta_safe_eq
                 ),
+
+                *invariant_inductive_inequality_give_transition(
+                    next_state_under_policy=next_state_under_policy,
+                    zero_equation=self.template_manager.variables.zero_eq,
+                    invariant_template_manager=self.invariant,
+                    next_state_id=str(next_state_id),
+                    noise_bounds=inv_noise_bound,
+                ),
             ]
-            for _v_e_b_lower, _v_e_b_upper in _inequalities_itr
+            for _v_e_b_lower, _v_e_b_upper, next_state_id in _inequalities_itr
         )
 
         return [

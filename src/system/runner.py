@@ -212,22 +212,22 @@ class Runner:
         for t in inv_init_constraint:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        inv_inductive_constraint_gen = InvariantInductiveConstraint(
-            template=inv_template,
-            system_space=self.history["space"],
-            decomposed_control_policy=self.history["control policy"],
-            disturbance=self.history["disturbance"],
-            system_dynamics=self.history["sds"],
-            automata=self.history["ldba"],
-        )
-        inv_inductive_constraint = inv_inductive_constraint_gen.extract()
-        self.pbar.write("+ Generated Invariant's 'Inductive Constraint' successfully.")
-        for t in inv_inductive_constraint:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        # inv_inductive_constraint_gen = InvariantInductiveConstraint(
+        #     template=inv_template,
+        #     system_space=self.history["space"],
+        #     decomposed_control_policy=self.history["control policy"],
+        #     disturbance=self.history["disturbance"],
+        #     system_dynamics=self.history["sds"],
+        #     automata=self.history["ldba"],
+        # )
+        # inv_inductive_constraint = inv_inductive_constraint_gen.extract()
+        # self.pbar.write("+ Generated Invariant's 'Inductive Constraint' successfully.")
+        # for t in inv_inductive_constraint:
+        #     self.pbar.write(f"  + {t.to_detail_string()}")
 
         self.history["invariant_constraints"] = {
             "invariant_initial": inv_init_constraint,
-            "invariant_inductive": inv_inductive_constraint,
+            # "invariant_inductive": inv_inductive_constraint,
         }
 
     @stage_logger
@@ -288,6 +288,7 @@ class Runner:
             decomposed_control_policy=self.history["control policy"],
             disturbance=self.history["disturbance"],
             automata=self.history["ldba"],
+            invariant=self.history["invariant template"],
         )
 
         strict_expected_decrease_generator = StrictExpectedDecreaseConstraint(
