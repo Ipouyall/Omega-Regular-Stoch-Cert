@@ -77,11 +77,11 @@ class AutomataState:
 
     def is_accepting(self) -> bool:
         """Whether the state is in accepting component"""
-        return self.acceptance_status == AcceptanceStatus.Accepting
+        return self.acceptance_status.value == AcceptanceStatus.Accepting.value
 
     def is_rejecting(self) -> bool:
         """Whether the state is in rejecting component"""
-        return self.acceptance_status == AcceptanceStatus.Rejecting
+        return self.acceptance_status.value == AcceptanceStatus.Rejecting.value
 
     def is_in_accepting_signature(self, acc_sig: Union[int,str,None]) -> bool:
         """To check whether the state is in a accepting signature by asking for signature or has any accepting signature by providing None as the argument"""

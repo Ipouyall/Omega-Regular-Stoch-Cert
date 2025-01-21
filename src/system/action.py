@@ -195,9 +195,9 @@ class SystemDecomposedControlPolicy:
 
     def get_policy(self, policy_type: PolicyType, policy_id: int = None) -> SystemControlPolicy:
         """Policy id is required for Buchi policies."""
-        if policy_type == PolicyType.UNKOWN:
-            raise ValueError("Policy type is not provided.")
-        if policy_type == PolicyType.BUCHI:
+        if policy_type.value == PolicyType.REACH.value:
+            return self.policies[0]
+        if policy_type.value == PolicyType.BUCHI.value:
             if policy_id is None and len(self.policies) > 2:
                 raise ValueError("Policy ID is required for Buchi policies.")
             if policy_id >= len(self.policies) - 1 or policy_id < 0:
@@ -205,7 +205,7 @@ class SystemDecomposedControlPolicy:
             if policy_id is not None:
                 return self.policies[policy_id+1]
             return self.policies[1]
-        return self.policies[0]
+        raise ValueError("Policy type is not provided.")
 
     def get_length(self) -> dict[PolicyType, int]:
         return {
