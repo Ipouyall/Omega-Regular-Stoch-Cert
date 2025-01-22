@@ -13,7 +13,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
-from .certificate.bei import BoundedExpectedIncreaseConstraint
+from .certificate.beiC import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
@@ -333,14 +333,20 @@ class Runner:
         self.history["constraints"] = {
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
+            "safety": safety_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
-            # "bounded_expected_increase": bounded_expected_increase_constraints,
+            "bounded_expected_increase": bounded_expected_increase_constraints,
             "controller_bound": controller_bound_constraints,
         }
 
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
         constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants() | self.history["invariant template"].get_generated_constants()
+
+        self.pbar.write(f"+ Constraints passed to the solver:")
+        for k, v in self.history["constraints"].items():
+            self.pbar.write(f"  + {k}: {len(v)}x")
+
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
             **self.history.get("invariant_constraints", {}),
