@@ -15,11 +15,11 @@ class Equation:
     def add_monomial(self, monomial: Monomial) -> None:
         if monomial.is_zero():
             return
-        for i in range(len(self.monomials)):
-            _add = self.monomials[i].add(monomial)
-            if _add is not None:
-                self.monomials[i] = _add
-                return
+        # for i in range(len(self.monomials)):
+        #     _add = self.monomials[i].add(monomial)
+        #     if _add is not None:
+        #         self.monomials[i] = _add
+        #         return
         self.monomials.append(monomial)
 
     def negate(self) -> None:
