@@ -334,7 +334,7 @@ class Runner:
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
-            "bounded_expected_increase": bounded_expected_increase_constraints,
+            # "bounded_expected_increase": bounded_expected_increase_constraints,
             "controller_bound": controller_bound_constraints,
         }
 
