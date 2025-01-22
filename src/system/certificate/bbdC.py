@@ -113,8 +113,8 @@ class BuchiBoundedDifferenceConstraint(Constraint):
                 constraints.append(constraint)
 
     def _extract_bbd_rhs(self, current_state_id: int, next_state_id : int, next_states_under_policies: dict[str, str]) -> SubConstraint:
-        current_v_buchi = self.template_manager.buchi_template.sub_templates[str(current_state_id)]
-        next_v_buchi = self.template_manager.buchi_template.sub_templates[str(next_state_id)]
+        current_v_buchi = self.template_manager.safe_template.sub_templates[str(current_state_id)]
+        next_v_buchi = self.template_manager.safe_template.sub_templates[str(next_state_id)]
         beta = self.template_manager.variables.Beta_safe_eq
         delta = self.template_manager.variables.delta_buchi_eq
 
