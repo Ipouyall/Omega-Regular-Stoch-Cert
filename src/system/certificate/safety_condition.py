@@ -135,7 +135,7 @@ class SafetyConditionHandler:
         return [
             SubConstraint(
                 expr_1=_sed, # X |= a & V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
-                expr_2=_safety, # V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0 & V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}
+                # expr_2=_safety, # V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0 & V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}
                 aggregation_type=ConstraintAggregationType.CONJUNCTION
             )
             for _sed, _safety in zip(_guarded_sed, _safety_inequalities)
