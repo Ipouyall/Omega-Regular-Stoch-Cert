@@ -334,6 +334,7 @@ class Runner:
         self.history["constraints"] = {
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
+            "safety": safety_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "bounded_expected_increase": bounded_expected_increase_constraints,
             "controller_bound": controller_bound_constraints,
@@ -342,6 +343,11 @@ class Runner:
     @stage_logger
     def _run_stage_prepare_solver_inputs(self):
         constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants() | self.history["invariant template"].get_generated_constants()
+
+        self.pbar.write(f"+ Constraints passed to the solver:")
+        for k, v in self.history["constraints"].items():
+            self.pbar.write(f"  + {k}: {len(v)}x")
+
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
             **self.history.get("invariant_constraints", {}),
