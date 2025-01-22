@@ -13,7 +13,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
-from .certificate.bei import BoundedExpectedIncreaseConstraint
+from .certificate.beiC import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
 from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
