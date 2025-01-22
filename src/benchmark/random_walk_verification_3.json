@@ -16,7 +16,7 @@
     "state_space_dimension": 1,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
     "dynamics": [
       {
@@ -49,6 +49,7 @@
     "preposition_lookup": {
       "a": "S1 <= 50",
       "b": "S1 <= 0"
-    }
+    },
+    "hoa_path": "/Users/pouyasadeghi/PycharmProjects/SMU1/src/benchmark/aUb.hoa"
   }
 }
