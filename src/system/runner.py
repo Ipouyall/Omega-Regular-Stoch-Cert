@@ -13,6 +13,7 @@ from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
+from .certificate.bbdC import BuchiBoundedDifferenceConstraint
 from .certificate.beiC import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
@@ -305,6 +306,20 @@ class Runner:
         for t in strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
+        buchi_bounded_difference_generator = BuchiBoundedDifferenceConstraint(
+            template_manager=self.history["template"],
+            invariant=self.history["invariant template"],
+            system_space=self.history["space"],
+            decomposed_control_policy=self.history["control policy"],
+            disturbance=self.history["disturbance"],
+            system_dynamics=self.history["sds"],
+            automata=self.history["ldba"],
+        )
+        buchi_bounded_difference_constraints = buchi_bounded_difference_generator.extract()
+        self.pbar.write("+ Generated 'Buchi Bounded Difference Constraints' successfully.")
+        for t in buchi_bounded_difference_constraints:
+            self.pbar.write(f"  + {t.to_detail_string()}")
+
         bounded_expected_increase_generator = BoundedExpectedIncreaseConstraint(
             template_manager=self.history["template"],
             invariant=self.history["invariant template"],
@@ -336,6 +351,7 @@ class Runner:
             "safety": safety_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "bounded_expected_increase": bounded_expected_increase_constraints,
+            "buchi_bounded_difference": buchi_bounded_difference_constraints,
             "controller_bound": controller_bound_constraints,
         }
 

@@ -200,7 +200,7 @@ class SystemDecomposedControlPolicy:
         if policy_type.value == PolicyType.BUCHI.value:
             if policy_id is None and len(self.policies) > 2:
                 raise ValueError("Policy ID is required for Buchi policies.")
-            if policy_id >= len(self.policies) - 1 or policy_id < 0:
+            if policy_id is not None and (policy_id >= len(self.policies) - 1 or policy_id < 0):
                 raise ValueError(f"Invalid policy ID: {policy_id}.")
             if policy_id is not None:
                 return self.policies[policy_id+1]
