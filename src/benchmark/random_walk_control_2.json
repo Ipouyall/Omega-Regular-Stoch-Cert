@@ -18,7 +18,7 @@
     "state_space_dimension": 1,
     "control_space_dimension": 1,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
     "dynamics": [
       {
@@ -37,7 +37,7 @@
   },
 
   "synthesis_config": {
-    "use_linear_invariant": false,
+    "use_linear_invariant": true,
     "maximal_polynomial_degree": 1,
     "epsilon": 0.000000000000001,
     "probability_threshold": 0.1,
