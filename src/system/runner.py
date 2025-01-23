@@ -234,7 +234,7 @@ class Runner:
     @stage_logger
     def _run_template_synthesis(self):
         certificate_variables = CertificateVariables(
-            probability_threshold=0.5,
+            probability_threshold=self.history["initiator"].synthesis_config_pre["probability_threshold"],
             epsilon_safe=0.1,
             delta_safe=1,
         )
@@ -352,7 +352,7 @@ class Runner:
             "safety": safety_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "bounded_expected_increase": bounded_expected_increase_constraints,
-            "buchi_bounded_difference": buchi_bounded_difference_constraints,
+            # "buchi_bounded_difference": buchi_bounded_difference_constraints,
             "controller_bound": controller_bound_constraints,
         }
 

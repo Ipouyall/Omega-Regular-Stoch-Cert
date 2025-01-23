@@ -35,6 +35,14 @@ class SafetyConditionHandler:
         )   ### TODO: This part can be passed for optimization
         next_state_under_policy = system_dynamics(control_action)  # Dict: {state_id: StringEquation}   ### TODO: This part can be passed for optimization
 
+        noise_bounds = self.disturbance.get_bounds()
+        lower_bounds = {var: bounds["min"] for var, bounds in noise_bounds.items()}
+        upper_bounds = {var: bounds["max"] for var, bounds in noise_bounds.items()}
+        inv_noise_bound = {
+            "lower": lower_bounds,
+            "upper": upper_bounds,
+        }
+
         current_v_safety = self.template_manager.safe_template.sub_templates[str(current_state.state_id)]
         _next_possible_v_safeties = (
             self.template_manager.safe_template.sub_templates[str(tr.destination)]
@@ -73,23 +81,24 @@ class SafetyConditionHandler:
         ) # V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
         _guarded_sed = (
             GuardedInequality(
-                inequality=_sed,
-                guard=_label,
+                inequality=[
+                    _sed,
+                    *invariant_inductive_inequality_give_transition(
+                        next_state_under_policy=next_state_under_policy,
+                        zero_equation=self.template_manager.variables.zero_eq,
+                        invariant_template_manager=self.invariant,
+                        next_state_id=str(_tr.destination),
+                        noise_bounds=inv_noise_bound,
+                    ),
+                ],
+                guard=_tr.label,
                 aggregation_type=ConstraintAggregationType.CONJUNCTION,
                 lookup_table=self.automata.lookup_table,
             )
-            for _sed, _label in zip(_strict_expected_decrease_inequalities, _next_transitions_label)
+            for _sed, _tr in zip(_strict_expected_decrease_inequalities, current_state.transitions)
         ) #  (X |= a) and (V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{safety})
 
         beta_safety = self.template_manager.variables.Beta_safe_eq
-
-        noise_bounds = self.disturbance.get_bounds()
-        lower_bounds = {var: bounds["min"] for var, bounds in noise_bounds.items()}
-        upper_bounds = {var: bounds["max"] for var, bounds in noise_bounds.items()}
-        inv_noise_bound = {
-            "lower": lower_bounds,
-            "upper": upper_bounds,
-        }
 
         _next_possible_v_safeties_bounded = {
             "lower": (_replace_keys_with_values(_v, lower_bounds) for _v in next_possible_v_safeties_str),
@@ -110,8 +119,7 @@ class SafetyConditionHandler:
 
         _inequalities_itr = zip(
             _current_v_sub_beta_sub_next_possible_v["lower"],
-            _current_v_sub_beta_sub_next_possible_v["upper"],
-            (tr.destination for tr in current_state.transitions)
+            _current_v_sub_beta_sub_next_possible_v["upper"]
         )
         _safety_inequalities = (
             [
@@ -136,22 +144,14 @@ class SafetyConditionHandler:
                     inequality_type=EquationConditionType.LESS_THAN_OR_EQUAL,
                     right_equation=self.template_manager.variables.delta_safe_eq
                 ),
-
-                *invariant_inductive_inequality_give_transition(
-                    next_state_under_policy=next_state_under_policy,
-                    zero_equation=self.template_manager.variables.zero_eq,
-                    invariant_template_manager=self.invariant,
-                    next_state_id=str(next_state_id),
-                    noise_bounds=inv_noise_bound,
-                ),
             ]
-            for _v_e_b_lower, _v_e_b_upper, next_state_id in _inequalities_itr
+            for _v_e_b_lower, _v_e_b_upper in _inequalities_itr
         )
 
         return [
             SubConstraint(
                 expr_1=_sed, # X |= a & V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
-                # expr_2=_safety, # V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0 & V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}
+                expr_2=_safety, # V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0 & V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}
                 aggregation_type=ConstraintAggregationType.CONJUNCTION
             )
             for _sed, _safety in zip(_guarded_sed, _safety_inequalities)
