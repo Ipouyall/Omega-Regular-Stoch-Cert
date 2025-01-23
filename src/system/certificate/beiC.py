@@ -6,7 +6,7 @@ from .safety_condition import SafetyConditionHandler
 from .utils import _replace_keys_with_values, get_policy_action_given_current_abstract_state
 from .invariant.template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
-from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
 from ..automata.sub_graph import AutomataState
 from ..dynamics import SystemDynamics, ConditionalDynamics

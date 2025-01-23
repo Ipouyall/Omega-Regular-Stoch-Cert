@@ -306,19 +306,19 @@ class Runner:
         for t in strict_expected_decrease_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
 
-        buchi_bounded_difference_generator = BuchiBoundedDifferenceConstraint(
-            template_manager=self.history["template"],
-            invariant=self.history["invariant template"],
-            system_space=self.history["space"],
-            decomposed_control_policy=self.history["control policy"],
-            disturbance=self.history["disturbance"],
-            system_dynamics=self.history["sds"],
-            automata=self.history["ldba"],
-        )
-        buchi_bounded_difference_constraints = buchi_bounded_difference_generator.extract()
-        self.pbar.write("+ Generated 'Buchi Bounded Difference Constraints' successfully.")
-        for t in buchi_bounded_difference_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        # buchi_bounded_difference_generator = BuchiBoundedDifferenceConstraint(
+        #     template_manager=self.history["template"],
+        #     invariant=self.history["invariant template"],
+        #     system_space=self.history["space"],
+        #     decomposed_control_policy=self.history["control policy"],
+        #     disturbance=self.history["disturbance"],
+        #     system_dynamics=self.history["sds"],
+        #     automata=self.history["ldba"],
+        # )
+        # buchi_bounded_difference_constraints = buchi_bounded_difference_generator.extract()
+        # self.pbar.write("+ Generated 'Buchi Bounded Difference Constraints' successfully.")
+        # for t in buchi_bounded_difference_constraints:
+        #     self.pbar.write(f"  + {t.to_detail_string()}")
 
         bounded_expected_increase_generator = BoundedExpectedIncreaseConstraint(
             template_manager=self.history["template"],
@@ -334,6 +334,7 @@ class Runner:
         self.pbar.write("+ Generated 'Bounded Expected Increase Constraints' successfully.")
         for t in bounded_expected_increase_constraints:
             self.pbar.write(f"  + {t.to_detail_string()}")
+
         controller_boundary_generator = ControllerBounds(
             template_manager=self.history["template"],
             system_space=self.history["space"],
@@ -351,7 +352,6 @@ class Runner:
             "safety": safety_constraints,
             "strict_expected_decrease": strict_expected_decrease_constraints,
             "bounded_expected_increase": bounded_expected_increase_constraints,
-            "buchi_bounded_difference": buchi_bounded_difference_constraints,
             "controller_bound": controller_bound_constraints,
         }
 
