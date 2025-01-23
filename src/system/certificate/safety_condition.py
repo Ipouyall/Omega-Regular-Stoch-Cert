@@ -146,7 +146,7 @@ class SafetyConditionHandler:
                 ),
             ]
             for _v_e_b_lower, _v_e_b_upper in _inequalities_itr
-        )
+        ) # [V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0] & [V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}]
 
         return [
             SubConstraint(
@@ -156,5 +156,3 @@ class SafetyConditionHandler:
             )
             for _sed, _safety in zip(_guarded_sed, _safety_inequalities)
         ]
-
-

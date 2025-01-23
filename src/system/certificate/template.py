@@ -79,8 +79,8 @@ class CertificateVariables:
     epsilon_safe: float  # Recommended as 0.1
     delta_safe: float  # Recommended as 1
     eta_safe: float = field(init=False)  # Recommended as [1/(8*epsilon_safe)*(delta_safe^2)*ceil(log(p))]
-    epsilon_buchi: float = field(init=False, default=1e-15)
-    delta_buchi: float = field(init=False, default=1e-15)
+    epsilon_buchi: float = field(init=False, default=1e-5)
+    delta_buchi: float = field(init=False, default=1e-5)
 
     eta_safe_eq: Equation = field(init=False)
     Beta_safe_eq: Equation = field(init=False)
