@@ -234,7 +234,7 @@ class Runner:
     @stage_logger
     def _run_template_synthesis(self):
         certificate_variables = CertificateVariables(
-            probability_threshold=0.5,
+            probability_threshold=self.history["initiator"].synthesis_config_pre["probability_threshold"],
             epsilon_safe=0.1,
             delta_safe=1,
         )
