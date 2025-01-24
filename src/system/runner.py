@@ -364,6 +364,11 @@ class Runner:
         for k, v in self.history["constraints"].items():
             self.pbar.write(f"  + {k}: {len(v)}x")
 
+        self.pbar.write(f"+ Number of constants: {len(constants)}")
+        self.pbar.write(f"  + From Control Policy: {len(self.history['control policy'].get_generated_constants())}")
+        self.pbar.write(f"  + From Certificate Template: {len(self.history['template'].get_generated_constants())}")
+        self.pbar.write(f"  + From Invariant Template: {len(self.history['invariant template'].get_generated_constants())}")
+
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
             **self.history.get("invariant_constraints", {}),
