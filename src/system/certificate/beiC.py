@@ -101,29 +101,11 @@ class BoundedExpectedIncreaseConstraint(Constraint):
             for _exp in _expected_next_possible_v_buchies
         ]  # \delta_{Buchi} + E[V_{buchi}(s', q')] - V_{Buchi}(s, q) >= 0
 
-        # _current_v_buchies_add_delta = (
-        #     self.template_manager.variables.delta_buchi_eq.add(_v)
-        #     for _v in _expected_next_possible_v_reaches
-        # )  # \delta_{Buchi} + E[V_{buchi}(s', q')]
-
-        # _expected_next_possible_v_reaches_add_delta_sub_buchi = (
-        #     _v.sub(current_v_buchi)
-        #     for _v in _expected_next_possible_v_reaches_add_delta
-        # )  # \delta_{Buchi} + E[V_{buchi}(s', q')] - V_{Buchi}(s, q)
-
-        # bounded_expected_increase_inequalities = [
-        #     Inequality(
-        #         left_equation=_bei,
-        #         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
-        #         right_equation=self.template_manager.variables.zero_eq,
-        #     )
-        #     for _bei in _expected_next_possible_v_reaches_add_delta_sub_buchi
-        # ]  # \delta_{Buchi} + E[V_{buchi}(s', q')] - V_{Buchi}(s, q) >= 0
         assert len(safety_constraints) == len(bounded_expected_increase_inequalities), "Safety constraints and bounded expected increase inequalities should have the same length."
 
         rhs_term_wise = [
             SubConstraint(
-                expr_1=_safe,
+                # expr_1=_safe,
                 expr_2=_bei,
                 aggregation_type=ConstraintAggregationType.CONJUNCTION,
             )
