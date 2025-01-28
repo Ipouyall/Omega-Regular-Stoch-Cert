@@ -105,7 +105,7 @@ class BoundedExpectedIncreaseConstraint(Constraint):
 
         rhs_term_wise = [
             SubConstraint(
-                # expr_1=_safe,
+                expr_1=_safe,
                 expr_2=_bei,
                 aggregation_type=ConstraintAggregationType.CONJUNCTION,
             )
