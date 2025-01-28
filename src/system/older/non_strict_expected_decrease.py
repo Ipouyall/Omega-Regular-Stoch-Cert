@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.system.certificate.constraint import ConstraintInequality, ConstraintAggregationType, GuardedInequality, SubConstraint
+from src.system.certificate.constraint import ConstraintImplication, ConstraintAggregationType, GuardedInequality, SubConstraint
 from src.system.certificate.constraintI import Constraint
 from src.system.certificate.utils import _replace_keys_with_values
 from src.system.certificate.invariant.template import InvariantTemplate

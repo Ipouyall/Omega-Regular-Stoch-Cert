@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
-from ..constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
+from ..constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint, GuardedInequality
 from ..constraintI import Constraint
 from .template import InvariantTemplate
 from ...action import SystemDecomposedControlPolicy, SystemControlPolicy, PolicyType
@@ -64,13 +64,13 @@ class InvariantInductiveConstraint(Constraint):
 
     def _extract_helper(
             self,
-            constraints: list[ConstraintInequality],
+            constraints: list[ConstraintImplication],
             system_dynamics: ConditionalDynamics,
             acceptance_signatures: List[int],
             eq_zero,
             disturbance_bounds_inequalities,
             all_available_variables
-    ) -> list[ConstraintInequality]:
+    ) -> list[ConstraintImplication]:
 
         for state in self.automata.states:
             current_i = self.template.templates[str(state.state_id)]
@@ -150,7 +150,7 @@ class InvariantInductiveConstraint(Constraint):
         ]
 
         constraints.append(
-            ConstraintInequality(
+            ConstraintImplication(
                 variables=all_available_variables,
                 lhs=implication_lhs,
                 rhs=SubConstraint(expr_1=rhs_inequalities,aggregation_type=ConstraintAggregationType.CONJUNCTION)

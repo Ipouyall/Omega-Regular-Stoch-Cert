@@ -25,6 +25,7 @@ from .certificate.safeC import SafetyConstraint
 from .certificate.safety_condition import SafetyConditionHandler
 from .certificate.sedC import StrictExpectedDecreaseConstraint
 from .certificate.template import LTLCertificateDecomposedTemplates, CertificateVariables
+from .certificate.variableC import TemplateVariablesConstraint
 from .config import SynthesisConfig
 from .dynamics import SystemDynamics
 from .noise import SystemStochasticNoise
@@ -235,7 +236,7 @@ class Runner:
     def _run_template_synthesis(self):
         certificate_variables = CertificateVariables(
             probability_threshold=self.history["initiator"].synthesis_config_pre["probability_threshold"],
-            epsilon_safe=0.1,
+            # epsilon_safe=0.1,
             delta_safe=1,
         )
         template = LTLCertificateDecomposedTemplates(
@@ -332,7 +333,17 @@ class Runner:
             for t in controller_bound_constraints:
                 self.pbar.write(f"  + {t.to_detail_string()}")
 
+        variables_gen = TemplateVariablesConstraint(
+            template_manager=self.history["template"]
+        )
+        variables_constraints = variables_gen.extract()
+        if len(variables_constraints) > 0:
+            self.pbar.write("+ Generated 'Template Variables Constraints' successfully.")
+            for t in variables_constraints:
+                self.pbar.write(f"  + {t.to_detail_string()}")
+
         self.history["constraints"] = {
+            "template_variables": variables_constraints,
             "initial_space": initial_space_constraints,
             "non_negativity": non_negativity_constraints,
             "safety": safety_constraints,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.system.certificate.constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from src.system.certificate.constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from src.system.certificate.constraintI import Constraint
 from src.system.certificate.invariant.template import InvariantTemplate
 from src.system.certificate.template import LTLCertificateDecomposedTemplates

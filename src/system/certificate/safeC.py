@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from .constraintI import Constraint
 from .invariant.template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
@@ -16,7 +16,7 @@ class SafetyConstraint(Constraint):
     system_space: SystemSpace
     automata: Automata
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
         self._extract_safety_on_rejecting_set(constraints=constraints)
         return constraints
@@ -34,7 +34,7 @@ class SafetyConstraint(Constraint):
             )
 
             constraints.append(
-                ConstraintInequality(
+                ConstraintImplication(
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(
                         expr_1=self.system_space.space_inequalities,

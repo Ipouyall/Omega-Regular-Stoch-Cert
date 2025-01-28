@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from .constraintI import Constraint
 from .template import LTLCertificateDecomposedTemplates
 from ..action import SystemDecomposedControlPolicy
@@ -17,7 +17,7 @@ class ControllerBounds(Constraint):
 
     __slots__ = ["decomposed_control_policy", "system_space", "template_manager"]
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
         limits = self.decomposed_control_policy.get_limits()
         min_limit = limits["min"]
@@ -33,7 +33,7 @@ class ControllerBounds(Constraint):
                 if not _ineqs:
                     continue
                 constraints.append(
-                    ConstraintInequality(
+                    ConstraintImplication(
                         variables=self.template_manager.variable_generators,
                         lhs=SubConstraint(expr_1=self.system_space.space_inequalities, aggregation_type=ConstraintAggregationType.CONJUNCTION),
                         rhs=SubConstraint(expr_1=_ineqs, aggregation_type=ConstraintAggregationType.CONJUNCTION),
