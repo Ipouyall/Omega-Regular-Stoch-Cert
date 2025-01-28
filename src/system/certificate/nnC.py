@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from .constraintI import Constraint
 from .invariant.template import InvariantTemplate
 from .template import LTLCertificateDecomposedTemplates
@@ -19,7 +19,7 @@ class NonNegativityConstraint(Constraint):
 
     __slots__ = ["template_manager", "system_space", "invariant"]
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
         self._extract_buchi(constraints=constraints)
         return constraints
@@ -27,7 +27,7 @@ class NonNegativityConstraint(Constraint):
     def _extract_buchi(self, constraints):
         for q_id in self.template_manager.buchi_template.sub_templates.keys():
             constraints.append(
-                ConstraintInequality(
+                ConstraintImplication(
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(
                         expr_1=self.system_space.space_inequalities,

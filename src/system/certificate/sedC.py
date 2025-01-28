@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from .constraintI import Constraint
 from .safety_condition import SafetyConditionHandler
 from .utils import _replace_keys_with_values, get_policy_action_given_current_abstract_state
@@ -32,13 +32,13 @@ class StrictExpectedDecreaseConstraint(Constraint):
         "disturbance", "automata", "system_dynamics", "safety_condition_handler"
     ]
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
         for dynamics in self.system_dynamics.system_transformations:
             self._extract_sed_given_dynamics(constraints=constraints, system_dynamics=dynamics)
         return constraints
 
-    def _extract_sed_given_dynamics(self, constraints: list[ConstraintInequality], system_dynamics: ConditionalDynamics):
+    def _extract_sed_given_dynamics(self, constraints: list[ConstraintImplication], system_dynamics: ConditionalDynamics):
         for state in self.automata.states:
             if state.is_in_accepting_signature(acc_sig=None) or state.is_rejecting():
                 continue
@@ -49,7 +49,7 @@ class StrictExpectedDecreaseConstraint(Constraint):
                 right_equation=self.template_manager.variables.zero_eq,
             )
             constraints.append(
-                ConstraintInequality(
+                ConstraintImplication(
                     variables=self.template_manager.variable_generators,
                     lhs=SubConstraint(
                         expr_1=self.system_space.space_inequalities + system_dynamics.condition,

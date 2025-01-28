@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from ..constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from ..constraintI import Constraint
 from .template import InvariantTemplate
 from ...automata.graph import Automata
@@ -18,7 +18,7 @@ class InvariantInitialConstraint(Constraint):
 
     __slots__ = ["template", "system_space", "initial_space", "automata"]
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         _eq_zero = Equation.extract_equation_from_string("0")
         _initial_state = self.automata.start_state_id
         _ineq = Inequality(
@@ -31,7 +31,7 @@ class InvariantInitialConstraint(Constraint):
             aggregation_type=ConstraintAggregationType.CONJUNCTION
         )
         return [
-            ConstraintInequality(
+            ConstraintImplication(
                 variables=self.template.variable_generators,
                 lhs=SubConstraint(
                     expr_1=self.system_space.space_inequalities + self.initial_space.space_inequalities,

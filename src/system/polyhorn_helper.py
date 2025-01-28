@@ -1,6 +1,6 @@
 import json
 import os.path
-from .certificate.constraint import ConstraintInequality
+from .certificate.constraint import ConstraintImplication
 
 from polyhorn.main import execute
 
@@ -12,7 +12,7 @@ class CommunicationBridge:
     __get_model_template = "(get-model)"
 
     @staticmethod
-    def get_input_string(generated_constants: set[str], **certificate: list[ConstraintInequality]) -> str:
+    def get_input_string(generated_constants: set[str], **certificate: list[ConstraintImplication]) -> str:
         constants = "\n".join(
             CommunicationBridge.__constant_definition_template.format(const_name=const)
             for const in generated_constants

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint, GuardedInequality
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint, GuardedInequality
 from .constraintI import Constraint
 from .safety_condition import SafetyConditionHandler
 from .invariant.template import InvariantTemplate
@@ -29,7 +29,7 @@ class BuchiBoundedDifferenceConstraint(Constraint):
         "disturbance", "automata", "system_dynamics"
     ]
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
 
         disturbance_var_gens = [f"D{i + 1}" for i in range(self.disturbance.dimension)]
@@ -64,7 +64,7 @@ class BuchiBoundedDifferenceConstraint(Constraint):
             )
         return constraints
 
-    def _extract_bbd_given_dynamics(self, constraints: list[ConstraintInequality], system_dynamics: ConditionalDynamics, disturbance_bounds: list[Inequality], all_available_variables):
+    def _extract_bbd_given_dynamics(self, constraints: list[ConstraintImplication], system_dynamics: ConditionalDynamics, disturbance_bounds: list[Inequality], all_available_variables):
         for state in self.automata.states:
             current_v_safe = self.template_manager.safe_template.sub_templates[str(state.state_id)]
             if self.decomposed_control_policy.action_dimension == 0: # TODO: Later fix this using utils for extracting policy
@@ -105,7 +105,7 @@ class BuchiBoundedDifferenceConstraint(Constraint):
                     next_states_under_policies=next_states_under_policies,
                 )
 
-                constraint = ConstraintInequality(
+                constraint = ConstraintImplication(
                     variables=all_available_variables,
                     lhs=lhs,
                     rhs=rhs,

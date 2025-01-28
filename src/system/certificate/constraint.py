@@ -195,7 +195,7 @@ class SubConstraint:
 
 
 @dataclass
-class ConstraintInequality:
+class ConstraintImplication:
     """
     Lists are treated as 'and' conditions.
     You cannot have both left-hand side and right-hand side as None.
@@ -228,7 +228,7 @@ class ConstraintInequality:
     @staticmethod
     def _to_smt_preorder_helper(inequality: Union[SubConstraint|None]) -> str:
         if inequality is None:
-            return ConstraintInequality._none_to_smt_preorder()
+            return ConstraintImplication._none_to_smt_preorder()
         return inequality.to_smt_preorder()
 
     def to_polyhorn_preorder(self) -> str:
@@ -270,3 +270,19 @@ class ConstraintInequality:
         if _lhs is None:
             return f"FORALL: {_variables}  THEN: {_rhs}"
         return f"FORALL: {_variables}  IF: {_lhs}  THEN: {_rhs}"
+
+
+@dataclass
+class ConstraintConstant:
+    sub_constraints: SubConstraint
+
+    def to_polyhorn_preorder(self) -> str:
+        _assertion = self.sub_constraints.to_smt_preorder()
+
+        return f"(assert {_assertion})"
+
+    def to_detail_string(self):
+        return self.sub_constraints.to_detailed_string()
+
+    def __str__(self):
+        return str(self.sub_constraints)

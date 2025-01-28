@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .constraint import ConstraintInequality, ConstraintAggregationType, SubConstraint
+from .constraint import ConstraintImplication, ConstraintAggregationType, SubConstraint
 from .constraintI import Constraint
 from .template import LTLCertificateDecomposedTemplates
 from ..automata.graph import Automata
@@ -15,7 +15,7 @@ class InitialSpaceConstraint(Constraint):
     initial_space: SystemSpace
     automata: Automata
 
-    def extract(self) -> list[ConstraintInequality]:
+    def extract(self) -> list[ConstraintImplication]:
         constraints = []
         self.extraxt_safe(constraints=constraints)
         return constraints
@@ -34,7 +34,7 @@ class InitialSpaceConstraint(Constraint):
         )
 
         constraints.append(
-            ConstraintInequality(
+            ConstraintImplication(
                 variables=self.template_manager.variable_generators,
                 lhs=SubConstraint(
                     expr_1=self.system_space.space_inequalities + self.initial_space.space_inequalities,
