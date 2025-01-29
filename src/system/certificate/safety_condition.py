@@ -68,15 +68,15 @@ class SafetyConditionHandler:
             )
             for _sed in _current_v_sub_safeties_epsilon_sub_expected_next_possible_v
         ) # V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
-        _guarded_sed = (
-            GuardedInequality(
-                inequality=_sed,
-                guard=_label,
-                aggregation_type=ConstraintAggregationType.CONJUNCTION,
-                lookup_table=self.automata.lookup_table,
-            )
-            for _sed, _label in zip(_strict_expected_decrease_inequalities, _next_transitions_label)
-        ) #  (X |= a) and (V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{safety})
+        # _guarded_sed = (
+        #     GuardedInequality(
+        #         inequality=_sed,
+        #         guard=_label,
+        #         aggregation_type=ConstraintAggregationType.CONJUNCTION,
+        #         lookup_table=self.automata.lookup_table,
+        #     )
+        #     for _sed, _label in zip(_strict_expected_decrease_inequalities, _next_transitions_label)
+        # ) #  (X |= a) and (V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{safety})
 
         beta_safety = self.template_manager.variables.Beta_safe_eq
 
@@ -134,9 +134,9 @@ class SafetyConditionHandler:
 
         return [
             SubConstraint(
-                expr_1=_sed, # X |= a & V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
+                expr_1=_sed, # V_{safety}(s, q) >= E[V_{safety}(s', q')] + \epsilon_{Safety}
                 expr_2=_safety, # V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') >= 0 & V_{safety}(s, q) - Beta_{safety} - V_{safety}(s', q') <= \delta_{Safety}
                 aggregation_type=ConstraintAggregationType.CONJUNCTION
             )
-            for _sed, _safety in zip(_guarded_sed, _safety_inequalities)
+            for _sed, _safety in zip(_strict_expected_decrease_inequalities, _safety_inequalities)
         ]
