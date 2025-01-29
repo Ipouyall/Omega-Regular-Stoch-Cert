@@ -98,7 +98,7 @@ class InvariantInductiveConstraint(Constraint):
                         left_equation=current_i,
                         inequality_type=EquationConditionType.GREATER_THAN_OR_EQUAL,
                         right_equation=eq_zero
-                    ),
+                    ), # INV(s, q) >= 0
                     aggregation_type=ConstraintAggregationType.CONJUNCTION,
                     lookup_table=self.automata.lookup_table,
                 ) for _guard in _next_possible_i_guards
