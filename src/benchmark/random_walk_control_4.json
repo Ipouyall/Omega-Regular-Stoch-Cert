@@ -1,20 +1,22 @@
 {
   "actions": {
     "maximal_polynomial_degree": 1,
-    "control_policy": []
+    "control_policy": [],
+    "minimum": -2,
+    "maximum": 2
   },
 
   "disturbance": {
     "distribution_name": "uniform",
     "disturbance_parameters": {
-      "lower_bound": [-2],
+      "lower_bound": [0],
       "upper_bound": [1]
     }
   },
 
   "stochastic_dynamical_system": {
     "state_space_dimension": 1,
-    "control_space_dimension": 0,
+    "control_space_dimension": 1,
     "disturbance_space_dimension": 1,
     "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
@@ -22,11 +24,11 @@
       {
         "condition": "S1 <= 100",
         "transforms": [
-          "S1 + D1"
+          "S1 + D1 + A1"
         ]
       },
       {
-        "condition": "S1 >= 100",
+        "condition": "100 <= S1",
         "transforms": [
           "S1"
         ]
@@ -38,17 +40,18 @@
     "use_linear_invariant": true,
     "maximal_polynomial_degree": 1,
     "epsilon": 0.000000000000001,
-    "probability_threshold": 0.99,
+    "probability_threshold": 0.9999,
     "theorem_name": "farkas",
     "solver_name": "z3",
     "owl_path": "../playground/rabinizer/owl"
   },
 
   "specification": {
-    "ltl_formula": "(GF a) & (GF b)",
+    "ltl_formula": "(G a) & (F b)",
     "preposition_lookup": {
       "a": "S1 <= 50",
       "b": "S1 <= 0"
-    }
+    },
+    "hoa_path": "/Users/pouyasadeghi/PycharmProjects/SMU1/src/benchmark/GaFb.hoa"
   }
 }
