@@ -1,6 +1,6 @@
 HOA: v1
 properties: complete deterministic no-univ-branch state-acc unambiguous 
-States: 3
+States: 2
 Start: 0
 AP: 1 "a"
 Acceptance: 1 Inf(0)
@@ -11,8 +11,6 @@ tool: "owl ltl2ldba" "21.0"
 State: 0
 [0] 1
 [!0] 0
-State: 1
-[t] 2
-State: 2 {0}
-[t] 2
+State: 1 {0}
+[t] 1
 --END--

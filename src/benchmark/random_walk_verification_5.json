@@ -38,18 +38,17 @@
     "use_linear_invariant": true,
     "maximal_polynomial_degree": 1,
     "epsilon": 0.000000000000001,
-    "probability_threshold": 0.9999,
+    "probability_threshold": 0.99,
     "theorem_name": "farkas",
     "solver_name": "z3",
     "owl_path": "../playground/rabinizer/owl"
   },
 
   "specification": {
-    "ltl_formula": "(G a) & (F b)",
+    "ltl_formula": "(F a) & (F b)",
     "preposition_lookup": {
       "a": "S1 <= 50",
       "b": "S1 <= 0"
-    },
-    "hoa_path": "/Users/pouyasadeghi/PycharmProjects/SMU1/src/benchmark/GaFb.hoa"
+    }
   }
 }
