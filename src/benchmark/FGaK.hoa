@@ -1,0 +1,23 @@
+HOA: v1
+properties: complete no-univ-branch state-acc 
+States: 4
+Start: 0
+AP: 1 "a"
+Acceptance: 1 Inf(0)
+acc-name: Buchi
+name: "Automaton for F(G(a))"
+tool: "Kaushik ltl2ldba" "21.0"
+--BODY--
+State: 0
+[!0] 0
+[0] 1
+State: 1
+[!0] 0
+[0] 1
+[t] 2
+State: 2 {0}
+[!0] 3
+[0] 2
+State: 3
+[t] 3
+--END--
