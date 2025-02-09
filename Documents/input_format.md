@@ -303,8 +303,8 @@ An example of the complete format of this section is as follows:
 - **ltl_formula:** The LTL formula.
 - **predicate_lookup:** A dictionary where the keys are the atomic propositions in the LTL formula and the values are the predicates that define them. The predicates should be defined as inequalities in the state variables.
 
-Note that **predicate_lookup** is an optional field, and you may not provide it. Consider the example below:
-    
+> [!NOTE]
+> The _predicate_lookup_ is an optional field, and you may not provide it. Consider the example below:
 ```json
 {
     "specification": {
@@ -313,7 +313,22 @@ Note that **predicate_lookup** is an optional field, and you may not provide it.
 }
 ```
 
-If you with to use **predicate_lookup**, you should only use `a-z` as atomic propositions in the LTL formula.
+> [!NOTE]
+> If you want to use **predicate_lookup**, you should only use `a-z` as atomic propositions in the LTL formula.
+
+Another option is to provide your HOA file, which is formatted as OWL's or Rabinizer's output. In this case, you should use the optional field _hoa_path_ in the _specification_ section.
+
+```json
+{
+  "specification": {
+    "ltl_formula": "F a",
+    "preposition_lookup": {
+      "a": "S1 <= 0"
+    },
+    "hoa_path": "<path to the HOA file>"
+  }
+}
+```
 
 ## Synthesis Config
 
