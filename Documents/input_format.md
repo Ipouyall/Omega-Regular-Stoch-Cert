@@ -162,11 +162,7 @@ The complete format of this section is as follows:
 {
   "actions": {
     "maximal_polynomial_degree": 3,
-    "control_policy": [
-      "S1 * 0.1",
-      "S2 * 0.2",
-      "S3 * 0.1 + S2 * S1"
-    ]
+    "control_policy": []
   }
 }
 ```
@@ -174,13 +170,20 @@ The complete format of this section is as follows:
 - **maximal_polynomial_degree:** The maximal degree of the polynomial that can be used in the control policy.
 - **control_policy:** A list of strings, each string represents a polynomial in the control policy. The variables in the polynomial should be defined as `S1`, `S2`, `S3`, etc.
 
-### Policy synthesis
-For policy synthesis, you should provide _control_policy_ as an empty list or just exclude this.
-The system would automatically synthesize the control policy, using polynomial degree _maximal_polynomial_degree_.
-if the _maximal_polynomial_degree_ is not provided, the system would use the _maximal_polynomial_degree_ provided in the _synthesis_config_ section.
-Please tone that in this setting, providing this while subsection is optional, and you may not provide it.
+Our proposed system can work in three modes: 
+- [Policy Synthesis](#policy-synthesis)
+- [Policy Verification](#policy-verification)
+- [System Verification](#system-verification)
 
-An example for this setting is as follows:
+> [!NOTE]
+> Since in none of our examples we have used policy validation, in this version, this option is disabled and the _control_policy_ field is always an empty list.
+
+### Policy synthesis
+<a name="policy-synthesis"></a>
+For policy synthesis, you should provide _control_policy_ as an empty list or just exclude this.
+The system would automatically synthesize the control policy, using polynomial degree _maximal_polynomial_degree_ or extract constants for the provided policy template and tries to propose values for these constants.
+
+An example of the _action_ section for this setting is as follows:
 
 ```json
 {
@@ -191,7 +194,16 @@ An example for this setting is as follows:
 }
 ```
 
+
+> [!TIP]
+> If the _maximal_polynomial_degree_ is not provided, the system would use the _maximal_polynomial_degree_ provided in the _synthesis_config_ section.
+
+> [!TIP]
+> Providing the _actions_ section is optional, as the system can generate the policy template automatically, and having assumption for the template degree.
+
+
 ### Policy verification
+<a name="policy-verification"></a>
 For policy verification, you should provide _control_policy_ as a list of strings, each string represents a polynomial in the control policy.
 Please note that index i in the list should represent the polynomial for the i-th state variable. the Actions for `control_space_dimension = m` are presented in dynamics as below:
 
@@ -203,21 +215,14 @@ $$
 
 Although _maximal_polynomial_degree_ seems not necessary for this setting, you should provide to enhance documentation of your sample.
 
-### SYStem verification
-For system verification, you won't have any actions in the system; it is recommended to define `control_space_dimension = m` (m=3 for example, but m=1 is the easiest option) and provide boiler template as below for accelerating:
+> [!IMPORTANT]
+> This setting is not supported in the current version of the system. You can directly insert the control policy in the dynamics section.
 
-```json
-{
-  "actions": {
-    "maximal_polynomial_degree": 1,
-    "control_policy": [
-      "A1",
-      "A2",
-      "Am"
-    ]
-  }
-}
-```
+### SYStem verification
+<a name="system-verification"></a>
+For system verification, you won't have any actions in the system.
+
+
 
 ## Disturbance
 The complete format of this section is as follows:
@@ -234,9 +239,13 @@ The complete format of this section is as follows:
 In this section, you define characteristics of the disturbance. Although you can have as many distributions as you want, 
 this implementation consider only one distribution. The _distribution_name_ should be one of the following:
 - **normal**
+- **uniform**
 
 After specifying the _distribution_name_, you should provide the parameters of the distribution in the _disturbance_parameters_ field.
 Please refer to the description of each distribution for more information.
+
+> [!IMPORTANT]
+> In the current version of the system, the disturbance should be always one-dimensional.
 
 ### Normal Distributions
 For this distribution, you should use _normal_ as the _distribution_name_ and for _disturbance_parameters_ should have two fields: _mean_ and _std_, which are lists of floats.
@@ -250,6 +259,23 @@ For example, for one dimensional normal distribution with `mean = 0 and standard
     "disturbance_parameters": {
       "mean": [0],
       "std": [1]
+    }
+  }
+}
+```
+
+### Uniform Distributions
+For this distribution, you should use _uniform_ as the _distribution_name_ and for _disturbance_parameters_ should have two fields: _lower_bound_ and _upper_bound_, which are lists of floats.
+
+For example, for one dimensional uniform distribution with `lower_bound = -2 and upper_bound = 1`, you should provide the following:
+
+```json
+{
+  "disturbance": {
+    "distribution_name": "uniform",
+    "disturbance_parameters": {
+      "lower_bound": [-2],
+      "upper_bound": [1]
     }
   }
 }
