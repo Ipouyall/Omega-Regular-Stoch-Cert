@@ -100,7 +100,8 @@ Some examples of invalid conditions for a 2-dimensional systems are:
 - `S1 <= 10 or S2 <= 10` \rightarrow Note that the token "or" is not defined for our parser. Only conjunctions are allowed.
 - `S1 + S2 <= 2*S1 + S2**2` \rightarrow This is invalid as our system won't consider variables at both sides of the inequality.
 
-**Note:** If your system has only one piece-wise transformation, in other words, you don't need to use the piece-wise option, use an always true condition for the _condition_ field, such as `0 <= 1`.
+> [!TIP]
+> If your system has only one piece-wise transformation, in other words, you don't need to use the piece-wise option, use an always true condition for the _condition_ field, such as `0 <= 1`.
 
 #### How to specify the transforms
 For a system with _n_ state variables, you should provide _n_ equations in the _transforms_ field. Each equation should be a polynomial in the state variables, action variables, and disturbance variables.
