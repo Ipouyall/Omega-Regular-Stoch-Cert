@@ -149,7 +149,7 @@ $$
 
 $$
 \begin{align*}
-\mathbf{D} &= \begin{bmatrix} D1 \end{bmatrix}
+\mathbf{D} &= \begin{bmatrix} D_1 \end{bmatrix}
 \end{align*}
 $$
 
