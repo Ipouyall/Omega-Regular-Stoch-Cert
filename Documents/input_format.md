@@ -93,12 +93,12 @@ The _condition_ field should be a predicate in the state variables, presented as
 Some examples of valid conditions for a 2-dimensional systems are:
 - `S1 <= 100`
 - `S1 + S2 <= 100`
-- `S1**2 + S2**2 <= 100` \rightarrow This is a circle with radius 10 centered at the origin.
-- `-2 <= S1 <= 2 and -2 <= S2 <= 2` \rightarrow This is a square with side length 4 centered at the origin.
+- `S1**2 + S2**2 <= 100` $\rightarrow$ This is a circle with radius 10 centered at the origin.
+- `-2 <= S1 <= 2 and -2 <= S2 <= 2` $\rightarrow$ This is a square with side length 4 centered at the origin.
 Some examples of invalid conditions for a 2-dimensional systems are:
-- `S3 <= 100` \rightarrow This is invalid because there is no `S3` variable. Note that the system is 2-dimensional.
-- `S1 <= 10 or S2 <= 10` \rightarrow Note that the token "or" is not defined for our parser. Only conjunctions are allowed.
-- `S1 + S2 <= 2*S1 + S2**2` \rightarrow This is invalid as our system won't consider variables at both sides of the inequality.
+- `S3 <= 100` $\rightarrow$ This is invalid because there is no `S3` variable. Note that the system is 2-dimensional.
+- `S1 <= 10 or S2 <= 10` $\rightarrow$ Note that the token "or" is not defined for our parser. Only conjunctions are allowed.
+- `S1 + S2 <= 2*S1 + S2**2` $\rightarrow$ This is invalid as our system won't consider variables at both sides of the inequality.
 
 > [!TIP]
 > If your system has only one piece-wise transformation, in other words, you don't need to use the piece-wise option, use an always true condition for the _condition_ field, such as `0 <= 1`.
