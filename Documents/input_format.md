@@ -16,22 +16,31 @@ and the second option is to split sections between multiple files. Moreover, you
 Here we discuss how each section should be defined.
 
 ## Stochastic Dynamical System
-The complete format of this section is as follows:
+
+This section defined the whole system schema, including the dynamics of the system, system's dimensions, noise dimensions, control dimensions, etc.
+An example for the format of this section is as follows:
 
 ```json
 {
   "stochastic_dynamical_system": {
-    "state_space_dimension": 7,
-    "control_space_dimension": 2,
+    "state_space_dimension": 1,
+    "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
+    "system_space": "S1 <= 150",
+    "initial_space": "2 <= S1 <= 3",
     "dynamics": [
-      "T1",
-      "T2",
-      "T3",
-      "T4",
-      "T5",
-      "T6",
-      "T7"
+      {
+        "condition": "S1 <= 100",
+        "transforms": [
+          "S1 + D1"
+        ]
+      },
+      {
+        "condition": "S1 >= 100",
+        "transforms": [
+          "S1"
+        ]
+      }
     ]
   }
 }
@@ -40,9 +49,11 @@ The complete format of this section is as follows:
 - **state_space_dimension:** The dimension of the state space.
 - **control_space_dimension:** The dimension of the control space. your policy is later defined as `π: Dim(StateSpace) -> Dim(ControlSpace)`.
 - **disturbance_space_dimension:** The dimension of the disturbance space.
-- **dynamics:** A list of strings, each string represents a polynomial in the dynamics. The variables in the polynomial should be defined as `S1`, `S2`, `S3`, etc. for state variables, `A1`, `A2`, `A3`, etc. for action variables, and `D1`, `D2`, `D3`, etc. for disturbance variables.
+- **system_space:** The constraints on the state space, which defines the system boundaries. The constraints should be defined as inequalities in the state variables.
+- **dynamics:** A list of piece-wise polynomial transformations, which represent the system's dynamics. Each transformation should have a _condition_ field and a _transforms_ field. The _condition_ field should be a predicate in the state variables, and the _transforms_ field should be a list of strings, each string represents a polynomial in the state variables, action variables, and disturbance variables.
 
-### How to specify each state dimension
+### How to specify each variable for system
+#### How to specify each state dimension
 To specify each state dimension's in the system dynamics for an _n_ dimensional environment, you can use variables below:
 $$
 \begin{align*}
@@ -52,7 +63,7 @@ $$
 
 For example, `S1` refers to the first state variable, `S2` refers to the second state variable, and so on.
 
-### How to specify each action dimension
+#### How to specify each action dimension
 To specify each action dimension's in the system dynamics for an _m_ dimensional environment, you can use variables below:
 $$
 \begin{align*}
@@ -62,7 +73,7 @@ $$
 
 For example, `A1` refers to the first action variable, `A2` refers to the second action variable, and so on.
 
-### How to specify each disturbance dimension
+#### How to specify each disturbance dimension
 To specify each disturbance dimension's in the system dynamics for an _k_ dimensional environment, you can use variables below:
 $$
 \begin{align*}
@@ -73,7 +84,26 @@ $$
 For example, `D1` refers to the first disturbance variable, `D2` refers to the second disturbance variable, and so on.
 
 ### How to specify each dynamics
-For a system with _n_ state variables, you should provide _n_ equations in the _dynamics_ field. Each equation should be a polynomial in the state variables, action variables, and disturbance variables.
+
+Dynamics of a system should be defined as a list of piece-wise polynomial transformations. Each transformation should have a _condition_ field and a _transforms_ field.
+
+#### How to specify the condition
+The _condition_ field should be a predicate in the state variables, presented as a string. They should use the predicate's valid format and be defined over state variables.
+
+Some examples of valid conditions for a 2-dimensional systems are:
+- `S1 <= 100`
+- `S1 + S2 <= 100`
+- `S1**2 + S2**2 <= 100` \rightarrow This is a circle with radius 10 centered at the origin.
+- `-2 <= S1 <= 2 and -2 <= S2 <= 2` \rightarrow This is a square with side length 4 centered at the origin.
+Some examples of invalid conditions for a 2-dimensional systems are:
+- `S3 <= 100` \rightarrow This is invalid because there is no `S3` variable. Note that the system is 2-dimensional.
+- `S1 <= 10 or S2 <= 10` \rightarrow Note that the token "or" is not defined for our parser. Only conjunctions are allowed.
+- `S1 + S2 <= 2*S1 + S2**2` \rightarrow This is invalid as our system won't consider variables at both sides of the inequality.
+
+**Note:** If your system has only one piece-wise transformation, in other words, you don't need to use the piece-wise option, use an always true condition for the _condition_ field, such as `0 <= 1`.
+
+#### How to specify the transforms
+For a system with _n_ state variables, you should provide _n_ equations in the _transforms_ field. Each equation should be a polynomial in the state variables, action variables, and disturbance variables.
 Each equation should be defined as a string, where the variables are defined as `S1`, `S2`, `S3`, etc. for state variables, `A1`, `A2`, `A3`, etc. for action variables, and `D1`, `D2`, `D3`, etc. for disturbance variables.
 Consider the example dynamics below for a system with 3 state variables:
 ```json
@@ -82,7 +112,9 @@ Consider the example dynamics below for a system with 3 state variables:
     "state_space_dimension": 3,
     "control_space_dimension": 2,
     "disturbance_space_dimension": 1,
-    "dynamics": [
+    "system_space": "...",
+    "initial_space": "...",
+    "transforms": [
       "T1",
       "T2",
       "T3"
@@ -117,6 +149,8 @@ $$
 \mathbf{D} &= \begin{bmatrix} D1 \end{bmatrix}
 \end{align*}
 $$
+
+
 
 ## Actions
 The complete format of this section is as follows:
