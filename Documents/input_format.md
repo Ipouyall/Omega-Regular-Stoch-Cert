@@ -124,6 +124,7 @@ Consider the example dynamics below for a system with 3 state variables:
 }
 ```
 We can define:
+
 $$
 \begin{align*}
 S^{'}_1 = T1(S,A,D) \\
