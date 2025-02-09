@@ -129,7 +129,6 @@ class IOParser:
         synthesis_config = {
             "maximal_polynomial_degree": data["synthesis_config"]["maximal_polynomial_degree"],
             "probability_threshold": data["synthesis_config"]["probability_threshold"],
-            "epsilon": data["synthesis_config"]["epsilon"],
             "theorem_name": data["synthesis_config"]["theorem_name"],
             "solver_name": data["synthesis_config"]["solver_name"],
             "owl_path": data["synthesis_config"]["owl_path"],
