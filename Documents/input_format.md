@@ -134,6 +134,7 @@ S^{'}_3 = T3(S,A,D) \\
 $$
 
 Where:
+
 $$
 \begin{align*}
 \mathbf{S} &= \begin{bmatrix} S_1 & S_2 & S_3 \end{bmatrix}
