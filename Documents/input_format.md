@@ -317,37 +317,29 @@ If you with to use **predicate_lookup**, you should only use `a-z` as atomic pro
 
 ## Synthesis Config
 
-The complete format of this section is as follows:
+An example of a complete form of this section is as follows:
 
 ```json
 {
   "synthesis_config": {
-    "maximal_polynomial_degree": 2,
-    "epsilon": 0.00000000001,
-    "probability_threshold": 0.1,
-    "theorem_name": "handelman",
+    "use_linear_invariant": false,
+    "maximal_polynomial_degree": 1,
+    "probability_threshold": 0.99,
+    "theorem_name": "farkas",
     "solver_name": "z3",
     "owl_path": "<path to the owl binary in your system>"
   }
 }
 ```
 
-- **maximal_polynomial_degree:** The maximal degree of the polynomial. This parameter is used to inform thr solver and potentially it might be used to determine the degree of the polynomial in the control policy (if not provided there).
-- **epsilon:** The epsilon value.
+There exist several parameters in this section:
+
+- **use_linear_invariant:** A boolean value that determines whether the system should use a linear invariant or not. If it set to `true`, the system would synthesize a linear invariant for the system. If it set to `false`, the system would synthesize an invariant for the system as well.
+- **maximal_polynomial_degree:** The maximal degree of the polynomial. This parameter is used to synthesize certificate's template, inform the solver, and potentially it might be used to determine the degree of the polynomial in the control policy (if not provided there).
 - **probability_threshold:** The probability threshold.
-- **theorem_name:** The name of the theorem to be used.
-- **solver_name:** The name of the solver to be used.
+- **theorem_name:** The name of the theorem to be used. This can be one of `farkas`, `handelman`, or `putinar`.
+- **solver_name:** The name of the solver to be used. It can be one of `z3` or `mathsat`. Based on the OS, you might be limited to `z3`.
 - **owl_path:** The path to the owl binary in your system, to convert the LTL formula to an automaton.
 
-### Theorem Name
-The following theorem names are supported:
-- **handelman** (this option is suggested whenever possible)
-- **putinar**
-
-### Solver Name
-The following solver names are supported:
-- **z3** (this option is what we used as default)
-- **mathsat**
-
-## Example
-An example of the system's input:
+> [!TIP]
+> If you specify _hoa_path_ in the _synthesis_config_ section, the system would read the provided HOA file and consider that automata, instead of converting the LTL formula to an automaton.
