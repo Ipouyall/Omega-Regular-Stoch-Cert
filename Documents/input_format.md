@@ -10,8 +10,12 @@ The input file consists of 5 subsections:
 
 You can use two organization, the first option is to define all sections is a file, 
 and the second option is to split sections between multiple files. Moreover, you can use JSON or YAML format.
-    
-    For the webUI version, don't split each subsection sections to multiple files. Also, system alyways assumes the inputs are valid.
+
+> [!TIP]
+> For the webUI version, don't split each subsection sections to multiple files.
+
+> [!TIP]
+> System always assumes the inputs are valid and may not check for all errors before running the system.
 
 Here we discuss how each section should be defined.
 
