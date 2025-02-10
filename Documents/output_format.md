@@ -29,10 +29,12 @@ An example of a model is as below:
 ```
 
 The model consists of the following 4+1 parts:
-1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, and $M$.
+1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, and $M$. 
 2. **Invariant**: The invariants that are synthesized by the system. They are presented in the format of `I_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the invariant template. Although this part is optional, we used invariant in all of our benchmarks.
 3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
 4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
 5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set index and is always 1, and $j$ is the index of the constant in the policy template.
- s
+
+
+[//]: # (Remember that Delta_safe is hard-coded as 1, this should be mentioned somewhere.)
 
