@@ -38,3 +38,6 @@ The model consists of the following 4+1 parts:
 
 [//]: # (Remember that Delta_safe is hard-coded as 1, this should be mentioned somewhere.)
 
+
+To extract the invariant's template, given the constants, for a 1D system, the following formula can be used:
+$$\forall^{i \in Q} I_{i}(S) = \sum_{j=1}^{n+1} I\_{i}\_{j} * S1^{j-1}$$
