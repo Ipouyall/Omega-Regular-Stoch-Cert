@@ -64,19 +64,23 @@ This section defines the system schema, including its dynamics, dimensions, cons
 ### Variable Specification
 #### State Variables
 For an _n_-dimensional system:
+
 $$
 \mathbf{S} = \begin{bmatrix} S_1 & S_2 & \dots & S_N \end{bmatrix}
 $$
+
 For example, `S1` refers to the first state variable, `S2` to the second, etc.
 
 #### Action Variables
 For an _m_-dimensional control space:
+
 $$
 \mathbf{A} = \begin{bmatrix} A_1 & A_2 & \dots & A_M \end{bmatrix}
 $$
 
 #### Disturbance Variables
 For a _k_-dimensional disturbance space:
+
 $$
 \mathbf{D} = \begin{bmatrix} D_1 & D_2 & \dots & D_K \end{bmatrix}
 $$
@@ -112,6 +116,7 @@ Each transformation equation must be a polynomial in **state, action, and distur
 }
 ```
 Where:
+
 $$
 S'_1 = T1(S,A,D) \quad S'_2 = T2(S,A,D) \quad S'_3 = T3(S,A,D)
 $$
