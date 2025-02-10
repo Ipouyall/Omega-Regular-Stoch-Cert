@@ -11,7 +11,7 @@ from ..utils import power_generator
 class CertificateTemplateType(Enum):
     REACH = "reach"
     SAFE = "safe"
-    BUCHI = "buchi"
+    LIVE = "live"
 
     def get_signature(self) -> str:
         return f"V_{self.value.lower()}"
@@ -39,7 +39,7 @@ class CertificateTemplate:
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
-        if self.template_type in [CertificateTemplateType.BUCHI] and self.instance_id is None:
+        if self.template_type in [CertificateTemplateType.LIVE] and self.instance_id is None:
             raise ValueError(f"{self.template_type} template requires an instance_id.")
         self._initialize_templates()
 
@@ -157,7 +157,7 @@ class LTLCertificateDecomposedTemplates:
             abstraction_dimension=self.abstraction_dimension,
             maximal_polynomial_degree=self.maximal_polynomial_degree,
             variable_generators=self.variable_generators,
-            template_type=CertificateTemplateType.BUCHI,
+            template_type=CertificateTemplateType.LIVE,
             instance_id=0
         )
         self.safe_template = CertificateTemplate(
