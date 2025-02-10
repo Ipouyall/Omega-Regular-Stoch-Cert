@@ -1,4 +1,4 @@
-# System Documentation
+# System's input format
 
 The input file consists of five subsections:
 
