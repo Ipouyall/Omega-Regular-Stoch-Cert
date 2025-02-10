@@ -197,7 +197,8 @@ class Runner:
             state_dimension=self.history["initiator"].sds_pre["state_dimension"],
             action_dimension=self.history["initiator"].sds_pre["action_dimension"],
             abstraction_dimension=len(self.history["ldba"].states),
-            maximal_polynomial_degree=1,
+            maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
+            # maximal_polynomial_degree=1,
         )
         self.pbar.write("+ Synthesized 'Invariant Template' successfully.")
         self.pbar.write(f"  + {inv_template}")
