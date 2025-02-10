@@ -33,9 +33,9 @@ An example of a model is as below:
 The model consists of the following 4+1 parts:
 1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
 2. **Invariant**: The invariants that are synthesized by the system. They are presented in the format of `I_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the invariant template. Although this part is optional, we used invariant in all of our benchmarks.
-3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
+3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live{b}_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, $j$ is the index of the constant in the certificate template, and $b$ is the buchi set index, which is always 0.
 4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
-5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set index and is always 1, and $j$ is the index of the constant in the policy template.
+5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
 
 
 [//]: # (Remember that Delta_safe is hard-coded as 1, this should be mentioned somewhere.)
@@ -77,3 +77,12 @@ $$
 $$
 V_{safe,2}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
 $$
+
+## Model's boundary variables components
+
+This component is not part of the certificate, but it is used in the constraints. The boundary variables are:
+- **Beta_safe** which is equivalent to $M$ in the paper.
+- **Delta_live** which is equivalent to $\Delta_{live}$ in the paper.
+- **Epsilon_live** which is equivalent to $\epsilon_{live}$ in the paper.
+- **Epsilon_safe** which is equivalent to $\epsilon_{safe}$ in the paper.
+- **Eta_safe** which is equivalent to $\eta_{safe}$ in the paper.
