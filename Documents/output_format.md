@@ -9,9 +9,9 @@ An example of a model is as below:
 + Polyhorn solver completed.
   + Satisfiability: sat
     Model:
-           Beta_safe: (- (/ 2601.0 8192.0))
-           Delta_buchi: 2.0
-           Epsilon_buchi: 12.0
+           Beta_safe: (- (/ 3.0 8.0))
+           Delta_live: 2.0
+           Epsilon_live: 12.0
            Epsilon_safe: (/ 5.0 32.0)
            Eta_safe: (- 8.0)
            I_0_1: 146.0
@@ -24,12 +24,12 @@ An example of a model is as below:
            V_live0_1_2: (- 4.0)
            V_safe_0_1: (- (/ 151.0 8.0))
            V_safe_0_2: (/ 5.0 16.0)
-           V_safe_1_1: (- (/ 154623.0 8192.0))
-           V_safe_1_2: (/ 1281.0 4096.0)
+           V_safe_1_1: (- (/ 151.0 8.0))
+           V_safe_1_2: (/ 5.0 16.0)
 ```
 
 The model consists of the following 4+1 parts:
-1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, and $M$. 
+1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
 2. **Invariant**: The invariants that are synthesized by the system. They are presented in the format of `I_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the invariant template. Although this part is optional, we used invariant in all of our benchmarks.
 3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
 4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.

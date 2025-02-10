@@ -105,10 +105,10 @@ class CertificateVariables:
         self.almost_zero_eq = Equation.extract_equation_from_string("1e-15")
 
         epsilon_safe_symbol = "Epsilon_safe"
-        epsilon_buchi_symbol = "Epsilon_buchi"
+        epsilon_buchi_symbol = "Epsilon_live"
         beta_safe_symbol = "Beta_safe"
         eta_symbol = "Eta_safe"
-        delta_buchi_symbol = "Delta_buchi"
+        delta_buchi_symbol = "Delta_live"
         self.epsilon_safe_eq = Equation.extract_equation_from_string(epsilon_safe_symbol)
         self.epsilon_buchi_eq = Equation.extract_equation_from_string(epsilon_buchi_symbol)
         self.Beta_safe_eq = Equation.extract_equation_from_string(beta_safe_symbol)
