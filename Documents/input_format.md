@@ -1,29 +1,30 @@
 # System Documentation
 
-The input file consists of 5 subsections:
+The input file consists of five subsections:
 
-1. **Stochastic Dynamical System**
-2. **Actions**
-3. **Disturbance**
-4. **Specification**
-5. **Synthesis Config**
+1. **[Stochastic Dynamical System](#stochastic-dynamical-system)**
+2. **[Actions](#actions)**
+3. **[Disturbance](#disturbance)**
+4. **[Specification](#specification)**
+5. **[Synthesis Config](#synthesis-config)**
 
-You can use two organization, the first option is to define all sections is a file, 
-and the second option is to split sections between multiple files. Moreover, you can use JSON or YAML format.
+You can organize these sections in two ways:
+- **Single File:** Define all sections in one file.
+- **Multiple Files:** Split sections across multiple files.
+
+The system supports both **JSON** and **YAML** formats.
 
 > [!TIP]
-> For the webUI version, don't split each subsection sections to multiple files.
+> For the **Multi-Files** mode, do not split each subsection into multiple files.
 
-> [!TIP]
-> System always assumes the inputs are valid and may not check for all errors before running the system.
-
-Here we discuss how each section should be defined.
+> [!IMPORTANT]
+> The system assumes inputs are valid and may not check for all errors before execution.
 
 ## Stochastic Dynamical System
 
-This section defined the whole system schema, including the dynamics of the system, system's dimensions, noise dimensions, control dimensions, etc.
-An example for the format of this section is as follows:
+This section defines the system schema, including its dynamics, dimensions, constraints, and transformations.
 
+### Example Format
 ```json
 {
   "stochastic_dynamical_system": {
@@ -50,118 +51,76 @@ An example for the format of this section is as follows:
 }
 ```
 
-- **state_space_dimension:** The dimension of the state space.
-- **control_space_dimension:** The dimension of the control space. your policy is later defined as `π: Dim(StateSpace) -> Dim(ControlSpace)`.
-- **disturbance_space_dimension:** The dimension of the disturbance space.
-- **system_space:** The constraints on the state space, which defines the system boundaries. The constraints should be defined as inequalities in the state variables.
-- **dynamics:** A list of piece-wise polynomial transformations, which represent the system's dynamics. Each transformation should have a _condition_ field and a _transforms_ field. The _condition_ field should be a predicate in the state variables, and the _transforms_ field should be a list of strings, each string represents a polynomial in the state variables, action variables, and disturbance variables.
+### Parameter Descriptions
+- **state_space_dimension**: Number of state variables or the dimension of the system.
+- **control_space_dimension**: Number of control variables (`π: Dim(StateSpace) -> Dim(ControlSpace)`).
+- **disturbance_space_dimension**: Number of disturbance variables.
+- **system_space**: Constraints on state variables, which defines the system boundaries. The constraints should be defined as inequalities in the state variables. Read more about the format at [Space Format](#space-format).
+- **initial_space**: Constraints on state variables, which define the initial state of the system. The constraints should be defined as inequalities in the state variables. Read more about the format at [Space Format](#space-format).
+- **dynamics**: List of piecewise polynomial transformations, each defined by:
+  - **condition**: Predicate defining when the transformation applies. Read more about the format at [Space Format](#space-format).
+  - **transforms**: List of polynomials representing system evolution.
 
-### How to specify each variable for system
-#### How to specify each state dimension
-To specify each state dimension's in the system dynamics for an _n_ dimensional environment, you can use variables below:
+### Variable Specification
+#### State Variables
+For an _n_-dimensional system:
 $$
-\begin{align*}
-\mathbf{S} &= \begin{bmatrix} S1 & S2 & \ldots & SN \end{bmatrix}
-\end{align*}
+\mathbf{S} = \begin{bmatrix} S_1 & S_2 & \dots & S_N \end{bmatrix}
 $$
+For example, `S1` refers to the first state variable, `S2` to the second, etc.
 
-For example, `S1` refers to the first state variable, `S2` refers to the second state variable, and so on.
-
-#### How to specify each action dimension
-To specify each action dimension's in the system dynamics for an _m_ dimensional environment, you can use variables below:
+#### Action Variables
+For an _m_-dimensional control space:
 $$
-\begin{align*}
-\mathbf{A} &= \begin{bmatrix} A1 & A2 & \ldots & Am \end{bmatrix}
-\end{align*}
-$$
-
-For example, `A1` refers to the first action variable, `A2` refers to the second action variable, and so on.
-
-#### How to specify each disturbance dimension
-To specify each disturbance dimension's in the system dynamics for an _k_ dimensional environment, you can use variables below:
-$$
-\begin{align*}
-\mathbf{D} &= \begin{bmatrix} D1 & D2 & \ldots & Dk \end{bmatrix}
-\end{align*}
+\mathbf{A} = \begin{bmatrix} A_1 & A_2 & \dots & A_M \end{bmatrix}
 $$
 
-For example, `D1` refers to the first disturbance variable, `D2` refers to the second disturbance variable, and so on.
+#### Disturbance Variables
+For a _k_-dimensional disturbance space:
+$$
+\mathbf{D} = \begin{bmatrix} D_1 & D_2 & \dots & D_K \end{bmatrix}
+$$
 
-### How to specify each dynamics
+### Defining System Dynamics
+#### Conditions
+Conditions must be predicates on state variables. Here are some examples for a 2D system:
+- **Valid Conditions:**
+  - `S1 <= 100`
+  - `S1 + S2 <= 100`
+  - `S1^2 + S2^2 <= 100` (Defines a circle)
+  - `-2 <= S1 <= 2 and -2 <= S2 <= 2` (Defines a square)
 
-Dynamics of a system should be defined as a list of piece-wise polynomial transformations. Each transformation should have a _condition_ field and a _transforms_ field.
+- **Invalid Conditions:**
+  - `S3 <= 100` (Variable `S3` does not exist in a 2D system)
+  - `S1 <= 10 or S2 <= 10` (Only conjunctions are allowed)
+  - `S1 + S2 <= 2*S1 + S2^2` (Variables cannot appear on both sides)
 
-#### How to specify the condition
-The _condition_ field should be a predicate in the state variables, presented as a string. They should use the predicate's valid format and be defined over state variables.
-
-Some examples of valid conditions for a 2-dimensional systems are:
-- `S1 <= 100`
-- `S1 + S2 <= 100`
-- `S1**2 + S2**2 <= 100` $\rightarrow$ This is a circle with radius 10 centered at the origin.
-- `-2 <= S1 <= 2 and -2 <= S2 <= 2` $\rightarrow$ This is a square with side length 4 centered at the origin.
-Some examples of invalid conditions for a 2-dimensional systems are:
-- `S3 <= 100` $\rightarrow$ This is invalid because there is no `S3` variable. Note that the system is 2-dimensional.
-- `S1 <= 10 or S2 <= 10` $\rightarrow$ Note that the token "or" is not defined for our parser. Only conjunctions are allowed.
-- `S1 + S2 <= 2*S1 + S2**2` $\rightarrow$ This is invalid as our system won't consider variables at both sides of the inequality.
+Please refer to the [Space Format](#space-format) section for more information.
 
 > [!TIP]
-> If your system has only one piece-wise transformation, in other words, you don't need to use the piece-wise option, use an always true condition for the _condition_ field, such as `0 <= 1`.
+> If only one transformation exists, use a universally true condition, e.g., `0 <= 1`.
 
-#### How to specify the transforms
-For a system with _n_ state variables, you should provide _n_ equations in the _transforms_ field. Each equation should be a polynomial in the state variables, action variables, and disturbance variables.
-Each equation should be defined as a string, where the variables are defined as `S1`, `S2`, `S3`, etc. for state variables, `A1`, `A2`, `A3`, etc. for action variables, and `D1`, `D2`, `D3`, etc. for disturbance variables.
-Consider the example dynamics below for a system with 3 state variables:
+#### Transformations
+Each transformation equation must be a polynomial in **state, action, and disturbance** variables. For a 3-state system:
 ```json
 {
-  "stochastic_dynamical_system": {
-    "state_space_dimension": 3,
-    "control_space_dimension": 2,
-    "disturbance_space_dimension": 1,
-    "system_space": "...",
-    "initial_space": "...",
-    "transforms": [
-      "T1",
-      "T2",
-      "T3"
-    ]
-  }
+  "transforms": [
+    "T1",
+    "T2",
+    "T3"
+  ]
 }
 ```
-We can define:
-
-$$
-\begin{align*}
-S^{'}_1 = T1(S,A,D) \\
-S^{'}_2 = T2(S,A,D) \\
-S^{'}_3 = T3(S,A,D) \\
-\end{align*}
-$$
-
 Where:
-
 $$
-\begin{align*}
-\mathbf{S} &= \begin{bmatrix} S_1 & S_2 & S_3 \end{bmatrix}
-\end{align*}
+S'_1 = T1(S,A,D) \quad S'_2 = T2(S,A,D) \quad S'_3 = T3(S,A,D)
 $$
 
-$$
-\begin{align*}
-\mathbf{A} &= \begin{bmatrix} A_1 & A_2 \end{bmatrix}
-\end{align*}
-$$
-
-$$
-\begin{align*}
-\mathbf{D} &= \begin{bmatrix} D_1 \end{bmatrix}
-\end{align*}
-$$
-
-
+---
 
 ## Actions
-The complete format of this section is as follows:
 
+### Example Format
 ```json
 {
   "actions": {
@@ -171,24 +130,16 @@ The complete format of this section is as follows:
 }
 ```
 
-- **maximal_polynomial_degree:** The maximal degree of the polynomial that can be used in the control policy.
-- **control_policy:** A list of strings, each string represents a polynomial in the control policy. The variables in the polynomial should be defined as `S1`, `S2`, `S3`, etc.
+- **maximal_polynomial_degree**: Maximum polynomial degree for the control policy.
+- **control_policy**: List of polynomials representing the control policy.
 
-Our proposed system can work in three modes: 
-- [Policy Synthesis](#policy-synthesis)
-- [Policy Verification](#policy-verification)
-- [System Verification](#system-verification)
+The system supports three modes:
+- **[Policy Synthesis](#policy-synthesis)**
+- **[Policy Verification](#policy-verification)**
+- **[System Verification](#system-verification)**
 
-> [!NOTE]
-> Since in none of our examples we have used policy validation, in this version, this option is disabled and the _control_policy_ field is always an empty list.
-
-### Policy synthesis
-<a name="policy-synthesis"></a>
-For policy synthesis, you should provide _control_policy_ as an empty list or just exclude this.
-The system would automatically synthesize the control policy, using polynomial degree _maximal_polynomial_degree_ or extract constants for the provided policy template and tries to propose values for these constants.
-
-An example of the _action_ section for this setting is as follows:
-
+### Policy Synthesis
+For policy synthesis, set `control_policy` as an empty list.
 ```json
 {
   "actions": {
@@ -198,64 +149,21 @@ An example of the _action_ section for this setting is as follows:
 }
 ```
 
-
 > [!TIP]
-> If the _maximal_polynomial_degree_ is not provided, the system would use the _maximal_polynomial_degree_ provided in the _synthesis_config_ section.
+> If `maximal_polynomial_degree` is omitted, the system will use the value from **[Synthesis Config](#synthesis-config)**.
 
-> [!TIP]
-> Providing the _actions_ section is optional, as the system can generate the policy template automatically, and having assumption for the template degree.
-
-
-### Policy verification
-<a name="policy-verification"></a>
-For policy verification, you should provide _control_policy_ as a list of strings, each string represents a polynomial in the control policy.
-Please note that index i in the list should represent the polynomial for the i-th state variable. the Actions for `control_space_dimension = m` are presented in dynamics as below:
-
-$$
-\begin{align*}
-\mathbf{control ~policy} &= \begin{bmatrix} A1 & A2 & \ldots & Am \end{bmatrix}
-\end{align*}
-$$
-
-Although _maximal_polynomial_degree_ seems not necessary for this setting, you should provide to enhance documentation of your sample.
-
+### Policy Verification
 > [!IMPORTANT]
-> This setting is not supported in the current version of the system. You can directly insert the control policy in the dynamics section.
+> This mode is currently **not supported**. Instead, directly define policies in the **dynamics section**.
 
-### SYStem verification
-<a name="system-verification"></a>
-For system verification, you won't have any actions in the system.
+### System Verification
+In this mode, the system has no actions.
 
-
+---
 
 ## Disturbance
-The complete format of this section is as follows:
 
-```json
-{
-  "disturbance": {
-    "distribution_name": "<the name of the distributions>",
-    "disturbance_parameters": {}
-  }
-}
-```
-
-In this section, you define characteristics of the disturbance. Although you can have as many distributions as you want, 
-this implementation consider only one distribution. The _distribution_name_ should be one of the following:
-- **normal**
-- **uniform**
-
-After specifying the _distribution_name_, you should provide the parameters of the distribution in the _disturbance_parameters_ field.
-Please refer to the description of each distribution for more information.
-
-> [!IMPORTANT]
-> In the current version of the system, the disturbance should be always one-dimensional.
-
-### Normal Distributions
-For this distribution, you should use _normal_ as the _distribution_name_ and for _disturbance_parameters_ should have two fields: _mean_ and _std_, which are lists of floats.
-
-For example, for one dimensional normal distribution with `mean = 0 and standard deviation = 1`, you should provide the following:
-
+### Example Format
 ```json
 {
   "disturbance": {
@@ -268,72 +176,48 @@ For example, for one dimensional normal distribution with `mean = 0 and standard
 }
 ```
 
-### Uniform Distributions
-For this distribution, you should use _uniform_ as the _distribution_name_ and for _disturbance_parameters_ should have two fields: _lower_bound_ and _upper_bound_, which are lists of floats.
+- **distribution_name**: Must be `normal` or `uniform`.
+- **disturbance_parameters**: Define distribution properties.
 
-For example, for one dimensional uniform distribution with `lower_bound = -2 and upper_bound = 1`, you should provide the following:
+> [!IMPORTANT]
+> The current implementation only supports **one-dimensional** disturbances.
 
-```json
-{
-  "disturbance": {
-    "distribution_name": "uniform",
-    "disturbance_parameters": {
-      "lower_bound": [-2],
-      "upper_bound": [1]
-    }
-  }
-}
-```
+---
 
 ## Specification
-An example of the complete format of this section is as follows:
 
+### Example Format
 ```json
 {
   "specification": {
     "ltl_formula": "(G F a) -> (G F b)",
     "preposition_lookup": {
-      "a": "S1 > 0",
+      "a": "S1 > 0", 
       "b": "S2 > 0"
     }
   }
 }
 ```
+- **ltl_formula**: LTL formula.
+- **preposition_lookup**: Maps atomic propositions to state constraints. This is optional. Read more about the format at [Space Format](#space-format).
 
-- **ltl_formula:** The LTL formula.
-- **predicate_lookup:** A dictionary where the keys are the atomic propositions in the LTL formula and the values are the predicates that define them. The predicates should be defined as inequalities in the state variables.
-
-> [!NOTE]
-> The _predicate_lookup_ is an optional field, and you may not provide it. Consider the example below:
-```json
-{
-    "specification": {
-        "ltl_formula": "(G F 'S1 > 0') -> (G F 'S2 > 0')"
-    }
-}
-```
-
-> [!NOTE]
-> If you want to use **predicate_lookup**, you should only use `a-z` as atomic propositions in the LTL formula.
-
-Another option is to provide your HOA file, which is formatted as OWL's or Rabinizer's output. In this case, you should use the optional field _hoa_path_ in the _specification_ section.
-
+Alternatively, an **HOA file** can be used:
 ```json
 {
   "specification": {
-    "ltl_formula": "F a",
-    "preposition_lookup": {
-      "a": "S1 <= 0"
-    },
-    "hoa_path": "<path to the HOA file>"
+    "hoa_path": "<path-to-hoa-file>"
   }
 }
 ```
 
+> [!NOTE]
+> If using `preposition_lookup`, atomic propositions must be lowercase letters (`a-z`).
+
+---
+
 ## Synthesis Config
 
-An example of a complete form of this section is as follows:
-
+### Example Format
 ```json
 {
   "synthesis_config": {
@@ -342,19 +226,83 @@ An example of a complete form of this section is as follows:
     "probability_threshold": 0.99,
     "theorem_name": "farkas",
     "solver_name": "z3",
-    "owl_path": "<path to the owl binary in your system>"
+    "owl_path": "<path-to-owl-binary>"
   }
 }
 ```
 
-There exist several parameters in this section:
-
-- **use_linear_invariant:** A boolean value that determines whether the system should use a linear invariant or not. If it set to `true`, the system would synthesize a linear invariant for the system. If it set to `false`, the system would synthesize an invariant for the system as well.
-- **maximal_polynomial_degree:** The maximal degree of the polynomial. This parameter is used to synthesize certificate's template, inform the solver, and potentially it might be used to determine the degree of the polynomial in the control policy (if not provided there).
-- **probability_threshold:** The probability threshold.
-- **theorem_name:** The name of the theorem to be used. This can be one of `farkas`, `handelman`, or `putinar`.
-- **solver_name:** The name of the solver to be used. It can be one of `z3` or `mathsat`. Based on the OS, you might be limited to `z3`.
-- **owl_path:** The path to the owl binary in your system, to convert the LTL formula to an automaton.
+- **use_linear_invariant**: Whether to use a linear invariant.
+- **maximal_polynomial_degree**: Maximum polynomial degree for templates and policies.
+- **probability_threshold**: Probability threshold.
+- **theorem_name**: Can be `farkas`, `handelman`, or `putinar`.
+- **solver_name**: Can be `z3` or `mathsat`.
+- **owl_path**: Path to OWL binary.
 
 > [!TIP]
-> If you specify _hoa_path_ in the _synthesis_config_ section, the system would read the provided HOA file and consider that automata, instead of converting the LTL formula to an automaton.
+> If `hoa_path` is specified here, the system will use the HOA file instead of generating an automaton.
+
+## Additional Formatting Guidelines
+
+This section provides a standardized format for defining predicates used throughout the system. This also discuss the troubleshooting steps for some errors.
+
+### Space Format
+
+In our system, we use a specific structure, referred to as **space format**, to define predicates. This format ensures consistency in specifying constraints and conditions within the system.
+First, we define this format, followed by examples of valid and invalid predicates for a 2-dimensional system.
+
+#### **Definition**
+The space format is a **string representation** of a conjunction of inequalities, which define valid constraints on state variables.  
+Each inequality must:
+- Use **valid state variables** (e.g., `S1`, `S2`, `A1`, `D1`).
+- Be expressed in **polynomial form** (no variables on the right side of inequalities).
+- Only use **conjunctions (`and`)**, as disjunctions (`or`) are not supported.
+- Use **mathematical operators** such as `+`, `-`, `*`, `**`, `<=`, and `>=`.
+
+#### **Valid Examples**
+Below are some correctly formatted examples that conform to the space format for a 2-dimensional system:
+
+- `S1 <= 100 and S2 >= 0`  
+  $\rightarrow$ Constraint specifying `S1` should be at most `100`, and `S2` should be non-negative.  
+- `S1 + S2 <= 100`  
+  $\rightarrow$ The sum of `S1` and `S2` should not exceed `100`.  
+- `S1 >= 10 and S1 <= 20` (equivalent to `10 <= S1 <= 20`, both format are acceptable and treated the same)  
+  $\rightarrow$ The value of `S1` should be within the range `[10, 20]`.  
+- `S1**2 + S2**2 <= 25`  
+  $\rightarrow$ Represents a **circle of radius 5** centered at the origin.  
+- `-2 <= S1 <= 2 and -2 <= S2 <= 2`  
+  $\rightarrow$ Defines a **square with side length 4**, centered at the origin.  
+
+#### **Invalid Examples**
+Below are some **incorrect** predicates that violate the space format rules, along with explanations, for a 2-dimensional system:
+
+- **`S3 <= 100`**  
+  ❌ **Invalid**: The system is **only 2-dimensional**, but `S3` is used.  
+  ✅ **Fix**: Ensure the variable exists in the defined system. In this case, the system should be 3-dimensional or more.
+
+- **`S1 <= 10 or S2 <= 10`**  
+  ❌ **Invalid**: The system **only supports conjunctions (`and`)**, not disjunctions (`or`).  
+  ✅ **Fix**: Rewrite the condition using only `and`. You can define two predicates in the lookup table and use their disjunction in the LTL formula.
+
+- **`S1 + S2 >= 5 and (S1 - S2 <= 3 or S1 >= 0)`**  
+  ❌ **Invalid**: **Parentheses**, **nested logical expressions**, and **disjunctions** are **not supported**.  
+  ✅ **Fix**: Use separate conditions or rewrite using `and`.
+
+- **`S1 <= 100 & S2 >= 0`**  
+  ⚠️ Although this format is allowed and system would transform `&` to `and`, it is recommended to use `and` for consistency.
+
+#### **Where is the Space Format Used?**
+The space format is used in multiple sections of the system:
+
+- **[Stochastic Dynamical System](#stochastic-dynamical-system)** → Defines system constraints (`system_space`, `initial_space`), and conditions in piece-wise `dynamics`.  
+- **[Actions](#actions)** → Specifies policies in the control policy.  
+- **[Specification](#specification)** → Defines atomic predicates for LTL formulas (predicates in `preposition_lookup`).
+
+By following this format, you ensure that the system correctly interprets and processes all predicates consistently.  
+
+#### Points about defined variables
+
+The variables generated by the system (constants) are formatter as `{signature}_{id}` whereas the variables defined by the user are formatted as `{signature}{id}`.
+So it is important that you should refer to each variable you are using as below:
+- For environment variables, which defines the system state: `S1`, `S2`, etc.
+- For control variables, which defines the controller's output: `A1`, `A2`, etc.
+- For disturbance variables, which defines the environment's stochastic behavior: `D1`.
