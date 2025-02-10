@@ -40,8 +40,14 @@ The model consists of the following 4+1 parts:
 
 
 To extract the invariant's template, given the constants, for a 1D system, the following formula can be used:
-$$\forall^{i \in Q} I_{i}(S) = \sum_{j=1}^{n+1} I_{i, j} \cdot S1^{j-1}$$
+$$
+\forall^{i \in Q} I_{i}(S) = \sum_{j=1}^{n+1} I_{i, j} \cdot S1^{j-1}
+$$
 
 For example, in the example above, the invariant template would be:
-$$I_{0}(S) = 146.0 + 1.0 \cdot S1$$
-$$I_{1}(S) = 0.0 + 0.0 \cdot S1$$
+$$
+I_{0}(S) = 146.0 + 1.0 \cdot S1
+$$
+$$
+I_{1}(S) = 0.0 + 0.0 \cdot S1
+$$
