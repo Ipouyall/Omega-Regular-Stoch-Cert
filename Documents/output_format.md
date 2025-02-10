@@ -3,6 +3,8 @@
 At the end, the system would output **UNSAT** if there is no certificate, and **SAT + Model** if there is a certificate. 
 The model is a list of assignments to the variables that make the formula true, where each value presented in preorder format.
 
+## Output format
+
 An example of a model is as below:
 
 ```text
@@ -38,6 +40,7 @@ The model consists of the following 4+1 parts:
 
 [//]: # (Remember that Delta_safe is hard-coded as 1, this should be mentioned somewhere.)
 
+## Extract templates from the model
 
 To extract the invariant's template, given the constants, for a 1D system, the following formula can be used:
 
@@ -53,4 +56,24 @@ $$
 
 $$
 I_{1}(S) = 0.0 + 0.0 \cdot S1
+$$
+
+The same thing is applicable to other components. For instance, the liveness template would be:
+
+$$
+V_{live0,1}(S) = 4703.0 + 24.0 \cdot S1
+$$
+
+$$
+V_{live0,2}(S) = 600.0 - 4.0 \cdot S1
+$$
+
+And the safety template would be:
+
+$$
+V_{safe,1}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
+$$
+
+$$
+V_{safe,2}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
 $$
