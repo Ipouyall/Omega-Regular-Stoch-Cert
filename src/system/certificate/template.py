@@ -76,11 +76,7 @@ class CertificateTemplate:
 @dataclass
 class CertificateVariables:
     probability_threshold: float
-    # epsilon_safe: float  # Recommended as 0.1
     delta_safe: float  # Recommended as 1
-    # eta_safe: float = field(init=False)  # Recommended as [1/(8*epsilon_safe)*(delta_safe^2)*ceil(log(p))]
-    # epsilon_buchi: float = field(init=False, default=1e-5)
-    delta_buchi: float = field(init=False, default=1e-5)
 
     eta_safe_eq: Equation = field(init=False)
     Beta_safe_eq: Equation = field(init=False)
@@ -98,21 +94,13 @@ class CertificateVariables:
 
 
     def __post_init__(self):
-        # assert self.epsilon_buchi > 0, "Epsilon for Buchi should be greater than 0."
-        # assert self.epsilon_safe > 0, "Epsilon for safety should be greater than 0."
         assert self.delta_safe > 0, "Delta for safety should be greater than 0."
-        assert self.delta_buchi > 0, "Delta for Buchi should be greater than 0."
         assert 1 > self.probability_threshold >= 0, "Probability threshold should be in the range [0, 1)."
         eta_epsilon_upper_bound_generator = 1e-15 + Pow(self.delta_safe,2)*log(1-self.probability_threshold)/8
         eta_epsilon_upper_bound = eta_epsilon_upper_bound_generator.evalf(n=10)
         self.eta_epsilon_upper_bound_eq = Equation.extract_equation_from_string(str(eta_epsilon_upper_bound))
-        # assert self.eta_safe <= 0, f"Eta for safety should be less than or equal to 0. Got {self.eta_safe}."
 
-        # self.epsilon_safe_eq = Equation.extract_equation_from_string(f"{self.epsilon_safe}")
         self.delta_safe_eq = Equation.extract_equation_from_string(f"{self.delta_safe}")
-        # self.eta_safe_eq = Equation.extract_equation_from_string(f"{self.eta_safe}")
-        # self.epsilon_buchi_eq = Equation.extract_equation_from_string(f"{self.epsilon_buchi}")
-        # self.delta_buchi_eq = Equation.extract_equation_from_string(f"{self.delta_buchi}")
         self.zero_eq = Equation.extract_equation_from_string("0")
         self.almost_zero_eq = Equation.extract_equation_from_string("1e-15")
 
