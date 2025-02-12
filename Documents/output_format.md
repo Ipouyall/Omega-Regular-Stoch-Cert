@@ -1,11 +1,15 @@
 # System's output format
 
-At the end, the system would output **UNSAT** if there is no certificate, and **SAT + Model** if there is a certificate. 
-The model is a list of assignments to the variables that make the formula true, where each value presented in preorder format.
+At the end of execution, the system produces one of the following two outputs:
+
+- **`UNSAT`** → No certificate exists for the given constraints.
+- **`SAT + Model`** → A certificate is found, and a model is provided.
+
+The **model** consists of a list of variable assignments that satisfy the constraints. Each concrete value is represented in **preorder format**.
 
 ## Output format
 
-An example of a model is as below:
+A typical model output from the system (for a verification example) looks as follows:
 
 ```text
 + Polyhorn solver completed.
@@ -30,12 +34,31 @@ An example of a model is as below:
            V_safe_1_2: (/ 5.0 16.0)
 ```
 
-The model consists of the following 4+1 parts:
-1. **Boundary variables**: These are the variables that are used in constraints and are not part of the certificate, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
-2. **Invariant**: The invariants that are synthesized by the system. They are presented in the format of `I_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the invariant template. Although this part is optional, we used invariant in all of our benchmarks.
+The model consists of five main components, each serving a distinct role in the verification and synthesis process:
+
+1. **[Boundary variables](#boundary-variables)**: These variables appear in constraints but are not part of the certificate itself, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
+2. **[Invariant Variables](#invariant-variables)**: The invariants that are synthesized by the system. They are presented in the format of `I_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the invariant template. Although this part is optional, we used invariant in all of our benchmarks.
 3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live{b}_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, $j$ is the index of the constant in the certificate template, and $b$ is the buchi set index, which is always 0.
 4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
 5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
+
+
+### Boundary Variables
+
+These variables appear in constraints but are not part of the certificate itself. They are used to define key parameters in the verification process:
+
+| Variable Name | Symbol in Paper            | Description                                                 |
+|---------------|----------------------------|-------------------------------------------------------------|
+| Beta_safe     | $M$, $M^S$, $M^L$          | A constant used in safety constraints.                      |
+| Delta_live    | $\Delta^{L}$               | A parameter controlling the liveness properties.            |
+| Epsilon_live  | $\epsilon^{L}$             | A small margin ensuring robustness in liveness constraints. |
+| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A small margin ensuring robustness in safety constraints.   |
+| Eta_safe      | $\eta^{S}$, $\eta$         | A parameter related to safety margin calculations.          |
+
+> [!NOTE] 
+> Delta_safe is always hardcoded as 1 and does not appear in the model.
+
+### Invariant Variables
 
 
 [//]: # (Remember that Delta_safe is hard-coded as 1, this should be mentioned somewhere.)
