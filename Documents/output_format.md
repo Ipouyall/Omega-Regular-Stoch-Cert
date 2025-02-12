@@ -47,13 +47,13 @@ The model consists of five main components, each serving a distinct role in the 
 
 These variables appear in constraints but are not part of the certificate itself. They are used to define key parameters in the verification process:
 
-| Variable Name | Symbol in Paper            | Description                                                 |
-|---------------|----------------------------|-------------------------------------------------------------|
-| Beta_safe     | $M$, $M^S$, $M^L$          | A constant used in safety constraints.                      |
-| Delta_live    | $\Delta^{L}$               | A parameter controlling the liveness properties.            |
-| Epsilon_live  | $\epsilon^{L}$             | A small margin ensuring robustness in liveness constraints. |
-| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A small margin ensuring robustness in safety constraints.   |
-| Eta_safe      | $\eta^{S}$, $\eta$         | A parameter related to safety margin calculations.          |
+| Variable Name | Symbol in Paper            | Description                         |
+|---------------|----------------------------|-------------------------------------|
+| Beta_safe     | $M$, $M^S$, $M^L$          | A constant used in ... constraints. |
+| Delta_live    | $\Delta^{L}$               | A constant used in ... constraints. |
+| Epsilon_live  | $\epsilon^{L}$             | A constant used in ... constraints. |
+| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A constant used in ... constraints. |
+| Eta_safe      | $\eta^{S}$, $\eta$         | A constant used in ... constraints. |
 
 > [!NOTE] 
 > Delta_safe (appeared as $\Delta^{S}$) is always hardcoded as 1 and does not appear in the model.
