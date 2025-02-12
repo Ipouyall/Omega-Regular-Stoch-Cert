@@ -39,7 +39,7 @@ The model consists of five main components, each serving a distinct role in the 
 1. **[Boundary variables](#boundary-variables)**: These variables appear in constraints but are not part of the certificate itself, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
 2. **[Invariant Variables](#invariant-variables)**: These represent invariants synthesized by the system.
 3. **[Liveness variables](#liveness-variables)**: These belong to the liveness part of the certificate, known as $V^{live}$
-4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
+4. **[Safety variables](#liveness-variables)**: These belong to the safety part of the certificate, known as $V^{safe}$.
 5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
 
 
@@ -94,7 +94,7 @@ $$
 
 ### Liveness Variables
 
-These belong to the liveness part of the certificate.
+These belong to the liveness part of the certificate, known as $V^{live}$.
 - Format: `V_live{b}_{i}_{j}`
 - b $\rightarrow$ The Büchi set index (always 0 when using LDBA).
 - i $\rightarrow$ The state index in the automaton.
@@ -115,11 +115,41 @@ For the example above, where:
 It would be interpreted as:
 
 $$
-V_{live0, 0}(S) = 4703.0 + 24.0 \cdot S1
+V_{live0, q=0}(S) = 4703.0 + 24.0 \cdot S1
 $$
 
 $$
-V_{live0, 1}(S) = 600.0 - 4.0 \cdot S1
+V_{live0, q=1}(S) = 600.0 - 4.0 \cdot S1
+$$
+
+
+### Safety Variables
+
+These belong to the safety part of the certificate, known as $V^{safe}$.
+- Format: `V_safe_{i}_{j}` 
+- i $\rightarrow$ The state index in the automaton.
+- j $\rightarrow$ The coefficient index in the certificate template.
+
+To interpret the safety variables for a 1D system, the following formula can be used:
+
+$$
+\forall^{i \in Q} V_{safe, i}(S) = \sum_{j=1}^{n+1} V_{safe, i, j} \cdot S1^{j-1}
+$$
+
+For the example above, where:
+- V_safe_0_1 = - (151.0 / 8.0)
+- V_safe_0_2 = (5.0 / 16.0)
+- V_safe_1_1 = - (151.0 / 8.0)
+- V_safe_1_2 = (5.0 / 16.0)
+
+It would be interpreted as:
+
+$$
+V_{safe, q=0}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
+$$
+
+$$
+V_{safe, q=1}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
 $$
 
 
