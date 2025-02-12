@@ -56,7 +56,7 @@ These variables appear in constraints but are not part of the certificate itself
 | Eta_safe      | $\eta^{S}$, $\eta$         | A parameter related to safety margin calculations.          |
 
 > [!NOTE] 
-> Delta_safe is always hardcoded as 1 and does not appear in the model.
+> Delta_safe (appeared as $\Delta^{S}$) is always hardcoded as 1 and does not appear in the model.
 
 ### Invariant Variables
 
