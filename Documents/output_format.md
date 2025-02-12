@@ -38,7 +38,7 @@ The model consists of five main components, each serving a distinct role in the 
 
 1. **[Boundary variables](#boundary-variables)**: These variables appear in constraints but are not part of the certificate itself, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
 2. **[Invariant Variables](#invariant-variables)**: These represent invariants synthesized by the system.
-3. **Liveness variables**: The liveness variables that belong to the liveness part of the certificate. They are presented in the format of `V_live{b}_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, $j$ is the index of the constant in the certificate template, and $b$ is the buchi set index, which is always 0.
+3. **[Liveness variables](#liveness-variables)**: These belong to the liveness part of the certificate, known as $V^{live}$
 4. **Safety variables**: The safety variables that belong to the safety part of the certificate. They are presented in the format of `V_safe_{i}_{j}`, where $i$ is present which state of the automata that the invariant belongs to, and $j$ is the index of the constant in the certificate template.
 5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
 
@@ -58,6 +58,7 @@ These variables appear in constraints but are not part of the certificate itself
 > [!NOTE] 
 > Delta_safe (appeared as $\Delta^{S}$) is always hardcoded as 1 and does not appear in the model.
 
+
 ### Invariant Variables
 
 These represent invariants synthesized by the system, which define where conditions associated to each state must be hold.
@@ -65,7 +66,7 @@ These represent invariants synthesized by the system, which define where conditi
 - i $\rightarrow$ The state index in the automaton.
 - j $\rightarrow$ The coefficient index in the invariant template.
 
-An example of how to interpret the invariant variables for a 1D system is as follows:
+To interpret the invariant variables for a 1D system, the following formula can be used:
 
 $$
 \forall^{i \in Q} I_{i}(S) = \sum_{j=1}^{n+1} I_{i, j} \cdot S1^{j-1}
@@ -84,30 +85,49 @@ I_{q=0}(S) = 146.0 + 1.0 \cdot S1
 $$
 
 $$
-I_{q=1}(S) = 0.0 + 0.0 \cdot S1
+I_{q=1}(S) = 0.0
 $$
 
 > [!NOTE]
 > Although invariants are optional, they are used in all of our benchmarks.
 
 
+### Liveness Variables
+
+These belong to the liveness part of the certificate.
+- Format: `V_live{b}_{i}_{j}`
+- b $\rightarrow$ The Büchi set index (always 0 when using LDBA).
+- i $\rightarrow$ The state index in the automaton.
+- j $\rightarrow$ The coefficient index in the certificate template.
+
+To interpret the liveness variables for a 1D system, the following formula can be used:
+
+$$
+\forall^{i \in Q} V_{live0, i}(S) = \sum_{j=1}^{n+1} V_{live0, i, j} \cdot S1^{j-1}
+$$
+
+For the example above, where:
+- V_live0_0_1 = 4703.0
+- V_live0_0_2 = 24.0
+- V_live0_1_1 = 600.0
+- V_live0_1_2 = -4.0
+
+It would be interpreted as:
+
+$$
+V_{live0, 0}(S) = 4703.0 + 24.0 \cdot S1
+$$
+
+$$
+V_{live0, 1}(S) = 600.0 - 4.0 \cdot S1
+$$
+
+
+
 
 
 ## Extract templates from the model
 
-To extract the invariant's template, given the constants, for a 1D system, the following formula can be used:
-
-
-
-The same thing is applicable to other components. For instance, the liveness template would be:
-
-$$
-V_{live0,1}(S) = 4703.0 + 24.0 \cdot S1
-$$
-
-$$
-V_{live0,2}(S) = 600.0 - 4.0 \cdot S1
-$$
 
 And the safety template would be:
 
