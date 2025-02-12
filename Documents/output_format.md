@@ -2,8 +2,8 @@
 
 At the end of execution, the system produces one of the following two outputs:
 
-- **`UNSAT`** → No certificate exists for the given constraints.
-- **`SAT + Model`** → A certificate is found, and a model is provided.
+- **`UNSAT`** $\rightarrow$ No certificate exists for the given constraints.
+- **`SAT + Model`** $\rightarrow$ A certificate is found, and a model is provided.
 
 The **model** consists of a list of concrete variable assignments that satisfy the constraints. Each value is represented in **preorder format**; in other words, the model provides values that can be used to reconstruct invariants, liveness, safety properties, and control policies.
 
@@ -157,10 +157,10 @@ $$
 
 This component is only present in control synthesis examples. It specifies a policy synthesized by the system.
 - Format: `P{a|b}_{i}_{j}`
-- a → Acceptance policy, which is used for $Q$/$Q_{acc}$
-- b → Büchi/live policy, which is used for $Q_{acc}$
-- i → Büchi set ID (always 1).
-- j → Coefficient index in the policy template.
+- a $\rightarrow$ Acceptance policy, which is used for $Q$/$Q_{acc}$
+- b $\rightarrow$ Büchi/live policy, which is used for $Q_{acc}$
+- i $\rightarrow$ Büchi set ID (always 1).
+- j $\rightarrow$ Coefficient index in the policy template.
 
 An example of the system's output for a control synthesis example is as follows:
 
