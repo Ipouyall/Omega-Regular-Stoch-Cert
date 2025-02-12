@@ -5,7 +5,7 @@ At the end of execution, the system produces one of the following two outputs:
 - **`UNSAT`** → No certificate exists for the given constraints.
 - **`SAT + Model`** → A certificate is found, and a model is provided.
 
-The **model** consists of a list of variable assignments that satisfy the constraints. Each concrete value is represented in **preorder format**.
+The **model** consists of a list of concrete variable assignments that satisfy the constraints. Each value is represented in **preorder format**; in other words, the model provides values that can be used to reconstruct invariants, liveness, safety properties, and control policies.
 
 ## Output format
 
@@ -38,9 +38,9 @@ The model consists of five main components, each serving a distinct role in the 
 
 1. **[Boundary variables](#boundary-variables)**: These variables appear in constraints but are not part of the certificate itself, such as $\eta$, $\epsilon$, $\Delta$, $\beta$, and $M$. 
 2. **[Invariant Variables](#invariant-variables)**: These represent invariants synthesized by the system.
-3. **[Liveness variables](#liveness-variables)**: These belong to the liveness part of the certificate, known as $V^{live}$
-4. **[Safety variables](#liveness-variables)**: These belong to the safety part of the certificate, known as $V^{safe}$.
-5. **Control policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
+3. **[Liveness Variables](#liveness-variables)**: These belong to the liveness part of the certificate, known as $V^{live}$
+4. **[Safety Variables](#liveness-variables)**: These belong to the safety part of the certificate, known as $V^{safe}$.
+5. **Control Policy**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
 
 
 ### Boundary Variables
@@ -153,27 +153,68 @@ V_{safe, q=1}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
 $$
 
 
+### Control Policy
 
+This component is only present in control synthesis examples. It specifies a policy synthesized by the system.
+- Format: `P{a|b}_{i}_{j}`
+- a → Acceptance policy, which is used for $Q$/$Q_{acc}$
+- b → Büchi/live policy, which is used for $Q_{acc}$
+- i → Büchi set ID (always 1).
+- j → Coefficient index in the policy template.
 
+An example of the system's output for a control synthesis example is as follows:
 
-## Extract templates from the model
+```text
++ Polyhorn solver completed.
+  + Satisfiability: sat
+    Model:
+           Beta_safe: (/ 7.0 16.0)
+           Delta_buchi: 2.0
+           Epsilon_buchi: 1.0
+           Epsilon_safe: (/ 1.0 8.0)
+           Eta_safe: (- (/ 43.0 4.0))
+           I_0_1: 146.0
+           I_0_2: 1.0
+           I_1_1: 0.0
+           I_1_2: 0.0
+           Pa_1_1: (- 2.0)
+           Pa_1_2: 0.0
+           Pb0_1_1: (- 2.0)
+           Pb0_1_2: 0.0
+           V_buchi0_0_1: 293.0
+           V_buchi0_0_2: 2.0
+           V_buchi0_1_1: 0.0
+           V_buchi0_1_2: 0.0
+           V_safe_0_1: (- 49.0)
+           V_safe_0_2: (/ 1.0 2.0)
+           V_safe_1_1: (- (/ 787.0 16.0))
+           V_safe_1_2: (/ 1.0 2.0)
+```
 
-
-And the safety template would be:
+To interpret the control policy variables for a 1D system, the following formula can be used:
 
 $$
-V_{safe,1}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
+P_{a|b}(S) = \sum_{j=1}^{n+1} P_{a|b, j} \cdot S1^{j-1}
+$$
+
+For the example above, where:
+- Pa_1_1 = -2.0
+- Pa_1_2 = 0.0
+- Pb0_1_1 = -2.0
+- Pb0_1_2 = 0.0
+
+It would be interpreted as:
+
+$$
+P^{a}(S) = -2.0
 $$
 
 $$
-V_{safe,2}(S) = - \frac{151.0}{8.0} + \frac{5.0}{16.0} \cdot S1
+P^{b_{0}}(S) = -2.0
 $$
 
-## Model's boundary variables components
+> [!NOTE]
+> In `P_b{b}_i_j`, the `b` is always 0 when using LDBA and `i` would always be 1.
 
-This component is not part of the certificate, but it is used in the constraints. The boundary variables are:
-- **Beta_safe** which is equivalent to $M$ in the paper.
-- **Delta_live** which is equivalent to $\Delta_{live}$ in the paper.
-- **Epsilon_live** which is equivalent to $\epsilon_{live}$ in the paper.
-- **Epsilon_safe** which is equivalent to $\epsilon_{safe}$ in the paper.
-- **Eta_safe** which is equivalent to $\eta_{safe}$ in the paper.
+
+
