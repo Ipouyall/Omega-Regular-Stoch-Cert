@@ -76,6 +76,37 @@ class RunningStage(Enum):
         return f"[{self.value:<1}-{self.name.replace('_', ' ').title()}]"
 
 
+def fix_model_output(model: dict, automata: Automata):
+    policy_acc = {}
+    policy_buchi = {}
+    refined_model = {}
+    buchi_sig = "Pb0_"
+    acc_sig = "Pa_"
+
+    get_last_digit = lambda x: int(x.split("_")[-1])
+    get_fixed_component = lambda sig, partial: {f"{sig}_{k}": v for k, v in partial.items()}
+
+    for k, v in model.items():
+        if k.startswith(buchi_sig):
+            policy_buchi[get_last_digit(k)] = v
+        elif k.startswith(acc_sig):
+            policy_acc[get_last_digit(k)] = v
+        else:
+            refined_model[k] = v
+
+    if len(policy_acc) == 0 or len(policy_buchi) == 0:
+        return refined_model
+
+    for st in automata.states:
+        if st.is_accepting():
+            for k, v in get_fixed_component(f"P_{st.state_id}", policy_acc).items():
+                refined_model[k] = v
+        else:
+            for k, v in get_fixed_component(f"P_{st.state_id}", policy_buchi).items():
+                refined_model[k] = v
+    return refined_model
+
+
 @dataclass
 class Runner:
     input_path: str
@@ -387,6 +418,7 @@ class Runner:
         self.pbar.write("+ Polyhorn solver completed.")
         self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
         self.pbar.write(f"    Model:")
+        result["model"] = fix_model_output(result["model"], self.history["ldba"])
         for k in sorted(result["model"].keys()):
             self.pbar.write(f"           {k}: {result["model"][k]}")
         self.history["solver_result"] = result
