@@ -47,13 +47,13 @@ The model consists of five main components, each serving a distinct role in the 
 
 These variables appear in constraints but are not part of the certificate itself. They are used to define key parameters in the verification process:
 
-| Variable Name | Symbol in Paper            | Description                         |
-|---------------|----------------------------|-------------------------------------|
-| Beta_safe     | $M$, $M^S$, $M^L$          | A constant used in ... constraints. |
-| Delta_live    | $\Delta^{L}$               | A constant used in ... constraints. |
-| Epsilon_live  | $\epsilon^{L}$             | A constant used in ... constraints. |
-| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A constant used in ... constraints. |
-| Eta_safe      | $\eta^{S}$, $\eta$         | A constant used in ... constraints. |
+| Variable Name | Symbol in Paper            | Description                            |
+|---------------|----------------------------|----------------------------------------|
+| Beta_safe     | $M$, $M^S$, $M^L$          | A constant used in ... constraints.    |
+| Delta_live    | $\Delta^{L}$               | A constant used in ... constraints.    |
+| Epsilon_live  | $\epsilon^{L}$             | A constant used in ... constraints.    |
+| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A constant used in ... constraints.    |
+| Eta_safe      | $\eta^{S}$, $\eta$         | A constant used in ... constraints.    |
 
 > [!NOTE] 
 > Delta_safe (appeared as $\Delta^{S}$) is always hardcoded as 1 and does not appear in the model.
@@ -156,10 +156,8 @@ $$
 ### Control Policy
 
 This component is only present in control synthesis examples. It specifies a policy synthesized by the system.
-- Format: `P{a|b}_{i}_{j}`
-- a $\rightarrow$ Acceptance policy, which is used for $Q$/$Q_{acc}$
-- b $\rightarrow$ Büchi/live policy, which is used for $Q_{acc}$
-- i $\rightarrow$ Büchi set ID (always 1).
+- Format: `P{i}_{j}`
+- i $\rightarrow$ The state index in the automaton.
 - j $\rightarrow$ Coefficient index in the policy template.
 
 An example of the system's output for a control synthesis example is as follows:
@@ -177,10 +175,10 @@ An example of the system's output for a control synthesis example is as follows:
            I_0_2: 1.0
            I_1_1: 0.0
            I_1_2: 0.0
-           Pa_1_1: (- 2.0)
-           Pa_1_2: 0.0
-           Pb0_1_1: (- 2.0)
-           Pb0_1_2: 0.0
+           P_1_1: (- 2.0)
+           P_1_2: 0.0
+           P_2_1: (- 2.0)
+           P_2_2: 0.0
            V_buchi0_0_1: 293.0
            V_buchi0_0_2: 2.0
            V_buchi0_1_1: 0.0
@@ -194,27 +192,24 @@ An example of the system's output for a control synthesis example is as follows:
 To interpret the control policy variables for a 1D system, the following formula can be used:
 
 $$
-P_{a|b}(S) = \sum_{j=1}^{n+1} P_{a|b, j} \cdot S1^{j-1}
+\forall^{i \in Q} P_{i}(S) = \sum_{j=1}^{n+1} P_{i, j} \cdot S1^{j-1}
 $$
 
+
 For the example above, where:
-- Pa_1_1 = -2.0
-- Pa_1_2 = 0.0
-- Pb0_1_1 = -2.0
-- Pb0_1_2 = 0.0
+- P_1_1 = -2.0
+- P_1_2 = 0.0
+- P_2_1 = -2.0
+- P_2_2 = 0.0
 
 It would be interpreted as:
 
 $$
-P^{a}(S) = -2.0
+P_{1}(S) = -2.0
 $$
 
 $$
-P^{b_{0}}(S) = -2.0
+P_{2}(S) = -2.0
 $$
-
-> [!NOTE]
-> In `P_b{b}_i_j`, the `b` is always 0 when using LDBA and `i` would always be 1.
-
 
 
