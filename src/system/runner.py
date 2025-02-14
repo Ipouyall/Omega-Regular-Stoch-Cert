@@ -1,19 +1,15 @@
 import glob
 import os.path
-import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
 from typing import Dict, Callable
-
-from tqdm import tqdm
 
 from . import logger
 from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
 from .automata.synthesis import LDBASpecification
-from .certificate.bbdC import BuchiBoundedDifferenceConstraint
 from .certificate.beiC import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
@@ -43,16 +39,9 @@ RESET = "\033[0m"
 def stage_logger(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        self.pbar.write(f"{BOLD}{self.running_stage}{RESET} Stage started...")
-
-        # st = time.perf_counter()
+        print(f"{BOLD}{self.running_stage}{RESET} Stage started...")
         result = func(self, *args, **kwargs)
-        # du = time.perf_counter()  - st
-
-        self.pbar.write(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
-        self.pbar.update(1)
-        # self.pbar.set_postfix({"Spent": f"{du:.4f}s"})
-
+        print(f"{BOLD}{SUCCESS}{self.running_stage}{RESET} Stage completed.")
         return result
     return wrapper
 
@@ -113,7 +102,6 @@ class Runner:
     output_path: str
     running_stage: RunningStage = field(init=False, default=RunningStage.PARSE_INPUT)
     history: dict = field(init=False, default_factory=dict)
-    pbar: tqdm = field(init=False, default=None)
 
     def __post_init__(self):
         if not self.output_path:
@@ -134,12 +122,6 @@ class Runner:
             RunningStage.PREPARE_SOLVER_INPUTS: self._run_stage_prepare_solver_inputs,
             RunningStage.RUN_SOLVER: self._run_solver,
         }
-        self.pbar = tqdm(
-            range(RunningStage.Done.value),
-            file=sys.stdout,
-            colour="cyan",
-            leave=True,
-        )
 
     def run(self):
         while self.running_stage != RunningStage.Done:
@@ -148,12 +130,11 @@ class Runner:
                 raise ValueError(f"Unknown stage: {self.running_stage}")
             stage_runner()
             self.running_stage = self.running_stage.next()
-        self.pbar.close()
 
     @stage_logger
     def _run_stage_parsing(self):
         if os.path.isdir(self.input_path):
-            self.pbar.write("+ Directory detected. Parsing all files in the directory.")
+            print("+ Directory detected. Parsing all files in the directory.")
             files = glob.glob(os.path.join(self.input_path, "*.yaml")) + glob.glob(os.path.join(self.input_path, "*.json")) + glob.glob(os.path.join(self.input_path, "*.yml"))
             logger.info(f"  + Provided a directory. {len(files)} files found in {self.input_path}")
         elif os.path.isfile(self.input_path):
@@ -178,17 +159,17 @@ class Runner:
     @stage_logger
     def _run_stage_state_construction(self):
         system_space = SystemSpace(space_inequalities=self.history["initiator"].system_space_pre)
-        self.pbar.write("+ Constructed 'System Space' successfully.")
+        print("+ Constructed 'System Space' successfully.")
 
         initial_space = SystemSpace(space_inequalities=self.history["initiator"].initial_space_pre)
-        self.pbar.write("+ Constructed 'Initial Space' successfully.")
+        print("+ Constructed 'Initial Space' successfully.")
 
         sds = SystemDynamics(**self.history["initiator"].sds_pre)
-        self.pbar.write("+ Constructed 'Stochastic Dynamical System' successfully.")
+        print("+ Constructed 'Stochastic Dynamical System' successfully.")
 
         ltl_specification = LDBASpecification(**self.history["initiator"].specification_pre)
         ldba_hoa = ltl_specification.get_HOA(os.path.join(self.output_path, "ltl2ldba.hoa"))
-        self.pbar.write("+ Retrieved 'LDBA HOA' successfully.")
+        print("+ Retrieved 'LDBA HOA' successfully.")
 
         hoa_parser = HOAParser()
         automata = hoa_parser(ldba_hoa)
@@ -198,8 +179,8 @@ class Runner:
             hoa_states=automata["body"],
             lookup_table=self.history["initiator"].specification_pre["predicate_lookup"]
         )
-        self.pbar.write("+ Constructed 'LDBA' successfully.")
-        self.pbar.write(f"  + {ldba.to_detailed_string()}")
+        print("+ Constructed 'LDBA' successfully.")
+        print(f"  + {ldba.to_detailed_string()}")
 
         self.history["space"] = system_space
         self.history["initial_space"] = initial_space
@@ -214,13 +195,13 @@ class Runner:
             abstraction_dimension=len(self.history["ldba"].accepting_component_ids)
         )
         self.history["control policy"] = policy
-        self.pbar.write(f"  + {policy}")
+        print(f"  + {policy}")
 
     @stage_logger
     def _run_stage_synthesize_invariants(self):
         if not self.history["initiator"].enable_linear_invariants:
             inv_template = InvariantFakeTemplate()
-            self.pbar.write("+ Synthesizing 'Invariant Template' skipped.")
+            print("+ Synthesizing 'Invariant Template' skipped.")
             self.history["invariant template"] = inv_template
             return
 
@@ -229,10 +210,9 @@ class Runner:
             action_dimension=self.history["initiator"].sds_pre["action_dimension"],
             abstraction_dimension=len(self.history["ldba"].states),
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
-            # maximal_polynomial_degree=1,
         )
-        self.pbar.write("+ Synthesized 'Invariant Template' successfully.")
-        self.pbar.write(f"  + {inv_template}")
+        print("+ Synthesized 'Invariant Template' successfully.")
+        print(f"  + {inv_template}")
         self.history["invariant template"] = inv_template
 
         inv_init_constraint_gen = InvariantInitialConstraint(
@@ -242,9 +222,9 @@ class Runner:
             automata=self.history["ldba"],
         )
         inv_init_constraint = inv_init_constraint_gen.extract()
-        self.pbar.write("+ Generated Invariant's 'Initial Constraint' successfully.")
-        for t in inv_init_constraint:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated Invariant's 'Initial Constraint' successfully.")
+        # for t in inv_init_constraint:
+        #     print(f"  + {t.to_detail_string()}")
 
         inv_inductive_constraint_gen = InvariantInductiveConstraint(
             template=inv_template,
@@ -255,9 +235,9 @@ class Runner:
             automata=self.history["ldba"],
         )
         inv_inductive_constraint = inv_inductive_constraint_gen.extract()
-        self.pbar.write("+ Generated Invariant's 'Inductive Constraint' successfully.")
-        for t in inv_inductive_constraint:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated Invariant's 'Inductive Constraint' successfully.")
+        # for t in inv_inductive_constraint:
+        #     print(f"  + {t.to_detail_string()}")
 
         self.history["invariant_constraints"] = {
             "invariant_initial": inv_init_constraint,
@@ -268,7 +248,6 @@ class Runner:
     def _run_template_synthesis(self):
         certificate_variables = CertificateVariables(
             probability_threshold=self.history["initiator"].synthesis_config_pre["probability_threshold"],
-            # epsilon_safe=0.1,
             delta_safe=1,
         )
         template = LTLCertificateDecomposedTemplates(
@@ -279,8 +258,8 @@ class Runner:
             maximal_polynomial_degree=self.history["initiator"].synthesis_config_pre["maximal_polynomial_degree"],
             variables=certificate_variables
         )
-        self.pbar.write("+ Synthesized 'Certificate Templates' successfully.")
-        self.pbar.write(f"  + {template}")
+        print("+ Synthesized 'Certificate Templates' successfully.")
+        print(f"  + {template}")
         self.history["template"] = template
 
     @stage_logger
@@ -292,9 +271,9 @@ class Runner:
             automata=self.history["ldba"],
         )
         initial_space_constraints = initial_space_generator.extract()
-        self.pbar.write("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
-        for t in initial_space_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated 'Initial Space Upper Bound Constraints' successfully.")
+        # for t in initial_space_constraints:
+        #     print(f"  + {t.to_detail_string()}")
 
         safety_generator = SafetyConstraint(
             template_manager=self.history["template"],
@@ -303,9 +282,9 @@ class Runner:
             automata=self.history["ldba"],
         )
         safety_constraints = safety_generator.extract()
-        self.pbar.write("+ Generated 'Safety Constraints' successfully.")
-        for t in safety_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated 'Safety Constraints' successfully.")
+        # for t in safety_constraints:
+        #     print(f"  + {t.to_detail_string()}")
 
         non_negativity_generator = NonNegativityConstraint(
             template_manager=self.history["template"],
@@ -313,9 +292,9 @@ class Runner:
             system_space=self.history["space"],
         )
         non_negativity_constraints = non_negativity_generator.extract()
-        self.pbar.write("+ Generated 'Non-Negativity Constraints' successfully.")
-        for t in non_negativity_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated 'Non-Negativity Constraints' successfully.")
+        # for t in non_negativity_constraints:
+        #     print(f"  + {t.to_detail_string()}")
 
         safety_condition_handler = SafetyConditionHandler(
             template_manager=self.history["template"],
@@ -335,9 +314,9 @@ class Runner:
             safety_condition_handler=safety_condition_handler
         )
         strict_expected_decrease_constraints = strict_expected_decrease_generator.extract()
-        self.pbar.write("+ Generated 'Strict Expected Decrease Constraints' successfully.")
-        for t in strict_expected_decrease_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated 'Strict Expected Decrease Constraints' successfully.")
+        # for t in strict_expected_decrease_constraints:
+        #     print(f"  + {t.to_detail_string()}")
 
         bounded_expected_increase_generator = BoundedExpectedIncreaseConstraint(
             template_manager=self.history["template"],
@@ -350,9 +329,9 @@ class Runner:
             safety_condition_handler=safety_condition_handler
         )
         bounded_expected_increase_constraints = bounded_expected_increase_generator.extract()
-        self.pbar.write("+ Generated 'Bounded Expected Increase Constraints' successfully.")
-        for t in bounded_expected_increase_constraints:
-            self.pbar.write(f"  + {t.to_detail_string()}")
+        print("+ Generated 'Bounded Expected Increase Constraints' successfully.")
+        # for t in bounded_expected_increase_constraints:
+        #     print(f"  + {t.to_detail_string()}")
 
         controller_boundary_generator = ControllerBounds(
             template_manager=self.history["template"],
@@ -361,18 +340,18 @@ class Runner:
         )
         controller_bound_constraints = controller_boundary_generator.extract()
         if len(controller_bound_constraints) > 0:
-            self.pbar.write("+ Generated 'Controller Boundary Constraints' successfully.")
-            for t in controller_bound_constraints:
-                self.pbar.write(f"  + {t.to_detail_string()}")
+            print("+ Generated 'Controller Boundary Constraints' successfully.")
+            # for t in controller_bound_constraints:
+            #     print(f"  + {t.to_detail_string()}")
 
         variables_gen = TemplateVariablesConstraint(
             template_manager=self.history["template"]
         )
         variables_constraints = variables_gen.extract()
         if len(variables_constraints) > 0:
-            self.pbar.write("+ Generated 'Template Variables Constraints' successfully.")
-            for t in variables_constraints:
-                self.pbar.write(f"  + {t.to_detail_string()}")
+            print("+ Generated 'Template Variables Constraints' successfully.")
+            # for t in variables_constraints:
+            #     print(f"  + {t.to_detail_string()}")
 
         self.history["constraints"] = {
             "template_variables": variables_constraints,
@@ -388,14 +367,14 @@ class Runner:
     def _run_stage_prepare_solver_inputs(self):
         constants = self.history["control policy"].get_generated_constants() | self.history["template"].get_generated_constants() | self.history["invariant template"].get_generated_constants()
 
-        self.pbar.write(f"+ Constraints passed to the solver:")
+        print(f"+ Constraints passed to the solver:")
         for k, v in self.history["constraints"].items():
-            self.pbar.write(f"  + {k}: {len(v)}x")
+            print(f"  + {k}: {len(v)}x")
 
-        self.pbar.write(f"+ Number of constants: {len(constants)}")
-        self.pbar.write(f"  + From Control Policy: {len(self.history['control policy'].get_generated_constants())}")
-        self.pbar.write(f"  + From Certificate Template: {len(self.history['template'].get_generated_constants())}")
-        self.pbar.write(f"  + From Invariant Template: {len(self.history['invariant template'].get_generated_constants())}")
+        print(f"+ Number of constants: {len(constants)}")
+        print(f"  + From Control Policy: {len(self.history['control policy'].get_generated_constants())}")
+        print(f"  + From Certificate Template: {len(self.history['template'].get_generated_constants())}")
+        print(f"  + From Invariant Template: {len(self.history['invariant template'].get_generated_constants())}")
 
         polyhorn_input = CommunicationBridge.get_input_string(
             generated_constants=constants,
@@ -415,10 +394,10 @@ class Runner:
     @stage_logger
     def _run_solver(self):
         result = CommunicationBridge.feed_to_polyhorn(self.output_path)
-        self.pbar.write("+ Polyhorn solver completed.")
-        self.pbar.write(f"  + Satisfiability: {result['is_sat']}")
-        self.pbar.write(f"    Model:")
+        print("+ Polyhorn solver completed.")
+        print(f"  + Satisfiability: {result['is_sat']}")
+        print(f"    Model:")
         result["model"] = fix_model_output(result["model"], self.history["ldba"])
         for k in sorted(result["model"].keys()):
-            self.pbar.write(f"           {k}: {result["model"][k]}")
+            print(f"           {k}: {result["model"][k]}")
         self.history["solver_result"] = result
