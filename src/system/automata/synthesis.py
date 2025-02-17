@@ -50,15 +50,15 @@ class LDBASpecification:
             raise TypeError(
                 f"Attribute 'predicate_lookup' is expected to be of type PredicateLookup, but got {type(self.predicate_lookup)} instead."
             )
-        if not os.path.exists(self.owl_binary_path) and not self.hoa:
-            raise FileNotFoundError(f"OWL binary file not found at path: {self.owl_binary_path}")
         if self.hoa_path:
+            print(f"- An HOA path is provided; constructing the specification object from '{self.hoa_path}'")
             with open(self.hoa_path, "r") as f:
                 self.hoa = f.read().strip()
             logger.warning("HOA path is already provided. Later, the HOA generation will be skipped.")
-        elif not self.ltl_formula:
+        if not os.path.exists(self.owl_binary_path) and not self.hoa:
+            raise FileNotFoundError(f"OWL binary file not found at path '{self.owl_binary_path}' and no HOA path provided.")
+        if not self.ltl_formula and not self.hoa_path:
             raise ValueError("At least one of the 'ltl_formula' or 'hoa_path' attributes must be provided.")
-
 
     def get_HOA(self, output_path):
         if self.hoa is None:
