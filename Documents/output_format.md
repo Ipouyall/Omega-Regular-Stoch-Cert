@@ -40,7 +40,7 @@ The model consists of five main components, each serving a distinct role in the 
 2. **[Invariant Variables](#invariant-variables)**: These represent invariants synthesized by the system.
 3. **[Liveness Variables](#liveness-variables)**: These belong to the liveness part of the certificate, known as $V^{live}$
 4. **[Safety Variables](#liveness-variables)**: These belong to the safety part of the certificate, known as $V^{safe}$.
-5. **[Control Policy](#control-policy)**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples). They are presented as `P{a|b}_{i}_{j}` where $a$ means acceptance policy, $b$ means buchi/live policy, $i$ is the buchi set id and is always 1, and $j$ is the index of the constant in the policy template.
+5. **[Control Policy](#control-policy)**: The control policy that is synthesized by the system (_optional_, only in control synthesis examples).
 
 
 ### Boundary Variables
