@@ -5,6 +5,7 @@ from enum import Enum
 from functools import wraps
 from typing import Dict, Callable
 
+from .automata.visualize import visualize_automata
 from .log import logger
 from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
@@ -187,6 +188,8 @@ class Runner:
         self.history["sds"] = sds
         self.history["ltl2ldba"] = ldba_hoa
         self.history["ldba"] = ldba
+
+        visualize_automata(ldba, os.path.join(self.output_path, "ldba"))
 
     @stage_logger
     def _run_stage_policy_preparation(self):

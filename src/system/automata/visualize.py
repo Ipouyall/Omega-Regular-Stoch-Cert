@@ -8,24 +8,24 @@ def visualize_automata(automata: Automata, output_file: str = None):
     dot = Digraph(format="png")
     dot.attr(rankdir="LR")
 
-    for state_id, state in automata.states.items():
-        state_id = str(state_id)
-        shape = "doublecircle" if state.accepting_signature else "circle"
+    for st in automata.states:
+        state_id = str(st.state_id)
+        shape = "doublecircle" if st.acc_sig else "circle"
         dot.node(
             state_id,
             label=state_id,
             shape=shape,
             style="filled",
-            fillcolor="lightblue" if state.status == AcceptanceStatus.Accepting else "white"
+            fillcolor="lightblue" if st.acceptance_status.value == AcceptanceStatus.Accepting.value else "white"
         )
 
-    for state_id, state in automata.states.items():
-        state_id = str(state_id)
-        for idx, transition in enumerate(state.transitions):
-            destination_id_str = str(transition.destination_id)
+    for st in automata.states:
+        state_id = str(st.state_id)
+        for idx, transition in enumerate(st.transitions):
+            destination_id_str = str(transition.destination)
             label = (
-                transition.predicate if transition.type == AutomataTransitionType.Propositional
-                else transition.type.to_string()
+                transition.to_label_string(automata.lookup_table) if transition.type.value == AutomataTransitionType.Propositional.value
+                else "ε"
             )
             dot.edge(
                 state_id,

@@ -55,8 +55,11 @@ class AutomataTransition:
         if self.type == AutomataTransitionType.Epsilon:
             self.label = ""
 
+    def to_label_string(self, lookup_table) -> str:
+        return _fast_dict_replacement(self.label, lookup_table, safe=True)
+
     def to_string(self, lookup_table) -> str:
-        _label = _fast_dict_replacement(self.label, lookup_table, safe=True)
+        _label = self.to_label_string(lookup_table)
         return f"[{self.type.to_string(_label)}] -> {self.destination}" + (" {" + ",".join(map(str, self.acc_sig)) + "}" if self.acc_sig else "")
 
     def __str__(self):
