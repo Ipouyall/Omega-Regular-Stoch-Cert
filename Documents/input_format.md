@@ -147,15 +147,15 @@ $$
 - **maximum**: Maximum value for control variables. This is an optional field and if not provided, no maximum value is enforced.
 
 The system supports three modes:
-- **[System Verification](#system-verification)**
-- **[Policy Synthesis](#policy-synthesis)**
+- **[Verification](#system-verification)**
+- **[Control](#controller-synthesis)**
 
 ### System Verification
 In this mode, the system has no actions. You should set `stoachastic_dynamical_system.constrol_space_dimension` $= 0$.
 
 
-### Policy Synthesis
-For policy synthesis, the condition is to set `stochastic_dynamical_system.constrol_space_dimension` $\neq0$. You should also set `control_policy` as an empty list, so the system would synthesize the policy template. You may provide any of the $[minimum, maximum]$ values to enforce bounds on the control variables.
+### Controller Synthesis
+For Controller (or policy) synthesis, the condition is to set `stochastic_dynamical_system.constrol_space_dimension` $\neq0$. You should also set `control_policy` as an empty list, so the system would synthesize the policy template. You may provide any of the $[minimum, maximum]$ values to enforce bounds on the control variables.
 ```json
 {
   "actions": {
