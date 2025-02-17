@@ -47,7 +47,7 @@
 
   "specification": {
     "ltl_formula": "a U b",
-    "preposition_lookup": {
+    "proposition_lookup": {
       "a": "S1 <= 100",
       "b": "S1 <= 0"
     },

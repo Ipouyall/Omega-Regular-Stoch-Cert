@@ -66,7 +66,7 @@ This section defines the system schema, including its dynamics, dimensions, cons
 For an _n_-dimensional system:
 
 $$
-\mathbf{S} = \begin{bmatrix} S_1 & S_2 & \dots & S_N \end{bmatrix}
+\mathbf{S} = \begin{bmatrix} S_1 & S_2 & \dots & S_n \end{bmatrix}
 $$
 
 For example, `S1` refers to the first state variable, `S2` to the second, etc.
@@ -75,14 +75,14 @@ For example, `S1` refers to the first state variable, `S2` to the second, etc.
 For an _m_-dimensional control space:
 
 $$
-\mathbf{A} = \begin{bmatrix} A_1 & A_2 & \dots & A_M \end{bmatrix}
+\mathbf{A} = \begin{bmatrix} A_1 & A_2 & \dots & A_m \end{bmatrix}
 $$
 
 #### Disturbance Variables
 For a _k_-dimensional disturbance space:
 
 $$
-\mathbf{D} = \begin{bmatrix} D_1 & D_2 & \dots & D_K \end{bmatrix}
+\mathbf{D} = \begin{bmatrix} D_1 & D_2 & \dots & D_k \end{bmatrix}
 $$
 
 ### Defining System Dynamics
@@ -91,13 +91,13 @@ Conditions must be predicates on state variables. Here are some examples for a 2
 - **Valid Conditions:**
   - `S1 <= 100`
   - `S1 + S2 <= 100`
-  - `S1^2 + S2^2 <= 100` (Defines a circle)
+  - `S1**2 + S2**2 <= 100` (Defines a circle)
   - `-2 <= S1 <= 2 and -2 <= S2 <= 2` (Defines a square)
 
 - **Invalid Conditions:**
   - `S3 <= 100` (Variable `S3` does not exist in a 2D system)
   - `S1 <= 10 or S2 <= 10` (Only conjunctions are allowed)
-  - `S1 + S2 <= 2*S1 + S2^2` (Variables cannot appear on both sides)
+  - `S1 + S2 <= 2*S1 + S2**2` (Variables cannot appear on both sides)
 
 Please refer to the [Space Format](#space-format) section for more information.
 
@@ -196,7 +196,7 @@ In this mode, the system has no actions.
 {
   "specification": {
     "ltl_formula": "(G F a) -> (G F b)",
-    "preposition_lookup": {
+    "proposition_lookup": {
       "a": "S1 > 0", 
       "b": "S2 > 0"
     }
