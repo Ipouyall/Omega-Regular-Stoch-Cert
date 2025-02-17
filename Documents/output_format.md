@@ -213,4 +213,57 @@ $$
 P_{2}(S) = -2.0
 $$
 
+## Automata format
+
+Below are some examples of the automata format printed by the system and corresponding figures:
+
+1. `F a` like specification:
+
+```text
++ Constructed 'LDBA' successfully.
+  + Automata(|Q|=2, q0={0}, |Σ|=1, F={0})
+  → 0
+  -( ) 0 
+	  [(S1 <= 0)] -> 1
+	  [!(S1 <= 0)] -> 0
+  -(●) 1  {0}
+	  [ε] -> 1
+```
+
+![F a](./figures/Fa.png)
+
+2. `GF a` like specification:
+
+```text
++ Constructed 'LDBA' successfully.
+  + Automata(|Q|=2, q0={0}, |Σ|=1, F={0})
+  → 0
+  -(●) 0 
+	  [!(S1 <= 0)] -> 0
+	  [(S1 <= 0)] -> 1
+  -(●) 1  {0}
+	  [!(S1 <= 0)] -> 0
+	  [(S1 <= 0)] -> 1
+```
+
+![GF a](./figures/GFa.png)
+
+3. `a U b` like specification:
+
+```text
++ Constructed 'LDBA' successfully.
+  + Automata(|Q|=3, q0={0}, |Σ|=2, F={0})
+  → 0
+  -( ) 0 
+	  [!(S1 <= 100) & !(S1 <= 0)] -> 1
+	  [(S1 <= 100) & !(S1 <= 0)] -> 0
+	  [(S1 <= 0)] -> 2
+  -(✗) 1 
+	  [ε] -> 1
+  -(●) 2  {0}
+	  [ε] -> 2
+```
+
+![a U b](./figures/aUb.png)
+
 

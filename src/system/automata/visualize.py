@@ -10,13 +10,16 @@ def visualize_automata(automata: Automata, output_file: str = None):
 
     for st in automata.states:
         state_id = str(st.state_id)
+        acc_sig = ""
+        if st.acc_sig:
+            acc_sig = "\n{" + ", ".join(map(str, st.acc_sig)) + "}"
         shape = "doublecircle" if st.acc_sig else "circle"
         dot.node(
             state_id,
-            label=state_id,
+            label=state_id + acc_sig,
             shape=shape,
             style="filled",
-            fillcolor="lightblue" if st.acceptance_status.value == AcceptanceStatus.Accepting.value else "white"
+            fillcolor="lightblue" if st.acceptance_status.value == AcceptanceStatus.Accepting.value else "#FF6666" if st.acceptance_status.value == AcceptanceStatus.Rejecting.value else "white"
         )
 
     for st in automata.states:
