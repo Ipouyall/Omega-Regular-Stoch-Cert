@@ -24,6 +24,6 @@ def benchmark_runner(path, iterations=10):
     return mean_runtime, std_runtime
 
 if __name__ == "__main__":
-    config_file = "./benchmark/random_walk_verification_0.json"
+    config_file = "./benchmark/random_walk_verification_3.json"
 
     benchmark_runner(config_file, iterations=1)

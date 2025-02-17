@@ -189,7 +189,7 @@ class Runner:
         self.history["ltl2ldba"] = ldba_hoa
         self.history["ldba"] = ldba
 
-        visualize_automata(ldba, os.path.join(self.output_path, "ldba"))
+        # visualize_automata(ldba, os.path.join(self.output_path, "ldba"))
 
     @stage_logger
     def _run_stage_policy_preparation(self):
