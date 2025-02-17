@@ -61,3 +61,33 @@ python3 -m system --file <path_to_your_benchmark> [--iterations <number_of_itera
 ```
 
 
+## Useful Docker commands
+
+- Build the Docker image:
+
+```bash
+docker build -t system:v0.1 .
+```
+
+- Run the Docker container:
+
+```bash
+docker run -it system:v0.1
+```
+
+- Dump the docker image:
+
+```bash
+docker save -o system.tar system:v0.1
+```
+Or to have a compressed dump:
+
+```bash
+docker save system:v0.1 | gzip > system.tar.gz
+```
+
+- Load the docker image:
+
+```bash
+docker load -i system.tar
+```
