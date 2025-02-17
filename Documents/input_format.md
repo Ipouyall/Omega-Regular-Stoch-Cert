@@ -103,27 +103,12 @@ Conditions must be predicates on state variables. Here are some examples for a 2
   - `S1 <= 10 or S2 <= 10` (Only conjunctions are allowed)
   - `S1 + S2 <= 2*S1 + S2**2` (Variables cannot appear on both sides)
 
-Please refer to the [Space Format](#space-format) section for more information.
+> [!TIP]
+> Please refer to the [Space Format](#space-format) section for more information.
+> Also, to know more about the transformation equations, refer to the [Transformation Format](#transformation-format-equations) section.
 
 > [!TIP]
 > If only one transformation exists, use a universally true condition, e.g., `0 <= 1`.
-
-#### Transformations
-Each transformation equation must be a polynomial in **state, action, and disturbance** variables. For a 3-state system:
-```json
-{
-  "transforms": [
-    "T1",
-    "T2",
-    "T3"
-  ]
-}
-```
-Where:
-
-$$
-S'_1 = T1(S,A,D) \quad S'_2 = T2(S,A,D) \quad S'_3 = T3(S,A,D)
-$$
 
 ---
 
@@ -385,7 +370,24 @@ Alternatively, an **HOA file** can be used:
 
 ## Additional Formatting Guidelines
 
-This section provides a standardized format for defining predicates used throughout the system. This also discuss the troubleshooting steps for some errors.
+This section provides a standardized format for defining predicates and equations that are used throughout the system. This also discuss the troubleshooting steps for some errors.
+
+### Transformation format (Equations)
+
+Equations in the system are represented as polynomials in the state, action, and disturbance variables. The system supports the following operations:
+- **Addition** (`+`)
+- **Subtraction** (`-`)
+- **Multiplication** (`*`)
+- **Exponentiation** (`**`)
+
+Also, parentheses can be used to group terms.
+
+> [!NOTE]
+> The system does not support division or any other operations.
+
+Some valid examples of an equation for a 2-dimensional system:
+- S1 + S2 + A1 + D1
+- 0.1 * S1**2
 
 ### Space Format
 
@@ -448,3 +450,11 @@ So it is important that you should refer to each variable you are using as below
 - For environment variables, which defines the system state: `S1`, `S2`, etc.
 - For control variables, which defines the controller's output: `A1`, `A2`, etc.
 - For disturbance variables, which defines the environment's stochastic behavior: `D1`.
+
+### Points about paths used inside the system input
+
+In the input file, you may provide path for two fields:
+- `hoa_path` in the `specification` section, which is the path to the HOA file.
+- `owl_path` in the `synthesis_config` section, which is the path to the OWL binary.
+
+These paths can be relative or absolute. If you want to use the relative path, it would be relative to the directory where the input file exists, not the directory where the system is executed.
