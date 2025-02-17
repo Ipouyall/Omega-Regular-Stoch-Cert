@@ -6,22 +6,15 @@ This repository contains the source code for the paper "Supermartingale Certific
 
 ## Requirements
 
-We used `python 3.12.5` for our experiments. After installing python, you can install the required packages using the following command:
+We used `python 3.12.5` for our experiments. After installing python, you can install the required packages using the following command in your environment:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Or manually install these packages:
+### Install SMT-Solvers
 
-- `pip install lark==1.2.2`
-- `pip install polyhorn==0.0.7`
-- `pip install sympy==1.13.2`
-- `pip install matplotlib==3.9.2`
-- `pip install numpy==2.1.1`
-- `pip install pandas==2.2.3`
-
-Ypu also need to install SMT-solvers so that the code can use them. To install Z3, you can use the following command:
+You can easily install the Z3 solver using the following command:
 
 ```bash
 pip install z3-solver
@@ -58,36 +51,4 @@ To run the benchmarks using the command line, you can use the following command:
 
 ```bash
 python3 -m system --file <path_to_your_benchmark> [--iterations <number_of_iterations>]
-```
-
-
-## Useful Docker commands
-
-- Build the Docker image:
-
-```bash
-docker build -t system:v0.1 .
-```
-
-- Run the Docker container:
-
-```bash
-docker run -it system:v0.1
-```
-
-- Dump the docker image:
-
-```bash
-docker save -o system.tar system:v0.1
-```
-Or to have a compressed dump:
-
-```bash
-docker save system:v0.1 | gzip > system.tar.gz
-```
-
-- Load the docker image:
-
-```bash
-docker load -i system.tar
 ```
