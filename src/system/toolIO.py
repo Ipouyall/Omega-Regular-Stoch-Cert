@@ -148,7 +148,7 @@ class IOParser:
         specification = {
             "ltl_formula": data["specification"].get("ltl_formula", None),
             "predicate_lookup": data["specification"].get("proposition_lookup", {}),
-            "owl_binary_path": data["synthesis_config"].get("owl_path", None),
+            "owl_binary_path": owl_path,
             "hoa_path": hoa_path
         }
 

@@ -55,7 +55,7 @@ class LDBASpecification:
             with open(self.hoa_path, "r") as f:
                 self.hoa = f.read().strip()
             logger.warning("HOA path is already provided. Later, the HOA generation will be skipped.")
-        if not os.path.exists(self.owl_binary_path) and not self.hoa:
+        if (not os.path.exists(self.owl_binary_path)) and (not self.hoa):
             raise FileNotFoundError(f"OWL binary file not found at path '{self.owl_binary_path}' and no HOA path provided.")
         if not self.ltl_formula and not self.hoa_path:
             raise ValueError("At least one of the 'ltl_formula' or 'hoa_path' attributes must be provided.")
