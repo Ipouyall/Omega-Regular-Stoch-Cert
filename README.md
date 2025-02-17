@@ -36,6 +36,7 @@ pip install z3-solver
 To execute a benchmark, You have two options:
 1. Using a python script
 2. Using the command line
+3. Using the provided Docker image (this option supports both methods above)
 
 ### Run the benchmarks using a python script
 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
 To run the benchmarks using the command line, you can use the following command:
 
 ```bash
-python3 -m system --file <path_to_your_benchmark> --iterations <number_of_iterations>
+python3 -m system --file <path_to_your_benchmark> [--iterations <number_of_iterations>]
 ```
 
 
