@@ -4,7 +4,7 @@ from enum import Enum
 from numbers import Number
 from typing import Sequence, Union, Dict
 
-from . import logger
+from .log import logger
 from .polynomial.equation import Equation
 from .polynomial.polynomial import Monomial
 from .utils import power_generator
@@ -25,7 +25,7 @@ class PolicyMode(Enum):
 
 
 class PolicyType(Enum):
-    ACCEPTANCE = "acceptance"
+    REACH = "reach"
     BUCHI = "buchi"
     UNKOWN = "unknown"
 
@@ -36,7 +36,7 @@ class PolicyType(Enum):
         return cls[policy_type.upper()]
 
     def __str__(self):
-        return f"{self.value:<10}"
+        return f"{self.value:<7}"
 
 
 @dataclass
@@ -79,6 +79,8 @@ class SystemControlPolicy:
     constants_founded: bool = field(init=False, default=False)
 
     def __post_init__(self):
+        if self.action_dimension == 0 and self.type != PolicyType.STATIC:
+            raise ValueError("Control policy with no action space must be of type STATIC.")
         if self.transitions is not None and len(self.transitions) != self.action_dimension:
             logger.error(f"No valid control policy provided. Ignoring the provided policy.")
             self.transitions = None
@@ -156,6 +158,9 @@ class SystemDecomposedControlPolicy:
     generated_constants: set[str] = field(init=False, default_factory=set)
 
     def __post_init__(self):
+        if self.action_dimension == 0:
+            self.policies = []
+            return
         self.policies = [
             policy for policy in self.policies if policy
         ]
@@ -170,7 +175,7 @@ class SystemDecomposedControlPolicy:
     def _initialize_synthesized_policies(self) -> None:
         logger.info("Initializing control policy for policy synthesis.")
         prefixes = ["Pa"] + [f"Pb{i}" for i in range(self.abstraction_dimension)]
-        types = [PolicyType.ACCEPTANCE] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
+        types = [PolicyType.REACH] + [PolicyType.BUCHI for _ in range(self.abstraction_dimension)]
         self.policies = [
             SystemControlPolicy(
                 action_dimension=self.action_dimension,
@@ -190,19 +195,21 @@ class SystemDecomposedControlPolicy:
 
     def get_policy(self, policy_type: PolicyType, policy_id: int = None) -> SystemControlPolicy:
         """Policy id is required for Buchi policies."""
-        if policy_type == PolicyType.ACCEPTANCE:
+        if policy_type.value == PolicyType.REACH.value:
             return self.policies[0]
-        if policy_type == PolicyType.BUCHI:
-            if policy_id is None:
+        if policy_type.value == PolicyType.BUCHI.value:
+            if policy_id is None and len(self.policies) > 2:
                 raise ValueError("Policy ID is required for Buchi policies.")
-            if policy_id >= len(self.policies) - 1 or policy_id < 0:
+            if policy_id is not None and (policy_id >= len(self.policies) - 1 or policy_id < 0):
                 raise ValueError(f"Invalid policy ID: {policy_id}.")
-            return self.policies[policy_id+1]
-        raise ValueError(f"Invalid policy type: {policy_type}.")
+            if policy_id is not None:
+                return self.policies[policy_id+1]
+            return self.policies[1]
+        raise ValueError("Policy type is not provided.")
 
     def get_length(self) -> dict[PolicyType, int]:
         return {
-            PolicyType.ACCEPTANCE: 1,
+            PolicyType.REACH: 1,
             PolicyType.BUCHI: len(self.policies) - 1
         }
 
@@ -214,4 +221,4 @@ class SystemDecomposedControlPolicy:
 
     def __str__(self):
         return (f"Decomposed control policy: {self.state_dimension} -> {self.action_dimension} (x{len(self.policies)})\n" +
-                "\n".join(f"    - {policy}" for policy in self.policies))
+                "\n".join(f"\t- {policy}" for policy in self.policies))

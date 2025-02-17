@@ -15,12 +15,12 @@ from .upload import upload_file
 from ..action import SystemDecomposedControlPolicy
 from ..automata.graph import Automata
 from ..automata.hoaParser import HOAParser
-from ..automata.specification import LDBASpecification
+from ..automata.synthesis import LDBASpecification
 from ..automata.visualize import visualize_automata
 from ..certificate.init_constraints import InitialSpaceConstraint
 from ..certificate.nn_constraint import NonNegativityConstraint
 from ..certificate.nsed_constraints import NonStrictExpectedDecrease
-from ..certificate.sed_constraints import StrictExpectedDecrease
+from src.system.older.SED import StrictExpectedDecrease
 from ..certificate.template import LTLCertificateDecomposedTemplates
 from ..config import SynthesisConfig
 from ..dynamics import SystemDynamics
@@ -198,7 +198,7 @@ class WebUI:
     def _run_experiment_policy_preparation(self):
         self.policy = SystemDecomposedControlPolicy(
             **self.initiator.actions_pre,
-            abstraction_dimension=len(self.ldba.accepting_sink_sets_id)
+            abstraction_dimension=len(self.ldba.accepting_component_ids)
         )
 
     @ui_stage_logger
@@ -207,7 +207,7 @@ class WebUI:
             state_dimension=self.initiator.sds_pre["state_dimension"],
             action_dimension=self.initiator.sds_pre["action_dimension"],
             abstraction_dimension=len(self.ldba.states),
-            accepting_components_count=len(self.ldba.accepting_sink_sets_id),
+            accepting_components_count=len(self.ldba.accepting_component_ids),
             maximal_polynomial_degree=self.initiator.synthesis_config_pre["maximal_polynomial_degree"],
         )
 

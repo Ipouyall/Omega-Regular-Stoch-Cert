@@ -1,3 +1,11 @@
+import re
+from typing import Dict
+
+from ..action import SystemDecomposedControlPolicy, PolicyType
+from ..automata.sub_graph import AutomataState
+from ..polynomial.equation import Equation
+
+
 def infix_to_prefix(expression: str) -> str:
     """
     Convert infix expression to prefix expression with explicit parentheses. Steps of the algorithm:
@@ -51,3 +59,19 @@ def infix_to_prefix(expression: str) -> str:
                 prefix_stack.append(expression)
 
     return prefix_stack[0]
+
+
+def get_policy_action_given_current_abstract_state(current_state: AutomataState, decomposed_control_policy: SystemDecomposedControlPolicy) -> Dict[str, Equation]:
+    if decomposed_control_policy.action_dimension == 0:
+        return {}
+    if current_state.is_accepting():
+        policy = decomposed_control_policy.get_policy(PolicyType.BUCHI, 0)
+    else:
+        policy = decomposed_control_policy.get_policy(PolicyType.REACH)
+    return policy()
+
+
+def _replace_keys_with_values(s, dictionary):
+    pattern = re.compile("|".join(re.escape(key) for key in dictionary.keys()))
+    result = pattern.sub(lambda match: dictionary[match.group(0)], s)
+    return result

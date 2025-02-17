@@ -11,7 +11,6 @@ class SynthesisConfig:
     Holds configuration settings for the synthesis process based on API calling of external solvers.
     """
     maximal_polynomial_degree: int
-    epsilon: float
     probability_threshold: float
     theorem_name: str
     solver_name: str

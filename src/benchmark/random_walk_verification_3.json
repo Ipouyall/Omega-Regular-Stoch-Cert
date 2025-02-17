@@ -16,7 +16,7 @@
     "state_space_dimension": 1,
     "control_space_dimension": 0,
     "disturbance_space_dimension": 1,
-    "system_space": "-150 <= S1 <= 150",
+    "system_space": "S1 <= 150",
     "initial_space": "2 <= S1 <= 3",
     "dynamics": [
       {
@@ -37,18 +37,18 @@
   "synthesis_config": {
     "use_linear_invariant": true,
     "maximal_polynomial_degree": 1,
-    "epsilon": 0.000000000000001,
-    "probability_threshold": 0.99,
+    "probability_threshold": 0.9999,
     "theorem_name": "farkas",
     "solver_name": "z3",
-    "owl_path": "../playground/rabinizer/owl"
+    "owl_path": "../../playground/rabinizer/owl"
   },
 
   "specification": {
     "ltl_formula": "a U b",
-    "preposition_lookup": {
-      "a": "S1 <= 50",
+    "proposition_lookup": {
+      "a": "S1 <= 100",
       "b": "S1 <= 0"
-    }
+    },
+    "hoa_path": "./aUb.hoa"
   }
 }

@@ -1,0 +1,19 @@
+HOA: v1
+properties: complete deterministic no-univ-branch state-acc unambiguous 
+States: 3
+Start: 0
+AP: 1 "a"
+Acceptance: 1 Inf(0)
+acc-name: Buchi
+name: "Automaton for G(a)"
+tool: "owl ltl2ldba" "21.0"
+--BODY--
+State: 0
+[0] 1
+[!0] 2
+State: 1 {0}
+[0] 1
+[!0] 2
+State: 2
+[t] 2
+--END--

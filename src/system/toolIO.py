@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 import json
 import yaml
+import os
 
-from . import logger
+from .log import logger
 from .dynamics import ConditionalDynamics
 from .polynomial.equation import Equation
 from .space import extract_space_inequalities
+
+def resolve_path(path, base_path):
+    return path if os.path.isabs(path) else os.path.abspath(str(os.path.join(base_path, path)))
 
 
 @dataclass
@@ -91,8 +95,7 @@ class IOParser:
         logger.info(f"All the provided YAML files parsed successfully.")
         return _structure
 
-    @staticmethod
-    def process_dict_to_tool_input(data: dict) -> ToolInput:
+    def process_dict_to_tool_input(self, data: dict) -> ToolInput:
         _poly_max_ever = data["synthesis_config"]["maximal_polynomial_degree"]
         action_max_deg = data["actions"].get("maximal_polynomial_degree", _poly_max_ever) if "actions" in data else _poly_max_ever
         actions = {
@@ -126,20 +129,27 @@ class IOParser:
             "system_transformations": _system_dynamic_equations
         }
 
+        owl_path = data["synthesis_config"].get("owl_path", None)
+        if owl_path is not None:
+            owl_path = resolve_path(path=owl_path, base_path=os.path.dirname(self.input_files[0]))
+
         synthesis_config = {
             "maximal_polynomial_degree": data["synthesis_config"]["maximal_polynomial_degree"],
             "probability_threshold": data["synthesis_config"]["probability_threshold"],
-            "epsilon": data["synthesis_config"]["epsilon"],
             "theorem_name": data["synthesis_config"]["theorem_name"],
             "solver_name": data["synthesis_config"]["solver_name"],
-            "owl_path": data["synthesis_config"]["owl_path"],
+            "owl_path": owl_path
         }
+
+        hoa_path = data["specification"].get("hoa_path", None)
+        if hoa_path is not None:
+            hoa_path = resolve_path(path=hoa_path, base_path=os.path.dirname(self.input_files[0]))
 
         specification = {
             "ltl_formula": data["specification"].get("ltl_formula", None),
-            "predicate_lookup": data["specification"].get("preposition_lookup", {}),
-            "owl_binary_path": data["synthesis_config"].get("owl_path", None),
-            "hoa_path": data["specification"].get("hoa_path", None),
+            "predicate_lookup": data["specification"].get("proposition_lookup", {}),
+            "owl_binary_path": owl_path,
+            "hoa_path": hoa_path
         }
 
         return ToolInput(
