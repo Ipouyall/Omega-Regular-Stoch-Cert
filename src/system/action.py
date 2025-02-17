@@ -4,7 +4,7 @@ from enum import Enum
 from numbers import Number
 from typing import Sequence, Union, Dict
 
-from . import logger
+from .log import logger
 from .polynomial.equation import Equation
 from .polynomial.polynomial import Monomial
 from .utils import power_generator

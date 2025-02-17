@@ -5,7 +5,7 @@ from enum import Enum
 from functools import wraps
 from typing import Dict, Callable
 
-from . import logger
+from .log import logger
 from .action import SystemDecomposedControlPolicy
 from .automata.graph import Automata
 from .automata.hoaParser import HOAParser
@@ -13,9 +13,9 @@ from .automata.synthesis import LDBASpecification
 from .certificate.beiC import BoundedExpectedIncreaseConstraint
 from .certificate.cbC import ControllerBounds
 from .certificate.initialC import InitialSpaceConstraint
-from src.system.certificate.invariant.initial_constraint import InvariantInitialConstraint
-from src.system.certificate.invariant.inductive_constraint import InvariantInductiveConstraint
-from src.system.certificate.invariant.template import InvariantTemplate, InvariantFakeTemplate
+from .certificate.invariant.initial_constraint import InvariantInitialConstraint
+from .certificate.invariant.inductive_constraint import InvariantInductiveConstraint
+from .certificate.invariant.template import InvariantTemplate, InvariantFakeTemplate
 from .certificate.nnC import NonNegativityConstraint
 from .certificate.safeC import SafetyConstraint
 from .certificate.safety_condition import SafetyConditionHandler

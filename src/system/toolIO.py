@@ -3,7 +3,7 @@ import json
 import yaml
 import os
 
-from . import logger
+from .log import logger
 from .dynamics import ConditionalDynamics
 from .polynomial.equation import Equation
 from .space import extract_space_inequalities
