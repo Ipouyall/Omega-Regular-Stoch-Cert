@@ -46,16 +46,16 @@ pip install z3-solver
 To run the benchmarks using the command line, you can use the following command:
 
 ```bash
-python3 -m system --file <path_to_your_benchmark> [--iterations <number_of_iterations>]
+python3 -m system --input <path_to_your_benchmark> [--iterations <number_of_iterations>]
 ```
 The default value for the number of iterations is 1.
 
 If you want to run all the benchmarks in a directory at once, you can use the system's bulk mode. 
-For this purpose, for `--file` argument, you should provide the path to the directory containing the benchmarks, and the system would run all the benchmarks in that directory.
+For this purpose, for `--input` argument, you should provide the path to the directory containing the benchmarks, and the system would run all the benchmarks in that directory.
 By default, all results are saved in the `benchmark_results.txt`, which can be modified by using the `--output` argument:
 
 ```bash
-python3 -m system --file <path_to_your_benchmark_directory> [--output <output_file_name>]
+python3 -m system --input <path_to_your_benchmark_directory> [--output <output_file_name>]
 ```
 Note that in this case, the `--iterations` argument is always set to 1.
 
