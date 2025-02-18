@@ -64,3 +64,5 @@ def dump_results_to_table(dir_path, output_file="benchmark_results.txt"):
         f.write(table)
 
     print(f"Results saved to {output_file}")
+    print(table)
+
