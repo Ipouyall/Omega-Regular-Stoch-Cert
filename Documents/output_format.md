@@ -47,14 +47,14 @@ The model consists of five main components, each serving a distinct role in the 
 
 These variables appear in constraints but are not part of the certificate itself. They are used to define key parameters in the verification process:
 
-| Variable Name | Symbol in Paper            | Description                                                                                                             |
-|---------------|----------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| Beta_safe     | $\beta$                    | A constant used in the bounded differences condition of the safety certificate, ensuring changes remain within a bound. |
-| Delta_live    | $M^{L}$                    | A constant bounding the maximum allowed change (increase) for the liveness certificate.                                 |
-| Delta_safe*   | $M^{S}$, $M$               | A constant bounding the maximum allowed change (increase) for the safety certificate, as part of the SafetyCond.        |
-| Epsilon_live  | $\epsilon^{L}$             | A constant ensuring the strict expected decrease in expectation for the liveness certificate.                           |
-| Epsilon_safe  | $\epsilon^{S}$, $\epsilon$ | A constant ensuring the strict expected decrease in expectation for the safety certificate, as part of the SafetyCond.  |
-| Eta_safe      | $\eta^{S}$, $\eta$         | A constant defining an upper bound for the safety certificate at initial states.                                        |
+| Variable Name | Symbol in Paper    | Description                                                                                                             |
+|---------------|--------------------|-------------------------------------------------------------------------------------------------------------------------|
+| Beta_safe     | $\beta$            | A constant used in the bounded differences condition of the safety certificate, ensuring changes remain within a bound. |
+| Delta_live    | $M^{L}$            | A constant bounding the maximum allowed change (increase) for the liveness certificate.                                 |
+| Delta_safe*   | $M^{S}$            | A constant bounding the maximum allowed change (increase) for the safety certificate, as part of the SafetyCond.        |
+| Epsilon_live  | $\epsilon^{L}$     | A constant ensuring the strict expected decrease in expectation for the liveness certificate.                           |
+| Epsilon_safe  | $\epsilon^{S}$     | A constant ensuring the strict expected decrease in expectation for the safety certificate, as part of the SafetyCond.  |
+| Eta_safe      | $\eta^{S}$, $\eta$ | A constant defining an upper bound for the safety certificate at initial states.                                        |
 
 > [!NOTE] 
 > Delta_safe (appeared as $M^{S}$) is always hardcoded as 1 and does not appear in the model.
