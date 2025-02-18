@@ -10,7 +10,7 @@ from . import benchmark_runner, dump_results_to_table
 parser = argparse.ArgumentParser(description="The implementation of the 'Supermartingale Certificates for Quantitative Omega-regular Verification and Control' paper.")
 parser.add_argument("--file", type=str, nargs="?", default=None, help="Path to the input file for the system")
 parser.add_argument("--iterations", type=int, default=1, help="Number of iterations to run the system (default: 1)")
-parser.add_argument("--bulk_result", type=str, nargs="?", default="benchmark_results.txt", help="Path to the file you want to dump the results to (default: benchmark_results.txt)")
+parser.add_argument("--output", type=str, nargs="?", default="benchmark_results.txt", help="Path to the file you want to dump the results to (default: benchmark_results.txt)")
 args = parser.parse_args()
 
 # print(f"Running the system with the following arguments:")
