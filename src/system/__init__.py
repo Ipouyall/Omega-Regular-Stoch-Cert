@@ -49,10 +49,23 @@ def benchmark_runner(path, iterations=1, report_mode=False):
     return mean_runtime, std_runtime
 
 
+def _sort_benchmarks(files: list[str]):
+    verifications = []
+    controls = []
+
+    for file in files:
+        if "verification" in file:
+            verifications.append(file)
+        elif "control" in file:
+            controls.append(file)
+        else:
+            print(f"Unknown benchmark: {file}")
+    return sorted(verifications) + sorted(controls)
+
 def bulk_benchmark_runner(dir_path):
     dir_files = os.listdir(dir_path)
     dir_files = [file for file in dir_files if file.endswith(".yml") or file.endswith(".yaml") or file.endswith(".json")]
-    dir_files.sort()
+    dir_files = _sort_benchmarks(dir_files)
 
     report = {
         "Experiment": [],
