@@ -5,7 +5,7 @@ python -m system file_path iterations
 import argparse
 import os
 
-from . import benchmark_runner, dump_results_to_table
+from . import benchmark_runner, dump_results_to_table, bulk_benchmark_runner
 
 parser = argparse.ArgumentParser(description="The implementation of the 'Supermartingale Certificates for Quantitative Omega-regular Verification and Control' paper.")
 parser.add_argument("--input", type=str, nargs="?", default=None, help="Path to the input file for the system. This can be a single file or a directory (default: None)")
@@ -22,9 +22,10 @@ if not args.input:
 
 if os.path.isdir(args.input):
     print("Running the system in bulk mode")
-    dump_results_to_table(args.input)
+    table_data = bulk_benchmark_runner(args.input)
+    dump_results_to_table(table_data)
 elif os.path.isfile(args.input):
-    mean_runtime, std_runtime = benchmark_runner(path=args.input, iterations=args.iterations)
+    _ = benchmark_runner(path=args.input, iterations=args.iterations)
 else:
     raise ValueError(f"Invalid path provided for the system: {args.input}")
 
