@@ -48,7 +48,7 @@
   "specification": {
     "ltl_formula": "(GF a)",
     "proposition_lookup": {
-      "a": "S1 <= -2"
+      "a": "S1 <= 0"
     },
     "hoa_path": "./GFa.hoa"
   }

@@ -46,7 +46,7 @@
   "specification": {
     "ltl_formula": "G a",
     "proposition_lookup": {
-      "a": "S1 <= 50"
+      "a": "S1 <= 100"
     },
     "hoa_path": "./Ga.hoa"
   }

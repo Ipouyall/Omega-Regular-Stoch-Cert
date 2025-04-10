@@ -47,7 +47,7 @@
     "ltl_formula": "(F a) & (F b)",
     "proposition_lookup": {
       "a": "S1 <= 0",
-      "b": "S1 <= 50"
+      "b": "S1 <= 100"
     },
     "hoa_path": "./FaFb_2.hoa"
   }
