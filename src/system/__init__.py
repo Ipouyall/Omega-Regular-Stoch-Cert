@@ -17,6 +17,15 @@ def dump_results_to_table(table_data, output_file="benchmark_results.txt"):
     print(f"Results saved to {output_file}")
 
 
+def _translate(label: str, translations: dict[str, str]) -> str:
+    sig = "##{l}##"
+    for k in translations.keys():
+        label = label.replace(k, sig.format(l=k))
+    for k, v in translations.items():
+        label = label.replace(sig.format(l=k), f"({v})")
+    return label
+
+
 def benchmark_runner(path, iterations=1, report_mode=False):
     runtimes = []
     stat = True if iterations >= 1 else None
@@ -35,7 +44,9 @@ def benchmark_runner(path, iterations=1, report_mode=False):
         runtimes.append(end_time - start_time)
         stat = stat and succeeded(runner_instance)
         prob = runner_instance.history["synthesis"].probability_threshold
-        spec = runner_instance.history["initiator"].specification_pre["ltl_formula"]
+        _label = runner_instance.history["initiator"].specification_pre["ltl_formula"]
+        _look = runner_instance.history["initiator"].specification_pre["predicate_lookup"]
+        spec = _translate(_label, _look)
 
     mean_runtime = np.mean(runtimes)
     std_runtime = np.std(runtimes)
