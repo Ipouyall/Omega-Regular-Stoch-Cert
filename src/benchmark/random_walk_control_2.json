@@ -46,10 +46,11 @@
   },
 
   "specification": {
-    "ltl_formula": "(GF a)",
+    "ltl_formula": "a U b",
     "proposition_lookup": {
-      "a": "S1 <= 0"
+      "a": "S1 <= 100",
+      "b": "S1 <= 0"
     },
-    "hoa_path": "./GFa.hoa"
+    "hoa_path": "./aUb.hoa"
   }
 }

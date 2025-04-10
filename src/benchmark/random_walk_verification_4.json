@@ -44,11 +44,10 @@
   },
 
   "specification": {
-    "ltl_formula": "(G a) & (F b)",
+    "ltl_formula": "G a",
     "proposition_lookup": {
-      "a": "S1 <= 100",
-      "b": "S1 <= 0"
+      "a": "S1 <= 100"
     },
-    "hoa_path": "./GaFb.hoa"
+    "hoa_path": "./Ga.hoa"
   }
 }

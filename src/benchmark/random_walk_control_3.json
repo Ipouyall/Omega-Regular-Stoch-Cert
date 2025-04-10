@@ -46,11 +46,11 @@
   },
 
   "specification": {
-    "ltl_formula": "a U b",
+    "ltl_formula": "(G a) & (F b)",
     "proposition_lookup": {
       "a": "S1 <= 100",
       "b": "S1 <= 0"
     },
-    "hoa_path": "./aUb.hoa"
+    "hoa_path": "./GaFb.hoa"
   }
 }
