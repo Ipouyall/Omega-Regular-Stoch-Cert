@@ -59,8 +59,6 @@ python3 -m system --input <path_to_your_benchmark_directory> [--output <output_f
 ```
 Note that in this case, the `--iterations` argument is always set to 1.
 
-```bash
-
 ### Running the System using a python script
 
 To run the benchmarks using a python script, you can use the `runner_check.py` script, which is:
