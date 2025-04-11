@@ -119,7 +119,7 @@ the system would produce a table to summarize the results:
 
 ## Docker Usage Guide
 
-If you need a step by step guide on how to interact with the docker image, you can refer to the [Docker Usage Guide](./Documents/docker.md) to learn how to build, run, save, and load the docker image for this project.
+If you need a step-by-step guide on how to interact with the docker image, you can refer to the [Docker Usage Guide](./Documents/docker.md) to learn how to build, run, save, and load the docker image for this project.
 This document provides detailed instructions on how to use docker. To install docker, you can visit the [Docker website](https://www.docker.com/get-started/).
 
 
