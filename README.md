@@ -108,7 +108,7 @@ you can refer to the [output format document](./Documents/output_format.md).
 
 To reproduce the experimental results, 
 you can use the CLI interface and run all the benchmarks in `./benchmark` directory, 
-by using `python3 -m system --input ./benchmark`
+by using `python3 -m system --input ./benchmark` command.
 In addition to the result of each benchmark, 
 the system would produce a table to summarize the results:
 
