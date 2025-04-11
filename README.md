@@ -13,7 +13,7 @@
   - [Reproducing Experimental Results](#reproducing-experimental-results)
 - [Docker Usage Guide](#docker-usage-guide)
 - [Citation](#citation)
-- 
+
 
 ## Introduction 
 This repository contains the artifact of the paper titled "Supermartingale Certificates for Quantitative Omega-regular Verification and Control", 
