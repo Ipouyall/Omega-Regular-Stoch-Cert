@@ -38,7 +38,8 @@ def benchmark_runner(path, iterations=1, report_mode=False):
         runner_instance = Runner(path, "")
         runner_instance.run()
         end_time = perf_counter()
-        print(f"Runtime: {end_time - start_time:.3f} seconds")
+        if iterations > 1:
+            print(f"Runtime: {end_time - start_time:.3f} seconds")
         if not report_mode:
             assert succeeded(runner_instance), "Failed to satisfy the constraints"
         runtimes.append(end_time - start_time)
@@ -51,9 +52,9 @@ def benchmark_runner(path, iterations=1, report_mode=False):
     mean_runtime = np.mean(runtimes)
     std_runtime = np.std(runtimes)
 
-    print(f"Mean Runtime: {mean_runtime:.9f} seconds")
-    print(f"Standard Deviation of Runtime: {std_runtime:.9f} seconds")
     print(f"Runtime: {mean_runtime:.3f} ± {std_runtime:.3f} seconds")
+    print(f"Specification: {spec}")
+    print(f"Probability: {prob}")
 
     if report_mode:
         return mean_runtime, std_runtime, stat, prob, spec
