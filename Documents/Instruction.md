@@ -50,7 +50,9 @@ This artifact supports full reproducibility of the paper's results and facilitat
 
 ## 3. Running the Artifact
 
-This tool operates on benchmarks defined as JSON files, described in detail in [`Documents/input_format.md`](./input_format.md). Each execution generates a report that includes:
+This tool operates on benchmarks defined as JSON files,
+described in detail in [`Documents/input_format.md`](./input_format.md). 
+Each execution generates a report that includes:
 
 - Benchmark success/failure
 - Synthesized certificate
@@ -58,6 +60,8 @@ This tool operates on benchmarks defined as JSON files, described in detail in [
 - Benchmark summary
 
 > For guidance on interpreting results, see [`Documents/output_format.md`](./output_format.md).
+
+> To design your own benchmarks, refer to [`Documents/input_format.md`](./input_format.md).
 
 ### CLI Usage
 
@@ -73,6 +77,10 @@ Run all benchmarks in a directory:
 python3 -m system --input ./benchmark [--output <output_file>]
 ```
 
+This command runs all benchmarks in the `./benchmark` directory, starting by verifications and then control problems. 
+The results are saved in `benchmark_results.txt` (or `--output` if provided)
+and printed in the terminal after each benchmark.
+
 ### Python API Usage
 
 Use `runner_check.py` to run a benchmark programmatically:
@@ -81,7 +89,7 @@ Use `runner_check.py` to run a benchmark programmatically:
 from system import benchmark_runner
 
 if __name__ == "__main__":
-    config_file = "./benchmark/random_walk_verification_3.json"
+    config_file = "./benchmark/random_walk_verification_0.json"  # Path to your benchmark file
     benchmark_runner(config_file, iterations=1)
 ```
 
@@ -97,7 +105,9 @@ To reproduce all experimental results from the paper:
    python3 -m system --input ./benchmark
    ```
 
-This command runs all benchmarks in the `./benchmark` directory. Outputs, including the summarized result table, are saved to `benchmark_results.txt` and is printed in the terminal after running each benchmark.
+This command runs all benchmarks in the `./benchmark` directory. 
+Outputs, including the summarized result table, 
+are saved to `benchmark_results.txt` and is printed in the terminal after running each benchmark.
 
 ---
 
