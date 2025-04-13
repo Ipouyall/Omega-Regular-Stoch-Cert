@@ -16,10 +16,10 @@
 
 
 ## Introduction 
-This repository contains the artifact of the paper titled "Supermartingale Certificates for Quantitative Omega-regular Verification and Control", 
+This repository contains the artifact of the paper titled 
+"Supermartingale Certificates for Quantitative Omega-regular Verification and Control", 
 which is proposed a novel approach for quantitative $\omega$-regular verification and control of infinite-state stochastic systems.
 
-Our method extends supermartingale certificates to support a broad class of quantitative (probabilistic) $\omega$-regular properties and enables fully automated certificate-based verification and control synthesis.
 
 
 ## Features
