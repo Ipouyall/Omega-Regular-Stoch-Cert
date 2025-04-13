@@ -47,7 +47,7 @@ This artifact supports full reproducibility of the results presented in the pape
 1. **Load the image**: Use the provided Docker image. To load the prebuilt image, run:
 
    ```bash
-   docker load -i system.tar
+   gunzip -c system.tar.gz | docker load
    ```
 
 2. **Run the container**: After loading, start the container with:
