@@ -1,0 +1,21 @@
+
+
+
+## To replicate paper results:
+
+1. Load the docker image:
+```
+docker load -i system.tar
+```
+
+2. Run the docker image:
+```
+docker run -it system:v0.1
+```
+
+3. Run the following command to start benchmarking:
+```
+python3 -m system --input ./benchmark
+```
+
+4. The result would be saved to `benchmark_results.txt` and would be printed to the console.
