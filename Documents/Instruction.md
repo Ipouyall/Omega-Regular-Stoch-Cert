@@ -30,38 +30,21 @@ This artifact supports full reproducibility of the paper's results and facilitat
 
 ## 2. Setup Instructions
 
-### Option 1: Native Installation
+### Docker
 
-1. Install Python 3.12.5 or later.
-2. Install Python dependencies:
+1. **Load the image:** You can use the provided Docker image. To load the provided prebuilt image, use command below:
 
    ```bash
-   pip install -r requirements.txt
+   docker load -i system.tar
    ```
 
-3. (Optional) Download and install MathSAT from [https://mathsat.fbk.eu/download.html](https://mathsat.fbk.eu/download.html) if MathSAT-based solving is desired.
+2. **To run the container:** After loading the image, you can run the container using:
 
-### Option 2: Docker
+   ```bash
+   docker run -it system:v0.1
+   ```
 
-You may use the provided Docker image or build it locally using:
-
-```bash
-docker build -t system:v0.1 .
-```
-
-Alternatively, load a prebuilt image:
-
-```bash
-docker load -i system.tar
-```
-
-To run the container:
-
-```bash
-docker run -it system:v0.1
-```
-
-For detailed Docker usage, consult [`Documents/docker.md`](./docker.md).
+> If you need more details on Docker usage, please refer to [`Documents/docker.md`](./docker.md).
 
 ---
 
