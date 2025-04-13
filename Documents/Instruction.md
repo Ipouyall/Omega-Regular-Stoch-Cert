@@ -1,16 +1,28 @@
-
 # Instruction.md
 
 ## Overview
 
-This document provides complete and professional instructions for installing, running, and reproducing the experiments associated with our paper:
+This document provides complete and professional instructions for installing, running, and reproducing the experiments associated with our paper artifact.  
+It is prepared specifically for the **artifact evaluation** of our submission to CAV 2025.
 
 **Title**: *Supermartingale Certificates for Quantitative Omega-regular Verification and Control*  
 **Authors**: **[TO BE FILLED]**  
 **DOI**: *[TO BE FILLED]*  
 **Artifact SHA256**: *[TO BE FILLED]*  
 
-This artifact supports full reproducibility of the paper's results and facilitates experimentation with user-defined benchmarks.
+This artifact supports full reproducibility of the results presented in the paper and facilitates experimentation with user-defined benchmarks.
+
+---
+
+## Table of Contents
+
+1. [Artifact Check-list](#1-artifact-check-list)  
+2. [Setup Instructions](#2-setup-instructions)  
+3. [Running the Artifact](#3-running-the-artifact)  
+4. [Reproducing Paper Results](#4-reproducing-paper-results)  
+5. [Designing Custom Benchmarks](#5-designing-custom-benchmarks)  
+6. [Docker Usage](#6-docker-usage)  
+7. [License](#7-license)  
 
 ---
 
@@ -23,7 +35,7 @@ This artifact supports full reproducibility of the paper's results and facilitat
 - **Expected Runtime**: Each benchmark runs in seconds to a few minutes
 - **License**: MIT
 - **Artifact Availability**: Yes, hosted on GitHub / Zenodo (see DOI)
-- **Reusability**: Out tool supports for custom benchmarks. Please refer to [**Designing Custom Benchmark**](#5-designing-custom-benchmarks).
+- **Reusability**: Our tool supports custom benchmarks. Please refer to [**Designing Custom Benchmarks**](#5-designing-custom-benchmarks).
 - **Functionality**: Fully functional as described in the paper. Please refer to [**Reproducing Paper Results**](#4-reproducing-paper-results).
 
 ---
@@ -32,36 +44,35 @@ This artifact supports full reproducibility of the paper's results and facilitat
 
 ### Docker
 
-1. **Load the image:** You can use the provided Docker image. To load the provided prebuilt image, use command below:
+1. **Load the image**: Use the provided Docker image. To load the prebuilt image, run:
 
    ```bash
    docker load -i system.tar
    ```
 
-2. **To run the container:** After loading the image, you can run the container using:
+2. **Run the container**: After loading, start the container with:
 
    ```bash
    docker run -it system:v0.1
    ```
 
-> If you need more details on Docker usage, please refer to [`Documents/docker.md`](./docker.md).
+> For more details on Docker usage, refer to [`Documents/docker.md`](./docker.md).
 
 ---
 
 ## 3. Running the Artifact
 
-This tool operates on benchmarks defined as JSON files,
-described in detail in [`Documents/input_format.md`](./input_format.md). 
-Each execution generates a report that includes:
+This tool operates on benchmarks defined in JSON format, as described in [`Documents/input_format.md`](./input_format.md).  
+Each run generates a report including:
 
-- Benchmark success/failure
+- Success/failure of the benchmark
 - Synthesized certificate
 - Runtime metrics
 - Benchmark summary
 
-> For guidance on interpreting results, see [`Documents/output_format.md`](./output_format.md).
+> For output interpretation, refer to [`Documents/output_format.md`](./output_format.md).  
 
-> To design your own benchmarks, refer to [`Documents/input_format.md`](./input_format.md).
+> For designing your own benchmarks, refer to [`Documents/input_format.md`](./input_format.md).
 
 ### CLI Usage
 
@@ -77,13 +88,13 @@ Run all benchmarks in a directory:
 python3 -m system --input ./benchmark [--output <output_file>]
 ```
 
-This command runs all benchmarks in the `./benchmark` directory, starting by verifications and then control problems. 
-The results are saved in `benchmark_results.txt` (or `--output` if provided)
-and printed in the terminal after each benchmark.
+This command processes all benchmarks in the `./benchmark` directory, 
+starting with verification problems followed by control problems.  
+Results are saved in `benchmark_results.txt` (or as specified with `--output`) and printed to the terminal.
 
 ### Python API Usage
 
-Use `runner_check.py` to run a benchmark programmatically:
+To run benchmarks programmatically, use `runner_check.py`:
 
 ```python
 from system import benchmark_runner
@@ -97,17 +108,17 @@ if __name__ == "__main__":
 
 ## 4. Reproducing Paper Results
 
-To reproduce all experimental results from the paper:
-1. Install the system or run the docker image, as described in [**Setup Instructions**](#2-setup-instructions).
-2. Run the benchmarks using the command below:
-   
+To reproduce all experiments from the paper:
+
+1. Install the system or load the Docker image as outlined in [**Setup Instructions**](#2-setup-instructions).
+2. Run:
+
    ```bash
    python3 -m system --input ./benchmark
    ```
 
-This command runs all benchmarks in the `./benchmark` directory. 
-Outputs, including the summarized result table, 
-are saved to `benchmark_results.txt` and is printed in the terminal after running each benchmark.
+This command runs all benchmarks in the `./benchmark` directory.  
+Results, including the summary table, are saved to `benchmark_results.txt` and printed to the terminal.
 
 ---
 
@@ -115,8 +126,8 @@ are saved to `benchmark_results.txt` and is printed in the terminal after runnin
 
 ### Input Format
 
-Custom benchmarks should conform to the format documented in [`Documents/input_format.md`](./input_format.md). 
-Each file specifies the stochastic system dynamics, properties, and objective.
+Custom benchmarks should follow the format described in [`Documents/input_format.md`](./input_format.md).  
+Each file defines stochastic system dynamics, target properties, and analysis objectives.
 
 ### Output Format
 
@@ -125,26 +136,26 @@ Output files include:
 - Success/failure of the benchmark
 - Synthesized certificate
 - Runtime metrics
-- Summary of the benchmark and its properties
+- Benchmark and property summary
 
-See [`Documents/output_format.md`](./output_format.md) for a detailed breakdown.
+For full details, refer to [`Documents/output_format.md`](./output_format.md).
 
 ---
 
 ## 6. Docker Usage
 
-Comprehensive Docker instructions are provided in [`Documents/docker.md`](./docker.md), covering:
+For comprehensive Docker usage, consult [`Documents/docker.md`](./docker.md), which includes:
 
 - Building the Docker image
 - Running with volume mounts
-- Saving/loading containers
+- Saving and loading containers
 
-Docker ensures full environment reproducibility for artifact evaluation.
+Docker guarantees full environment reproducibility and simplifies artifact evaluation.
 
 ---
 
 ## 7. License
 
-This artifact is distributed under the **MIT License**, allowing open use, modification, and distribution with appropriate attribution.
+This artifact is released under the **MIT License**, permitting open use, modification, and distribution with proper attribution.
 
 ---
