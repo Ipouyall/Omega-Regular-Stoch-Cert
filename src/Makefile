@@ -1,4 +1,4 @@
-TIME_LIMIT=3
+TIME_LIMIT=10
 
 .PHONY: run verifications controls visual benchmark docker-build docker-run docker-save docker-load
 
@@ -17,7 +17,7 @@ controls:
 	done
 
 visual:
-	@echo "===== Running visualizations ====="
+	@python3 -m system --input "log.jsonl" --visualize
 
 run:
 	@if [ -z "$(INPUT)" ]; then \
@@ -32,7 +32,7 @@ run:
 		echo "Error: timeout or gtimeout not found. Install coreutils on macOS."; \
 		exit 1; \
 	fi; \
-	$$TIMEOUT_CMD $(TIME_LIMIT) python3 -m system --input "$(INPUT)"; \
+	$$TIMEOUT_CMD $(TIME_LIMIT) python3 -m system --input "$(INPUT)" --output "log.jsonl" --dump-log; \
 	EXIT_CODE=$$?; \
 	if [ $$EXIT_CODE -eq 124 ]; then \
 		echo "Terminated: Exceeded $(TIME_LIMIT)s for $(INPUT)"; \

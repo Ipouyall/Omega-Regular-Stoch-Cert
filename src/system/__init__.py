@@ -2,12 +2,35 @@ from time import perf_counter
 import numpy as np
 from tabulate import tabulate
 import os
+import json
 
 from .runner import Runner
 
 
 def dump_results_to_table(table_data, output_file="benchmark_results.txt"):
     table = tabulate(table_data, headers="keys", tablefmt="grid")
+    print(table)
+
+    if output_file is None:
+        return
+    with open(output_file, "w") as f:
+        f.write(table)
+    print(f"Results saved to {output_file}")
+
+
+def convert_results_to_table(dump_file="log.jsonl", output_file="benchmark_results.txt"):
+    with open(dump_file, "r") as f:
+        lines = f.readlines()
+    table_data = []
+    for line in lines:
+        data = json.loads(line)
+        table_data.append(data)
+
+    table = tabulate(
+        table_data,
+        headers="keys",
+        tablefmt="grid"
+    )
     print(table)
 
     if output_file is None:
@@ -112,4 +135,9 @@ def bulk_benchmark_runner(dir_path):
     return report
 
 
+def dump_log_result(data: dict, output_file="log.jsonl"):
+    with open(output_file, "a") as f:
+        json.dump(data, f)
+        f.write("\n")
+    print(f"Log saved to {output_file}")
 
