@@ -4,6 +4,11 @@ TIME_LIMIT=300
 
 benchmark: verifications controls visual
 
+smoke-test:
+	@make --no-print-directory run INPUT=benchmark/random_walk_verification_0.json
+	@make --no-print-directory run INPUT=benchmark/random_walk_control_0.json
+	@make --no-print-directory visual
+
 verifications:
 	@for i in 0 1 2 3 4 5; do \
 		make --no-print-directory run INPUT=benchmark/random_walk_verification_$$i.json; \
