@@ -6,12 +6,12 @@ benchmark: verifications controls visual
 
 verifications:
 	@for i in 0 1 2 3 4 5; do \
-		make run INPUT=benchmark/random_walk_verification_$$i.json; \
+		make --no-print-directory run INPUT=benchmark/random_walk_verification_$$i.json; \
 	done
 
 controls:
 	@for i in 0 1 2 3 4; do \
-		make run INPUT=benchmark/random_walk_control_$$i.json; \
+		make --no-print-directory run INPUT=benchmark/random_walk_control_$$i.json; \
 	done
 
 visual:
