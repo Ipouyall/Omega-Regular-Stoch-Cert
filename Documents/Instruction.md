@@ -18,7 +18,9 @@ This artifact supports full reproducibility of the results presented in the pape
 
 1. [Artifact Check-list](#1-artifact-check-list)  
 2. [Setup Instructions](#2-setup-instructions)  
-3. [Reproducing Paper Results](#3-reproducing-paper-results)  
+3. [Reproducing Paper Results](#3-reproducing-paper-results) 
+   - [Smoke-Test phase](#31-smoke-test-phase)
+   - [Full Benchmarking](#32-full-benchmarking)
 4. [Designing Custom Benchmarks](#4-designing-custom-benchmarks)  
 5. [Running the Artifact](#5-running-the-artifact)  
 6. [Docker Usage](#6-docker-usage)  
