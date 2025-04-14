@@ -6,7 +6,7 @@ This document provides complete and professional instructions for installing, ru
 It is prepared specifically for the **artifact evaluation** of our submission to CAV 2025.
 
 **Title**: *Supermartingale Certificates for Quantitative Omega-regular Verification and Control*  
-**Authors**: **[TO BE FILLED]**  
+**Authors**: Thomas A. Henzinger, Kaushik Mallik, Pouya Sadeghi, Djordje Zikelic
 **DOI**: *[TO BE FILLED]*  
 **Artifact SHA256**: *[TO BE FILLED]*  
 
