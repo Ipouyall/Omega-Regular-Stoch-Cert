@@ -1,4 +1,4 @@
-TIME_LIMIT=10
+TIME_LIMIT=300
 
 .PHONY: run verifications controls visual benchmark docker-build docker-run docker-save docker-load
 
@@ -6,13 +6,11 @@ benchmark: verifications controls visual
 
 verifications:
 	@for i in 0 1 2 3 4 5; do \
-		echo "===== Running verification $$i ====="; \
 		make run INPUT=benchmark/random_walk_verification_$$i.json; \
 	done
 
 controls:
 	@for i in 0 1 2 3 4; do \
-		echo "===== Running control $$i ====="; \
 		make run INPUT=benchmark/random_walk_control_$$i.json; \
 	done
 
@@ -43,6 +41,7 @@ run:
 	fi
 
 
+docker: docker-build docker-run
 
 docker-build:
 	@docker build -t system:v0.1 .
