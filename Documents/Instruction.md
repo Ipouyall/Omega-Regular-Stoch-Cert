@@ -29,14 +29,15 @@ This artifact supports full reproducibility of the results presented in the pape
 ## 1. Artifact Check-list
 
 - **Operating System**: macOS 15.3.2 (tested); cross-platform via Docker
-- **Installation**: `requirements.txt` (native) or prebuilt Docker image
-- **Dependencies**: Python 3.12, `z3-solver`, PolyQEnt (formerly PolyHorn)
+- **Installation**: Prebuilt Docker image
+- **Docker Requirement**: Please ensure Docker is installed on your system. For installation instructions, refer to the [Docker website](https://docs.docker.com/get-docker/)
+- **Dependencies**: Python 3.12, `z3-solver`, PolyQEnt (formerly PolyHorn) $\rightarrow$ Already included in the Docker image
 - **Hardware Requirements**: No special hardware required; tested on systems with 16GB RAM
-- **Expected Runtime**: Each benchmark runs in seconds to a few minutes
+- **Expected Runtime**: Each benchmark runs in seconds to a few minutes. Reproducing all experiments in the paper takes approximately 20–25 minutes on a standard machine
 - **License**: MIT
 - **Artifact Availability**: Yes, hosted on GitHub / Zenodo (see DOI)
-- **Reusability**: Our tool supports custom benchmarks. Please refer to [**Designing Custom Benchmarks**](#5-designing-custom-benchmarks).
-- **Functionality**: Fully functional as described in the paper. Please refer to [**Reproducing Paper Results**](#4-reproducing-paper-results).
+- **Reusability**: Our tool supports custom benchmarks. Please refer to [*Designing Custom Benchmarks*](#5-designing-custom-benchmarks).
+- **Functionality**: Fully functional as described in the paper. Please refer to [*Reproducing Paper Results*](#4-reproducing-paper-results).
 
 ---
 
@@ -47,7 +48,7 @@ This artifact supports full reproducibility of the results presented in the pape
 1. **Load the image**: Use the provided Docker image. To load the prebuilt image, run:
 
    ```bash
-   gunzip -c system.tar.gz | docker load
+   docker load -i system.tar
    ```
 
 2. **Run the container**: After loading, start the container with:
