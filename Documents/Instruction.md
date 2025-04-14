@@ -67,7 +67,7 @@ This artifact supports full reproducibility of the results presented in the pape
 
 ## 3. Reproducing Paper Results
 
-### 3.1 Smoke-Test phase
+### 3.1. Smoke-Test phase
 
 For smoke-test phase, you can use the command below, 
 which just produces a subset of our benchmarks (1x verification and 1x control):
@@ -76,9 +76,9 @@ which just produces a subset of our benchmarks (1x verification and 1x control):
 make smoke-test
 ```
 
-This should take less than a minute to run on a standard machine.
+> This should take less than a minute to run on a standard machine. There is a timeout of 300 seconds for each benchmark, which should not be hit on a standard machine.
 
-### 3.2 Full Benchmarking
+### 3.2. Full Benchmarking
 
 To reproduce all experiments from the paper:
 
@@ -93,6 +93,8 @@ This command runs all benchmarks in the `./benchmark` directory that are present
 Results, including the summary table, are saved to `benchmark_results.txt` and printed to the terminal.
 
 > This command sets 300 seconds (5 minutes) timeout by default for each benchmark. 
+> While this is sufficient for all benchmarks on a standard machine, a few may exceed this limit depending on system performance.
+> In such cases, you can increase the `TIME_LIMIT` parameter or run the specific benchmark individually, as described in [`Running the Artifact`](#5-running-the-artifact).
 
 ---
 
