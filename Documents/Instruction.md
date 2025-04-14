@@ -59,9 +59,24 @@ This artifact supports full reproducibility of the results presented in the pape
 
 > For more details on Docker usage, refer to [`Documents/docker.md`](./docker.md).
 
+> If you faced any issues with the prebuilt Docker image, you can build the image from the source, using `make docker` command.
+
 ---
 
 ## 3. Reproducing Paper Results
+
+### 3.1 Smoke-Test phase
+
+For smoke-test phase, you can use the command below, 
+which just produces a subset of our benchmarks (1x verification and 1x control):
+
+```bash
+make smoke-test
+```
+
+This should take less than a minute to run on a standard machine.
+
+### 3.2 Full Benchmarking
 
 To reproduce all experiments from the paper:
 
@@ -72,8 +87,10 @@ To reproduce all experiments from the paper:
    make benchmark
    ```
 
-This command runs all benchmarks in the `./benchmark` directory.  
+This command runs all benchmarks in the `./benchmark` directory that are presented in our paper.
 Results, including the summary table, are saved to `benchmark_results.txt` and printed to the terminal.
+
+> This command sets 300 seconds (5 minutes) timeout by default for each benchmark. 
 
 ---
 
