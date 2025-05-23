@@ -122,3 +122,10 @@ This document provides detailed instructions on how to use docker. To install do
 > You can build the project's docker image using `make docker` command.
 
 ## Citation
+
+If you use this code or refer to our method in your work, please cite our paper:
+
+```bibtex
+
+```
+
