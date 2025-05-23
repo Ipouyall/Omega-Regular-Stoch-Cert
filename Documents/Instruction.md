@@ -2,7 +2,8 @@
 
 ## Overview
 
-This document provides complete and professional instructions for installing, running, and reproducing the experiments associated with our paper artifact.  
+This document provides complete instructions for installing, running, 
+and reproducing the experiments associated with our paper artifact.  
 It is prepared specifically for the **artifact evaluation** of our submission to CAV 2025.
 
 **Title**: *Supermartingale Certificates for Quantitative Omega-regular Verification and Control*  

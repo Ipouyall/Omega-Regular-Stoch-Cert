@@ -20,6 +20,8 @@ This repository contains the artifact of the paper titled
 "Supermartingale Certificates for Quantitative Omega-regular Verification and Control", 
 which is proposed a novel approach for quantitative $\omega$-regular verification and control of infinite-state stochastic systems.
 
+For the Artifact Evaluation version of this project, 
+please refer to the [Instruction.md](./Documents/Instruction.md) for detailed setup and execution instructions.
 
 
 ## Features
@@ -107,14 +109,8 @@ you can refer to the [output format document](./Documents/output_format.md).
 ### Reproducing Experimental Results
 
 To reproduce the experimental results, 
-you can use the CLI interface and run all the benchmarks in `./benchmark` directory, 
+you can use the `make benchmark` command or use the CLI interface and run all the benchmarks in `./benchmark` directory, 
 by using `python3 -m system --input ./benchmark` command.
-In addition to the result of each benchmark, 
-the system would produce a table to summarize the results:
-
-```text
-
-```
 
 
 ## Docker Usage Guide
@@ -122,5 +118,7 @@ the system would produce a table to summarize the results:
 If you need a step-by-step guide on how to interact with the docker image, you can refer to the [Docker Usage Guide](./Documents/docker.md) to learn how to build, run, save, and load the docker image for this project.
 This document provides detailed instructions on how to use docker. To install docker, you can visit the [Docker website](https://www.docker.com/get-started/).
 
+> [!TIP]
+> You can build the project's docker image using `make docker` command.
 
 ## Citation
